@@ -6,12 +6,15 @@ import {
   Paper,
   ThemeProvider,
   createTheme,
-  CssBaseline
+  CssBaseline,
+  CircularProgress,
+  Alert,
+  Button
 } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { format } from 'date-fns';
+import { getBaziReading } from './services/openai';
 
 const theme = createTheme({
   palette: {
@@ -28,13 +31,32 @@ const theme = createTheme({
 function App() {
   const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [reading, setReading] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleDateChange = async (newValue: Date | null) => {
+  const handleDateChange = (newValue: Date | null) => {
     setBirthDate(newValue);
-    if (newValue) {
-      // TODO: Add API call to get Bazi reading
-      const formattedDate = format(newValue, 'yyyy-MM-dd');
-      setReading(`Loading Bazi reading for ${formattedDate}...`);
+    setError(null);
+    setReading(null); // Clear previous reading when date changes
+  };
+
+  const handleSubmit = async () => {
+    if (!birthDate) {
+      setError('Please select a birth date first');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const baziReading = await getBaziReading(birthDate);
+      setReading(baziReading.reading);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred while generating your reading.');
+      setReading(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,12 +82,42 @@ function App() {
                   label="Birth Date"
                   value={birthDate}
                   onChange={handleDateChange}
-                  sx={{ width: '100%', maxWidth: 300 }}
+                  format="yyyy-MM-dd"
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      placeholder: "YYYY-MM-DD",
+                      sx: { width: '100%', maxWidth: 300 }
+                    }
+                  }}
                 />
+                <Typography variant="caption" color="text.secondary">
+                  You can type the date directly (YYYY-MM-DD) or use the calendar picker
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={handleSubmit}
+                  disabled={!birthDate || loading}
+                  sx={{ mt: 2 }}
+                >
+                  {loading ? 'Generating Reading...' : 'Get Your Reading'}
+                </Button>
               </Box>
             </Paper>
 
-            {reading && (
+            {loading && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+                <CircularProgress />
+              </Box>
+            )}
+
+            {error && (
+              <Alert severity="error" sx={{ mb: 4 }}>
+                {error}
+              </Alert>
+            )}
+
+            {reading && !loading && (
               <Paper elevation={3} sx={{ p: 4 }}>
                 <Typography variant="h6" gutterBottom>
                   Your Bazi Reading
