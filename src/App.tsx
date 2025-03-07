@@ -144,10 +144,16 @@ function App() {
                   xs: '2.5rem',  // Mobile
                   sm: '3.5rem',  // Tablet
                   md: '3.75rem'  // Desktop
-                }
+                },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: { xs: '0.5rem', sm: '1rem' }
               }}
             >
+              <span style={{ fontSize: '0.9em' }}>🀄</span>
               BaziGPT
+              <span style={{ fontSize: '0.9em' }}>🀄</span>
             </Typography>
             <Typography
               variant="h5"
