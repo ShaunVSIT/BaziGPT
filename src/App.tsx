@@ -11,12 +11,16 @@ import {
   Alert,
   Button,
   TextField,
+  Collapse,
+  IconButton,
 } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { getBaziReading, getFollowUpAnswer } from './services/openai';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 const theme = createTheme({
   palette: {
@@ -39,6 +43,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [followUpLoading, setFollowUpLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMainReadingExpanded, setIsMainReadingExpanded] = useState(true);
+  const [cachedAnswers, setCachedAnswers] = useState<Record<string, string>>({});
 
   const handleDateChange = (newValue: Date | null) => {
     setBirthDate(newValue);
@@ -46,6 +52,7 @@ function App() {
     setReading(null);
     setSelectedQuestion(null);
     setFollowUpAnswer(null);
+    setCachedAnswers({});
   };
 
   const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,12 +83,23 @@ function App() {
     if (!birthDate) return;
 
     setSelectedQuestion(question);
-    setFollowUpLoading(true);
     setError(null);
+    setIsMainReadingExpanded(false);
+
+    if (cachedAnswers[question]) {
+      setFollowUpAnswer(cachedAnswers[question]);
+      return;
+    }
+
+    setFollowUpLoading(true);
 
     try {
       const answer = await getFollowUpAnswer(birthDate, question);
       setFollowUpAnswer(answer);
+      setCachedAnswers(prev => ({
+        ...prev,
+        [question]: answer
+      }));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while generating the answer.');
       setFollowUpAnswer(null);
@@ -97,6 +115,8 @@ function App() {
     setSelectedQuestion(null);
     setFollowUpAnswer(null);
     setError(null);
+    setIsMainReadingExpanded(true);
+    setCachedAnswers({});
   };
 
   const formatDate = (date: Date) => {
@@ -113,16 +133,41 @@ function App() {
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <Container maxWidth="md">
           <Box sx={{ my: 4 }}>
-            <Typography variant="h2" component="h1" gutterBottom align="center" sx={{ mb: 4 }}>
+            <Typography
+              variant="h2"
+              component="h1"
+              gutterBottom
+              align="center"
+              sx={{
+                mb: 4,
+                fontSize: {
+                  xs: '2.5rem',  // Mobile
+                  sm: '3.5rem',  // Tablet
+                  md: '3.75rem'  // Desktop
+                }
+              }}
+            >
               BaziGPT
             </Typography>
-            <Typography variant="h5" component="h2" gutterBottom align="center" sx={{ mb: 4 }}>
+            <Typography
+              variant="h5"
+              component="h2"
+              gutterBottom
+              align="center"
+              sx={{
+                mb: 4,
+                fontSize: {
+                  xs: '1.2rem',
+                  sm: '1.5rem'
+                }
+              }}
+            >
               Discover your Chinese Fortune Reading
             </Typography>
 
-            <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
+            <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 }, mb: 4 }}>
               {!reading ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
                   <Typography variant="h6" gutterBottom>
                     Enter your birth date
                   </Typography>
@@ -135,11 +180,23 @@ function App() {
                       textField: {
                         fullWidth: true,
                         placeholder: "DD-MM-YYYY",
-                        sx: { width: '100%', maxWidth: 300 }
+                        sx: {
+                          width: '100%',
+                          maxWidth: { xs: '100%', sm: 300 }
+                        }
                       }
                     }}
                   />
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: -1, mb: 1 }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{
+                      mt: -1,
+                      mb: 1,
+                      textAlign: 'center',
+                      px: { xs: 2, sm: 0 }
+                    }}
+                  >
                     You can type the date directly (DD-MM-YYYY) or use the calendar picker
                   </Typography>
                   <TextField
@@ -153,7 +210,7 @@ function App() {
                     }}
                     sx={{
                       width: '100%',
-                      maxWidth: 300,
+                      maxWidth: { xs: '100%', sm: 300 },
                       '& input': {
                         color: 'text.primary'
                       },
@@ -172,7 +229,10 @@ function App() {
                     variant="contained"
                     onClick={handleSubmit}
                     disabled={!birthDate || loading}
-                    sx={{ mt: 2 }}
+                    sx={{
+                      mt: 2,
+                      width: { xs: '100%', sm: 'auto' }
+                    }}
                   >
                     {loading ? 'Generating Reading...' : 'Get Your Reading'}
                   </Button>
@@ -195,7 +255,10 @@ function App() {
                     variant="outlined"
                     onClick={handleRestart}
                     startIcon={<RefreshIcon />}
-                    sx={{ mt: 1 }}
+                    sx={{
+                      mt: 1,
+                      width: { xs: '100%', sm: 'auto' }
+                    }}
                   >
                     Start New Reading
                   </Button>
@@ -216,91 +279,178 @@ function App() {
             )}
 
             {reading && !loading && (
-              <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
-                <Typography variant="h6" gutterBottom>
-                  Your Bazi Reading
-                </Typography>
-                <Box sx={{
-                  '& h3': {
-                    fontSize: '1.5rem',
-                    fontWeight: 600,
-                    mt: 3,
-                    mb: 2,
-                    color: 'primary.main',
-                    pb: 1,
-                    borderBottom: 2,
-                    borderColor: 'primary.main'
-                  },
-                  '& .section-content': {
-                    bgcolor: 'background.paper',
-                    p: 3,
-                    borderRadius: 1,
-                    mb: 4,
-                    '& > :first-child': {
-                      mt: 0
-                    },
-                    '& > :last-child': {
-                      mb: 0
-                    }
-                  },
-                  '& h4': {
-                    fontSize: '1.25rem',
-                    fontWeight: 500,
-                    mt: 2,
-                    mb: 1,
-                    color: 'secondary.main'
-                  },
-                  '& ul': {
-                    pl: 3,
-                    mb: 1
-                  },
-                  '& li': {
-                    mb: 0.5
-                  },
-                  '& strong': {
-                    color: 'primary.main'
-                  },
-                  '& p': {
-                    mb: 1,
-                    textAlign: 'justify',
-                    '&:last-child': {
-                      mb: 0
-                    }
-                  },
-                  '& br + br': {
-                    display: 'none'
-                  }
-                }}>
+              <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 }, mb: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Typography
-                    component="div"
+                    variant="h5"
                     sx={{
-                      whiteSpace: 'pre-line',
-                      '& > *:first-of-type': { mt: 0 }
+                      color: 'primary.main',
+                      fontWeight: 600,
+                      fontSize: {
+                        xs: '1.5rem',
+                        sm: '1.75rem'
+                      },
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
                     }}
                   >
-                    {reading.split('\n').map((line, index, lines) => {
-                      if (line.startsWith('### ')) {
-                        // Get content until next section
-                        const contentLines = [];
-                        for (let i = index + 1; i < lines.length; i++) {
-                          if (lines[i].startsWith('### ')) break;
-                          contentLines.push(lines[i]);
+                    <span role="img" aria-label="mahjong">🀄</span>
+                    Your Bazi Reading
+                  </Typography>
+                  <IconButton
+                    onClick={() => setIsMainReadingExpanded(!isMainReadingExpanded)}
+                    sx={{
+                      transform: isMainReadingExpanded ? 'rotate(0deg)' : 'rotate(180deg)',
+                      transition: 'transform 0.3s',
+                      color: 'primary.main'
+                    }}
+                  >
+                    {isMainReadingExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  </IconButton>
+                </Box>
+                <Collapse in={isMainReadingExpanded} timeout={300}>
+                  <Box sx={{
+                    mt: 1,
+                    overflowX: 'hidden',
+                    '& h3': {
+                      fontSize: {
+                        xs: '1.25rem',
+                        sm: '1.5rem'
+                      },
+                      fontWeight: 600,
+                      mt: 3,
+                      mb: 2,
+                      color: 'primary.main',
+                      pb: 1,
+                      borderBottom: 2,
+                      borderColor: 'primary.main',
+                      '&:first-of-type': {
+                        mt: 0
+                      }
+                    },
+                    '& .section-content': {
+                      bgcolor: 'background.paper',
+                      p: { xs: 2, sm: 3 },
+                      borderRadius: 1,
+                      mb: 4,
+                      overflowWrap: 'break-word',
+                      wordWrap: 'break-word',
+                      hyphens: 'auto',
+                      '& > :first-child': {
+                        mt: 0
+                      },
+                      '& > :last-child': {
+                        mb: 0
+                      }
+                    },
+                    '& h4': {
+                      fontSize: {
+                        xs: '1.1rem',
+                        sm: '1.25rem'
+                      },
+                      fontWeight: 500,
+                      mt: 2,
+                      mb: 1,
+                      color: 'secondary.main'
+                    },
+                    '& ul': {
+                      pl: { xs: 2, sm: 3 },
+                      mb: 1,
+                      listStyle: 'none',
+                      '& li': {
+                        position: 'relative',
+                        '&::before': {
+                          content: '"•"',
+                          position: 'absolute',
+                          left: '-1.2em',
+                          color: 'primary.main'
                         }
+                      }
+                    },
+                    '& li': {
+                      mb: 0.5,
+                      overflowWrap: 'break-word',
+                      wordWrap: 'break-word',
+                      hyphens: 'auto'
+                    },
+                    '& strong': {
+                      color: 'primary.main'
+                    },
+                    '& p': {
+                      mb: 1,
+                      textAlign: 'justify',
+                      fontSize: {
+                        xs: '0.95rem',
+                        sm: '1rem'
+                      },
+                      overflowWrap: 'break-word',
+                      wordWrap: 'break-word',
+                      hyphens: 'auto',
+                      '&:last-child': {
+                        mb: 0
+                      }
+                    }
+                  }}>
+                    <Typography
+                      component="div"
+                      sx={{
+                        whiteSpace: 'pre-line',
+                        '& > *:first-of-type': { mt: 0 }
+                      }}
+                    >
+                      {reading.split('\n').map((line, index, lines) => {
+                        if (line.startsWith('### ')) {
+                          // Get content until next section
+                          const contentLines = [];
+                          for (let i = index + 1; i < lines.length; i++) {
+                            if (lines[i].startsWith('### ')) break;
+                            contentLines.push(lines[i]);
+                          }
 
-                        return (
-                          <Box key={index}>
-                            <Typography component="h3">{line.replace('### ', '')}</Typography>
-                            <Box className="section-content">
-                              {contentLines.map((contentLine, contentIndex) => {
-                                if (contentLine.startsWith('#### ')) {
-                                  return <Typography key={contentIndex} component="h4">{contentLine.replace('#### ', '')}</Typography>;
-                                }
-                                if (contentLine.startsWith('- ') || contentLine.startsWith('* ')) {
-                                  const bulletContent = contentLine.replace(/^[-*]\s/, '');
-                                  if (bulletContent.includes('**')) {
-                                    const parts = bulletContent.split('**');
+                          return (
+                            <Box key={index}>
+                              <Typography component="h3">{line.replace('### ', '')}</Typography>
+                              <Box className="section-content">
+                                {contentLines.map((contentLine, contentIndex) => {
+                                  if (contentLine.startsWith('#### ')) {
+                                    return <Typography key={contentIndex} component="h4">{contentLine.replace('#### ', '')}</Typography>;
+                                  }
+                                  if (contentLine.startsWith('- ') || contentLine.startsWith('* ')) {
+                                    const bulletContent = contentLine.replace(/^[-*]\s/, '');
+                                    if (bulletContent.includes('**')) {
+                                      const parts = bulletContent.split('**');
+                                      return (
+                                        <Typography key={contentIndex} component="li" sx={{ mb: 1, display: 'flex', alignItems: 'flex-start' }}>
+                                          {parts.map((part, i) => {
+                                            if (i % 2 === 1) {
+                                              return (
+                                                <Typography
+                                                  key={i}
+                                                  component="span"
+                                                  sx={{
+                                                    color: 'primary.main',
+                                                    fontWeight: 600,
+                                                    display: 'inline',
+                                                    mr: 1,
+                                                    minWidth: '120px'
+                                                  }}
+                                                >
+                                                  {part}
+                                                </Typography>
+                                              );
+                                            }
+                                            return <span key={i}>{part}</span>;
+                                          })}
+                                        </Typography>
+                                      );
+                                    }
+                                    return <Typography key={contentIndex} component="li" sx={{ mb: 1 }}>{bulletContent}</Typography>;
+                                  }
+                                  if (contentLine.includes('**')) {
+                                    const parts = contentLine.split('**');
                                     return (
-                                      <Typography key={contentIndex} component="li" sx={{ mb: 1, display: 'flex', alignItems: 'flex-start' }}>
+                                      <Typography key={contentIndex} sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
                                         {parts.map((part, i) => {
                                           if (i % 2 === 1) {
                                             return (
@@ -311,8 +461,7 @@ function App() {
                                                   color: 'primary.main',
                                                   fontWeight: 600,
                                                   display: 'inline',
-                                                  mr: 1,
-                                                  minWidth: '120px'
+                                                  mr: 1
                                                 }}
                                               >
                                                 {part}
@@ -324,59 +473,61 @@ function App() {
                                       </Typography>
                                     );
                                   }
-                                  return <Typography key={contentIndex} component="li" sx={{ mb: 1 }}>{bulletContent}</Typography>;
-                                }
-                                if (contentLine.includes('**')) {
-                                  const parts = contentLine.split('**');
-                                  return (
-                                    <Typography key={contentIndex} sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
-                                      {parts.map((part, i) => {
-                                        if (i % 2 === 1) {
-                                          return (
-                                            <Typography
-                                              key={i}
-                                              component="span"
-                                              sx={{
-                                                color: 'primary.main',
-                                                fontWeight: 600,
-                                                display: 'inline',
-                                                mr: 1
-                                              }}
-                                            >
-                                              {part}
-                                            </Typography>
-                                          );
-                                        }
-                                        return <span key={i}>{part}</span>;
-                                      })}
-                                    </Typography>
-                                  );
-                                }
-                                if (contentLine.trim() === '') {
-                                  return <br key={contentIndex} />;
-                                }
-                                return <Typography key={contentIndex} sx={{ mb: 1, textAlign: 'justify' }}>{contentLine}</Typography>;
-                              })}
+                                  if (contentLine.trim() === '') {
+                                    return <br key={contentIndex} />;
+                                  }
+                                  return <Typography key={contentIndex} sx={{ mb: 1, textAlign: 'justify' }}>{contentLine}</Typography>;
+                                })}
+                              </Box>
                             </Box>
-                          </Box>
-                        );
-                      }
-                      return null;
-                    })}
-                  </Typography>
-                </Box>
+                          );
+                        }
+                        return null;
+                      })}
+                    </Typography>
+                  </Box>
+                </Collapse>
               </Paper>
             )}
 
             {reading && !loading && (
-              <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
-                <Typography variant="h6" gutterBottom>
+              <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 }, mb: 4 }}>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    color: 'primary.main',
+                    fontWeight: 600,
+                    fontSize: {
+                      xs: '1.5rem',
+                      sm: '1.75rem'
+                    },
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    mb: 2
+                  }}
+                >
+                  <span role="img" aria-label="crystal ball">🔮</span>
                   Explore Further
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    mb: 2,
+                    textAlign: { xs: 'center', sm: 'left' }
+                  }}
+                >
                   Click on any aspect below to get more detailed insights about specific areas of your life.
                 </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: { xs: 1, sm: 2 },
+                  '& .MuiButton-root': {
+                    flex: { xs: '1 1 calc(50% - 8px)', sm: '0 1 auto' }
+                  }
+                }}>
                   {[
                     "What about my health?",
                     "What about my love life?",
@@ -392,13 +543,34 @@ function App() {
                       variant={selectedQuestion === question ? "contained" : "outlined"}
                       onClick={() => handleQuestionClick(question)}
                       disabled={followUpLoading}
+                      sx={{
+                        position: 'relative',
+                        paddingRight: cachedAnswers[question] ? '2rem' : undefined,
+                        '&::after': cachedAnswers[question] ? {
+                          content: '"✓"',
+                          position: 'absolute',
+                          right: '0.5rem',
+                          color: 'primary.main',
+                          fontSize: '1rem',
+                          fontWeight: 'bold'
+                        } : undefined,
+                        ...(cachedAnswers[question] && selectedQuestion !== question && {
+                          borderColor: 'primary.main',
+                          color: 'primary.main'
+                        })
+                      }}
                     >
                       {question}
                     </Button>
                   ))}
                 </Box>
                 {selectedQuestion && (followUpAnswer || followUpLoading) && (
-                  <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
+                  <Box sx={{
+                    mt: 3,
+                    p: { xs: 1.5, sm: 2 },
+                    bgcolor: 'background.paper',
+                    borderRadius: 1
+                  }}>
                     <Typography variant="h6" gutterBottom color="primary">
                       {selectedQuestion}
                     </Typography>
