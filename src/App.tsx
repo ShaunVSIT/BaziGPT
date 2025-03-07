@@ -21,6 +21,8 @@ import { getBaziReading, getFollowUpAnswer } from './services/openai';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from '@vercel/analytics/react';
 
 const theme = createTheme({
   palette: {
@@ -631,6 +633,8 @@ function App() {
             )}
           </Box>
         </Container>
+        <SpeedInsights />
+        <Analytics />
       </LocalizationProvider>
     </ThemeProvider>
   );
