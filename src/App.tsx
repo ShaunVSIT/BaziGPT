@@ -11,16 +11,12 @@ import {
   Alert,
   Button,
   TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
 } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { getBaziReading, getFollowUpAnswer } from './services/openai';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const theme = createTheme({
   palette: {
@@ -94,6 +90,23 @@ function App() {
     }
   };
 
+  const handleRestart = () => {
+    setBirthDate(null);
+    setBirthTime('');
+    setReading(null);
+    setSelectedQuestion(null);
+    setFollowUpAnswer(null);
+    setError(null);
+  };
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(date);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -108,61 +121,86 @@ function App() {
             </Typography>
 
             <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  Enter your birth date
-                </Typography>
-                <DatePicker
-                  label="Birth Date"
-                  value={birthDate}
-                  onChange={handleDateChange}
-                  format="dd-MM-yyyy"
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      placeholder: "DD-MM-YYYY",
-                      sx: { width: '100%', maxWidth: 300 }
-                    }
-                  }}
-                />
-                <Typography variant="caption" color="text.secondary" sx={{ mt: -1, mb: 1 }}>
-                  You can type the date directly (DD-MM-YYYY) or use the calendar picker
-                </Typography>
-                <TextField
-                  label="Birth Time (Optional)"
-                  type="time"
-                  value={birthTime}
-                  onChange={handleTimeChange}
-                  InputLabelProps={{
-                    shrink: true,
-                    sx: { color: 'text.primary' }
-                  }}
-                  sx={{
-                    width: '100%',
-                    maxWidth: 300,
-                    '& input': {
-                      color: 'text.primary'
-                    },
-                    '& .MuiInputBase-root': {
-                      '&:hover fieldset': {
-                        borderColor: 'primary.main'
+              {!reading ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Enter your birth date
+                  </Typography>
+                  <DatePicker
+                    label="Birth Date"
+                    value={birthDate}
+                    onChange={handleDateChange}
+                    format="dd-MM-yyyy"
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        placeholder: "DD-MM-YYYY",
+                        sx: { width: '100%', maxWidth: 300 }
                       }
-                    },
-                    '& .MuiSvgIcon-root': {
-                      color: theme.palette.primary.main
-                    }
-                  }}
-                  helperText="If not provided, noon (12:00) will be used as a reference point"
-                />
-                <Button
-                  variant="contained"
-                  onClick={handleSubmit}
-                  disabled={!birthDate || loading}
-                  sx={{ mt: 2 }}
-                >
-                  {loading ? 'Generating Reading...' : 'Get Your Reading'}
-                </Button>
-              </Box>
+                    }}
+                  />
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: -1, mb: 1 }}>
+                    You can type the date directly (DD-MM-YYYY) or use the calendar picker
+                  </Typography>
+                  <TextField
+                    label="Birth Time (Optional)"
+                    type="time"
+                    value={birthTime}
+                    onChange={handleTimeChange}
+                    InputLabelProps={{
+                      shrink: true,
+                      sx: { color: 'text.primary' }
+                    }}
+                    sx={{
+                      width: '100%',
+                      maxWidth: 300,
+                      '& input': {
+                        color: 'text.primary'
+                      },
+                      '& .MuiInputBase-root': {
+                        '&:hover fieldset': {
+                          borderColor: 'primary.main'
+                        }
+                      },
+                      '& .MuiSvgIcon-root': {
+                        color: theme.palette.primary.main
+                      }
+                    }}
+                    helperText="If not provided, noon (12:00) will be used as a reference point"
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={handleSubmit}
+                    disabled={!birthDate || loading}
+                    sx={{ mt: 2 }}
+                  >
+                    {loading ? 'Generating Reading...' : 'Get Your Reading'}
+                  </Button>
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Birth Details
+                  </Typography>
+                  <Typography variant="body1" sx={{ textAlign: 'center' }}>
+                    Date: {birthDate && formatDate(birthDate)}
+                    {birthTime && (
+                      <>
+                        <br />
+                        Time: {birthTime}
+                      </>
+                    )}
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    onClick={handleRestart}
+                    startIcon={<RefreshIcon />}
+                    sx={{ mt: 1 }}
+                  >
+                    Start New Reading
+                  </Button>
+                </Box>
+              )}
             </Paper>
 
             {loading && (
@@ -188,28 +226,49 @@ function App() {
                     fontWeight: 600,
                     mt: 3,
                     mb: 2,
-                    color: 'primary.main'
+                    color: 'primary.main',
+                    pb: 1,
+                    borderBottom: 2,
+                    borderColor: 'primary.main'
+                  },
+                  '& .section-content': {
+                    bgcolor: 'background.paper',
+                    p: 3,
+                    borderRadius: 1,
+                    mb: 4,
+                    '& > :first-child': {
+                      mt: 0
+                    },
+                    '& > :last-child': {
+                      mb: 0
+                    }
                   },
                   '& h4': {
                     fontSize: '1.25rem',
                     fontWeight: 500,
                     mt: 2,
-                    mb: 1.5,
+                    mb: 1,
                     color: 'secondary.main'
                   },
                   '& ul': {
                     pl: 3,
-                    mb: 2
+                    mb: 1
                   },
                   '& li': {
-                    mb: 1
+                    mb: 0.5
                   },
                   '& strong': {
                     color: 'primary.main'
                   },
                   '& p': {
-                    mb: 2,
-                    textAlign: 'justify'
+                    mb: 1,
+                    textAlign: 'justify',
+                    '&:last-child': {
+                      mb: 0
+                    }
+                  },
+                  '& br + br': {
+                    display: 'none'
                   }
                 }}>
                   <Typography
@@ -219,93 +278,90 @@ function App() {
                       '& > *:first-of-type': { mt: 0 }
                     }}
                   >
-                    {reading.split('\n').map((line, index) => {
+                    {reading.split('\n').map((line, index, lines) => {
                       if (line.startsWith('### ')) {
-                        return <Typography key={index} component="h3">{line.replace('### ', '')}</Typography>;
-                      }
-                      if (line.startsWith('#### ')) {
-                        return <Typography key={index} component="h4">{line.replace('#### ', '')}</Typography>;
-                      }
-                      if (line.startsWith('- ') || line.startsWith('* ')) {
-                        const bulletContent = line.replace(/^[-*]\s/, '');
-                        if (bulletContent.includes('**')) {
-                          const parts = bulletContent.split('**');
-                          return (
-                            <Typography component="li" sx={{ mb: 1, display: 'flex', alignItems: 'flex-start' }}>
-                              {parts.map((part, i) => {
-                                if (i % 2 === 1) {
+                        // Get content until next section
+                        const contentLines = [];
+                        for (let i = index + 1; i < lines.length; i++) {
+                          if (lines[i].startsWith('### ')) break;
+                          contentLines.push(lines[i]);
+                        }
+
+                        return (
+                          <Box key={index}>
+                            <Typography component="h3">{line.replace('### ', '')}</Typography>
+                            <Box className="section-content">
+                              {contentLines.map((contentLine, contentIndex) => {
+                                if (contentLine.startsWith('#### ')) {
+                                  return <Typography key={contentIndex} component="h4">{contentLine.replace('#### ', '')}</Typography>;
+                                }
+                                if (contentLine.startsWith('- ') || contentLine.startsWith('* ')) {
+                                  const bulletContent = contentLine.replace(/^[-*]\s/, '');
+                                  if (bulletContent.includes('**')) {
+                                    const parts = bulletContent.split('**');
+                                    return (
+                                      <Typography key={contentIndex} component="li" sx={{ mb: 1, display: 'flex', alignItems: 'flex-start' }}>
+                                        {parts.map((part, i) => {
+                                          if (i % 2 === 1) {
+                                            return (
+                                              <Typography
+                                                key={i}
+                                                component="span"
+                                                sx={{
+                                                  color: 'primary.main',
+                                                  fontWeight: 600,
+                                                  display: 'inline',
+                                                  mr: 1,
+                                                  minWidth: '120px'
+                                                }}
+                                              >
+                                                {part}
+                                              </Typography>
+                                            );
+                                          }
+                                          return <span key={i}>{part}</span>;
+                                        })}
+                                      </Typography>
+                                    );
+                                  }
+                                  return <Typography key={contentIndex} component="li" sx={{ mb: 1 }}>{bulletContent}</Typography>;
+                                }
+                                if (contentLine.includes('**')) {
+                                  const parts = contentLine.split('**');
                                   return (
-                                    <Typography
-                                      key={i}
-                                      component="span"
-                                      sx={{
-                                        color: 'primary.main',
-                                        fontWeight: 600,
-                                        display: 'inline',
-                                        mr: 1,
-                                        minWidth: '120px'
-                                      }}
-                                    >
-                                      {part}
+                                    <Typography key={contentIndex} sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
+                                      {parts.map((part, i) => {
+                                        if (i % 2 === 1) {
+                                          return (
+                                            <Typography
+                                              key={i}
+                                              component="span"
+                                              sx={{
+                                                color: 'primary.main',
+                                                fontWeight: 600,
+                                                display: 'inline',
+                                                mr: 1
+                                              }}
+                                            >
+                                              {part}
+                                            </Typography>
+                                          );
+                                        }
+                                        return <span key={i}>{part}</span>;
+                                      })}
                                     </Typography>
                                   );
                                 }
-                                return <span key={i}>{part}</span>;
+                                if (contentLine.trim() === '') {
+                                  return <br key={contentIndex} />;
+                                }
+                                return <Typography key={contentIndex} sx={{ mb: 1, textAlign: 'justify' }}>{contentLine}</Typography>;
                               })}
-                            </Typography>
-                          );
-                        }
-                        return <Typography component="li" sx={{ mb: 1 }}>{bulletContent}</Typography>;
-                      }
-                      if (line.startsWith('-')) {
-                        const [element, ...description] = line.substring(1).split(/\s(.+)/);
-                        return (
-                          <Box key={index} sx={{ display: 'flex', mb: 2, alignItems: 'flex-start' }}>
-                            <Typography
-                              component="span"
-                              sx={{
-                                color: 'primary.main',
-                                fontWeight: 600,
-                                minWidth: '100px',
-                                mr: 2
-                              }}
-                            >
-                              {element}
-                            </Typography>
-                            <Typography>{description}</Typography>
+                            </Box>
                           </Box>
                         );
                       }
-                      if (line.includes('**')) {
-                        const parts = line.split('**');
-                        return (
-                          <Typography sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
-                            {parts.map((part, i) => {
-                              if (i % 2 === 1) {
-                                return (
-                                  <Typography
-                                    key={i}
-                                    component="span"
-                                    sx={{
-                                      color: 'primary.main',
-                                      fontWeight: 600,
-                                      display: 'inline',
-                                      mr: 1
-                                    }}
-                                  >
-                                    {part}
-                                  </Typography>
-                                );
-                              }
-                              return <span key={i}>{part}</span>;
-                            })}
-                          </Typography>
-                        );
-                      }
-                      if (line.trim() === '') {
-                        return <br key={index} />;
-                      }
-                      return <Typography key={index} sx={{ mb: 1, textAlign: 'justify' }}>{line}</Typography>;
+                      return null;
                     })}
                   </Typography>
                 </Box>
