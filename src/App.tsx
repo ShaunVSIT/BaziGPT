@@ -23,6 +23,15 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from '@vercel/analytics/react';
+import CloseIcon from '@mui/icons-material/Close';
+import TelegramIcon from '@mui/icons-material/Telegram';
+
+// Add this custom X icon component
+const XIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="currentColor" />
+  </svg>
+);
 
 const theme = createTheme({
   palette: {
@@ -170,7 +179,7 @@ function App() {
                 }
               }}
             >
-              Discover your Chinese Fortune Reading
+              Discover your Chinese Fortune Reading (Powered by AI!)
             </Typography>
 
             <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 }, mb: 4 }}>
@@ -632,6 +641,76 @@ function App() {
               </Paper>
             )}
           </Box>
+
+          {/* Footer */}
+          <Paper
+            elevation={3}
+            sx={{
+              p: { xs: 2, sm: 3 },
+              mt: 4,
+              mb: 2,
+              background: 'linear-gradient(to right, rgba(26,26,26,0.8), rgba(255,152,0,0.1))',
+              borderLeft: '4px solid',
+              borderColor: 'primary.main'
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
+              <Box>
+                <Typography variant="h6" color="primary.main" gutterBottom>
+                  About the Developer
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  Built by Barnum, who loves tinkering with fun projects and exploring the intersection of ancient wisdom and modern tech. Just a dev having fun building cool stuff for others to try out! 🚀
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Built with React, Material-UI, and GPT-4
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <IconButton
+                  href="https://twitter.com/0xBarnum"
+                  target="_blank"
+                  aria-label="X (formerly Twitter)"
+                  sx={{
+                    bgcolor: 'rgba(255, 255, 255, 0.05)',
+                    padding: '12px',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 152, 0, 0.1)',
+                      transform: 'translateY(-2px)'
+                    },
+                    '& svg': {
+                      width: '20px',
+                      height: '20px',
+                      color: 'white'
+                    }
+                  }}
+                >
+                  <XIcon />
+                </IconButton>
+                <IconButton
+                  href="https://t.me/CryptoBarnum"
+                  target="_blank"
+                  aria-label="Telegram"
+                  sx={{
+                    bgcolor: 'rgba(255, 255, 255, 0.05)',
+                    padding: '12px',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 152, 0, 0.1)',
+                      transform: 'translateY(-2px)'
+                    },
+                    '& .MuiSvgIcon-root': {
+                      fontSize: '1.5rem',
+                      color: 'white'
+                    }
+                  }}
+                >
+                  <TelegramIcon />
+                </IconButton>
+              </Box>
+            </Box>
+          </Paper>
         </Container>
         <SpeedInsights />
         <Analytics />
