@@ -330,7 +330,14 @@ function App() {
                     sx={{
                       transform: isMainReadingExpanded ? 'rotate(0deg)' : 'rotate(180deg)',
                       transition: 'transform 0.3s',
-                      color: 'primary.main'
+                      color: 'primary.main',
+                      padding: '12px',
+                      '& .MuiSvgIcon-root': {
+                        fontSize: '2rem'
+                      },
+                      '&:hover': {
+                        bgcolor: 'rgba(255, 152, 0, 0.1)',
+                      }
                     }}
                   >
                     {isMainReadingExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
