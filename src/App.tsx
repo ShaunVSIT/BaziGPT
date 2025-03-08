@@ -656,44 +656,46 @@ function App() {
                         <CircularProgress />
                       </Box>
                     ) : followUpAnswer && (
-                      <Typography
-                        component="div"
-                        sx={{
-                          whiteSpace: 'pre-line',
-                          '& > *:first-of-type': { mt: 0 },
-                          '& p': {
-                            mb: 2,
-                            lineHeight: 1.6,
-                            textAlign: 'left',
-                            '& strong': {
-                              color: '#ff9800',
-                              fontWeight: 700,
-                              display: 'inline-block',
-                              mr: 1
-                            }
-                          }
-                        }}
-                      >
+                      <Box>
                         {followUpAnswer.split('\n').map((line, index) => {
-                          if (line.startsWith('- ')) {
-                            const content = line.substring(2);
-                            if (content.includes('**')) {
-                              const parts = content.split('**');
-                              return (
-                                <Typography component="p" key={index}>
-                                  - <strong>{parts[1]}</strong>
-                                  {parts[2]}
+                          // Handle section headers (Strengths, Challenges, etc.)
+                          if (line.startsWith('- ') && line.includes('**')) {
+                            const cleanLine = line.replace(/\*\*/g, '');
+                            const match = cleanLine.match(/- (.*?):(.*)/);
+                            if (!match) return null;
+                            const [_, heading, content] = match;
+                            return (
+                              <Box key={index} sx={{ mb: 3 }}>
+                                <Typography
+                                  sx={{
+                                    color: '#ff9800',
+                                    fontWeight: 700,
+                                    fontSize: '1.1rem',
+                                    mb: 1
+                                  }}
+                                >
+                                  {heading}
                                 </Typography>
-                              );
-                            }
-                            return <Typography component="p" key={index}>- {content}</Typography>;
+                                <Typography>
+                                  {content}
+                                </Typography>
+                              </Box>
+                            );
                           }
+
+                          // Handle empty lines
                           if (line.trim() === '') {
-                            return <br key={index} />;
+                            return <Box key={index} sx={{ mb: 1 }} />;
                           }
-                          return <Typography component="p" key={index}>{line}</Typography>;
+
+                          // Handle regular text
+                          return (
+                            <Typography key={index} sx={{ mb: 1 }}>
+                              {line}
+                            </Typography>
+                          );
                         })}
-                      </Typography>
+                      </Box>
                     )}
                   </Box>
                 )}
