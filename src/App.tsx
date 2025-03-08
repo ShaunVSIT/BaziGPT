@@ -337,10 +337,10 @@ function App() {
                       fontWeight: 600,
                       mt: 3,
                       mb: 2,
-                      color: 'primary.main',
+                      color: '#f44336',
                       pb: 1,
                       borderBottom: 2,
-                      borderColor: 'primary.main',
+                      borderColor: '#f44336',
                       '&:first-of-type': {
                         mt: 0
                       }
@@ -358,17 +358,61 @@ function App() {
                       },
                       '& > :last-child': {
                         mb: 0
-                      }
-                    },
-                    '& h4': {
-                      fontSize: {
-                        xs: '1.1rem',
-                        sm: '1.25rem'
                       },
-                      fontWeight: 500,
-                      mt: 2,
-                      mb: 1,
-                      color: 'secondary.main'
+                      '&::after': {
+                        content: '""',
+                        display: 'block',
+                        width: '100%',
+                        height: '2px',
+                        background: 'linear-gradient(to right, rgba(244,67,54,0.5), rgba(244,67,54,0.1))',
+                        mt: 4,
+                        mb: -2
+                      },
+                      '&:last-child::after': {
+                        display: 'none'
+                      },
+                      '& > p': {
+                        display: 'block',
+                        mb: 2,
+                        '& > span:first-of-type': {
+                          color: '#ff9800',
+                          fontWeight: 600,
+                          display: 'block',
+                          mb: 1
+                        }
+                      },
+                      '& h4': {
+                        fontSize: {
+                          xs: '1.1rem',
+                          sm: '1.25rem'
+                        },
+                        fontWeight: 600,
+                        mt: 3,
+                        mb: 2,
+                        color: '#ff9800',
+                        '&:contains("Favorable Elements:")': {
+                          color: '#4caf50'
+                        },
+                        '&:contains("Unfavorable Elements:")': {
+                          color: '#f44336'
+                        }
+                      },
+                      '& li': {
+                        display: 'block',
+                        mb: 2,
+                        pl: 0,
+                        '& > span:first-of-type': {
+                          color: '#ff9800',
+                          fontWeight: 600,
+                          display: 'inline-block',
+                          mr: 1
+                        }
+                      },
+                      '& p:not(h4 + p)': {
+                        textAlign: 'justify',
+                        lineHeight: 1.6,
+                        mb: 2
+                      }
                     },
                     '& ul': {
                       pl: { xs: 2, sm: 3 },
@@ -388,7 +432,13 @@ function App() {
                       mb: 0.5,
                       overflowWrap: 'break-word',
                       wordWrap: 'break-word',
-                      hyphens: 'auto'
+                      hyphens: 'auto',
+                      '& > span:first-of-type': {
+                        color: '#ff9800',
+                        fontWeight: 600,
+                        display: 'inline-block',
+                        marginRight: '0.5rem'
+                      }
                     },
                     '& strong': {
                       color: 'primary.main'
