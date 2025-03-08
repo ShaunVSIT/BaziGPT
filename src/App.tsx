@@ -239,8 +239,19 @@ function App() {
                         color: theme.palette.primary.main
                       }
                     }}
-                    helperText="If not provided, noon (12:00) will be used as a reference point"
                   />
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{
+                      mt: -1,
+                      mb: 1,
+                      textAlign: 'center',
+                      px: { xs: 2, sm: 0 }
+                    }}
+                  >
+                    If not provided, noon (12:00) will be used as a reference point
+                  </Typography>
                   <Button
                     variant="contained"
                     onClick={handleSubmit}
@@ -649,39 +660,38 @@ function App() {
                         component="div"
                         sx={{
                           whiteSpace: 'pre-line',
-                          '& > *:first-of-type': { mt: 0 }
+                          '& > *:first-of-type': { mt: 0 },
+                          '& p': {
+                            mb: 2,
+                            lineHeight: 1.6,
+                            textAlign: 'left',
+                            '& strong': {
+                              color: '#ff9800',
+                              fontWeight: 700,
+                              display: 'inline-block',
+                              mr: 1
+                            }
+                          }
                         }}
                       >
                         {followUpAnswer.split('\n').map((line, index) => {
-                          if (line.includes('**')) {
-                            const parts = line.split(/(\*\*.*?\*\*)/g);
-                            return (
-                              <Typography key={index}>
-                                {parts.map((part, i) => {
-                                  if (part.startsWith('**') && part.endsWith('**')) {
-                                    return (
-                                      <Typography
-                                        key={i}
-                                        component="span"
-                                        sx={{
-                                          color: 'primary.main',
-                                          fontWeight: 600,
-                                          display: 'inline'
-                                        }}
-                                      >
-                                        {part.slice(2, -2)}
-                                      </Typography>
-                                    );
-                                  }
-                                  return part;
-                                })}
-                              </Typography>
-                            );
+                          if (line.startsWith('- ')) {
+                            const content = line.substring(2);
+                            if (content.includes('**')) {
+                              const parts = content.split('**');
+                              return (
+                                <Typography component="p" key={index}>
+                                  - <strong>{parts[1]}</strong>
+                                  {parts[2]}
+                                </Typography>
+                              );
+                            }
+                            return <Typography component="p" key={index}>- {content}</Typography>;
                           }
                           if (line.trim() === '') {
                             return <br key={index} />;
                           }
-                          return <Typography key={index} sx={{ textAlign: 'justify' }}>{line}</Typography>;
+                          return <Typography component="p" key={index}>{line}</Typography>;
                         })}
                       </Typography>
                     )}
