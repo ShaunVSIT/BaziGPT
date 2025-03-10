@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Container,
   Box,
@@ -31,6 +31,9 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from '@vercel/analytics/react';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import InfoIcon from '@mui/icons-material/Info';
+import ShareIcon from '@mui/icons-material/Share';
+import html2canvas from 'html2canvas';
+import { QRCodeSVG } from 'qrcode.react';
 
 // Add this custom X icon component
 const XIcon = () => (
@@ -51,10 +54,16 @@ const theme = createTheme({
   },
 });
 
+interface BaziReading {
+  reading: string;
+  shareableSummary: string;
+}
+
 function App() {
   const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [birthTime, setBirthTime] = useState<string>('');
-  const [reading, setReading] = useState<string | null>(null);
+  const [reading, setReading] = useState<BaziReading | null>(null);
+  const [shareableSummary, setShareableSummary] = useState<string | null>(null);
   const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
   const [followUpAnswer, setFollowUpAnswer] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -64,6 +73,8 @@ function App() {
   const [cachedAnswers, setCachedAnswers] = useState<Record<string, string>>({});
   const [disclaimerOpen, setDisclaimerOpen] = useState(true);
   const [hasSeenDisclaimer, setHasSeenDisclaimer] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement>(null);
 
   const handleDateChange = (newValue: Date | null) => {
     setBirthDate(newValue);
@@ -89,7 +100,7 @@ function App() {
 
     try {
       const baziReading = await getBaziReading(birthDate, birthTime || undefined);
-      setReading(baziReading.reading);
+      setReading(baziReading);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while generating your reading.');
       setReading(null);
@@ -131,6 +142,7 @@ function App() {
     setBirthDate(null);
     setBirthTime('');
     setReading(null);
+    setShareableSummary(null);
     setSelectedQuestion(null);
     setFollowUpAnswer(null);
     setError(null);
@@ -150,6 +162,264 @@ function App() {
     setDisclaimerOpen(false);
     setHasSeenDisclaimer(true);
   };
+
+  const handleShare = async () => {
+    if (!shareCardRef.current) return;
+
+    try {
+      const canvas = await html2canvas(shareCardRef.current, {
+        backgroundColor: '#121212',
+        scale: 2,
+      });
+
+      const image = canvas.toDataURL('image/png');
+
+      if (navigator.share) {
+        const blob = await (await fetch(image)).blob();
+        await navigator.share({
+          files: [new File([blob], 'bazi-reading.png', { type: 'image/png' })],
+          title: 'My BaziGPT Reading',
+          text: 'Check out my Chinese Astrology reading from BaziGPT!'
+        });
+      } else {
+        // Fallback to download
+        const link = document.createElement('a');
+        link.download = 'bazi-reading.png';
+        link.href = image;
+        link.click();
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+    }
+  };
+
+  const renderShareButton = () => (
+    <Button
+      variant="contained"
+      startIcon={<ShareIcon />}
+      onClick={() => setShareDialogOpen(true)}
+      sx={{
+        mt: 3,
+        mb: 2,
+        py: 1.5,
+        px: 4,
+        fontSize: '1.1rem',
+        width: { xs: '100%', sm: 'auto' },
+        background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
+        boxShadow: '0 3px 5px 2px rgba(255, 152, 0, .3)',
+        '&:hover': {
+          background: 'linear-gradient(45deg, #ff9800 60%, #ff5722 90%)',
+          transform: 'translateY(-2px)',
+          transition: 'transform 0.2s'
+        }
+      }}
+    >
+      Share My Reading
+    </Button>
+  );
+
+  const getShareableSummary = () => {
+    return shareableSummary || "A balanced individual with natural leadership qualities, combining wisdom with adaptability.";
+  };
+
+  const renderShareDialog = () => (
+    <Dialog
+      open={shareDialogOpen}
+      onClose={() => setShareDialogOpen(false)}
+      maxWidth="sm"
+      fullWidth
+    >
+      <DialogTitle>Share Your Reading</DialogTitle>
+      <DialogContent>
+        <Box
+          ref={shareCardRef}
+          sx={{
+            p: 4,
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, rgba(33,33,33,0.95) 0%, rgba(44,44,44,0.95) 100%)',
+            border: '1px solid rgba(255,152,0,0.3)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: 'linear-gradient(90deg, #ff9800, #ff5722)',
+            }
+          }}
+        >
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                color: 'primary.main',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                fontSize: '1.8rem',
+                fontWeight: 600
+              }}
+            >
+              <span role="img" aria-label="mahjong" style={{ fontSize: '1.2em' }}>🀄</span>
+              My BaziGPT Reading
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <QRCodeSVG
+                value="https://bazigpt.xyz"
+                size={80}
+                level="L"
+                includeMargin={false}
+                style={{
+                  borderRadius: '8px',
+                  padding: '8px',
+                  background: 'white'
+                }}
+              />
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.3)',
+                  mt: 1,
+                  fontSize: '0.7rem'
+                }}
+              >
+                https://bazigpt.xyz
+              </Typography>
+            </Box>
+          </Box>
+
+          {birthDate && (
+            <Typography
+              variant="body1"
+              sx={{
+                mb: 2.5,
+                color: 'text.secondary',
+                fontSize: '1.1rem'
+              }}
+            >
+              Birth Date: {formatDate(birthDate)}
+            </Typography>
+          )}
+
+          <Box sx={{ my: 3 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                color: 'primary.main',
+                fontWeight: 600,
+                mb: 2,
+                fontSize: '1.3rem'
+              }}
+            >
+              Key Insights:
+            </Typography>
+            {reading?.reading.split('\n')
+              .filter(line => line.includes('**'))
+              .slice(0, 4)
+              .map((line, index) => {
+                const parts = line
+                  .replace(/[-•]\s*/, '')
+                  .replace(/\*\*/g, '')
+                  .split(/(\([^)]+\))/);
+
+                return (
+                  <Typography
+                    key={index}
+                    variant="body1"
+                    sx={{
+                      mb: 1.5,
+                      fontSize: '1.1rem',
+                      color: 'text.primary',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
+                    }}
+                  >
+                    {parts.map((part, i) => {
+                      if (part.startsWith('(') && part.endsWith(')')) {
+                        // This is the Chinese characters part
+                        return (
+                          <Typography
+                            key={i}
+                            component="span"
+                            sx={{
+                              color: '#ff9800',
+                              fontWeight: 500
+                            }}
+                          >
+                            {part}
+                          </Typography>
+                        );
+                      }
+                      return part;
+                    })}
+                  </Typography>
+                );
+              })}
+          </Box>
+
+          <Box sx={{ my: 3 }}>
+            <Typography
+              variant="body1"
+              sx={{
+                fontSize: '1.1rem',
+                color: 'text.primary',
+                fontStyle: 'italic',
+                textAlign: 'center',
+                mb: 2,
+                '& strong': {
+                  color: '#ff9800',
+                  fontWeight: 600
+                }
+              }}
+            >
+              {getShareableSummary()}
+            </Typography>
+          </Box>
+
+          <Box
+            sx={{
+              mt: 4,
+              pt: 3,
+              borderTop: '1px solid rgba(255,152,0,0.2)',
+              textAlign: 'center'
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: '1.2rem',
+                fontWeight: 500,
+                '& .highlight': {
+                  color: '#ff9800',
+                  fontWeight: 600
+                }
+              }}
+            >
+              Get your own reading at <span className="highlight">bazigpt.xyz</span>
+            </Typography>
+          </Box>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setShareDialogOpen(false)}>Cancel</Button>
+        <Button
+          onClick={handleShare}
+          variant="contained"
+          color="primary"
+          sx={{
+            background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
+            px: 3
+          }}
+        >
+          Save & Share
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 
   return (
     <ThemeProvider theme={theme}>
@@ -172,10 +442,10 @@ function App() {
               <InfoIcon /> Privacy & Disclaimer
             </DialogTitle>
             <DialogContent>
-              <Typography paragraph>
+              <Typography paragraph sx={{ textAlign: 'justify' }}>
                 We respect your privacy. We only ask for the minimum information needed for your reading (birth date and time) and do not store any personal data.
               </Typography>
-              <Typography>
+              <Typography sx={{ textAlign: 'justify' }}>
                 Please note: This tool is for entertainment purposes only. The readings should not be taken as factually accurate or followed religiously. Use this as a fun way to explore Chinese Astrology!
               </Typography>
             </DialogContent>
@@ -436,10 +706,10 @@ function App() {
                       overflowWrap: 'break-word',
                       wordWrap: 'break-word',
                       hyphens: 'auto',
-                      '& > :first-child': {
+                      '& > :first-of-type': {
                         mt: 0
                       },
-                      '& > :last-child': {
+                      '& > :last-of-type': {
                         mb: 0
                       },
                       '&::after': {
@@ -548,7 +818,7 @@ function App() {
                         '& > *:first-of-type': { mt: 0 }
                       }}
                     >
-                      {reading.split('\n').map((line, index, lines) => {
+                      {reading.reading.split('\n').map((line, index, lines) => {
                         if (line.startsWith('### ')) {
                           // Get content until next section
                           const contentLines = [];
@@ -773,7 +1043,16 @@ function App() {
                 )}
               </Paper>
             )}
+
+            {reading && !loading && (
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                {renderShareButton()}
+              </Box>
+            )}
           </Box>
+
+          {/* Only render share dialog when we have a reading */}
+          {reading && renderShareDialog()}
 
           {/* Footer */}
           <Paper

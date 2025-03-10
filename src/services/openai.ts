@@ -26,6 +26,7 @@ interface BaziReading {
     dayPillar: string;
     hourPillar: string;
     reading: string;
+    shareableSummary: string;
 }
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
@@ -133,6 +134,7 @@ export async function getBaziReading(birthDate: Date, birthTime?: string): Promi
        - Luck Cycle & Destiny
        - Current Luck Pillar (运势 Yun Shi)
     3. A conclusion summarizing the main themes and potential life path with what to focus on and what to improve;
+    4. A short, shareable summary (2-3 lines) highlighting the person's key strengths and potential. Make it personal and positive, starting with "A/An [adjective] individual..."
     
     Note: If no specific time is provided, use noon (12:00) as a reference point for the Hour Pillar.`;
 
@@ -163,6 +165,16 @@ export async function getBaziReading(birthDate: Date, birthTime?: string): Promi
 
         const data = await response.json();
         const reading = data.choices[0].message.content;
+
+        // Extract the shareable summary (last paragraph)
+        const paragraphs = reading.split('\n\n');
+        const shareableSummary = paragraphs[paragraphs.length - 1].startsWith('A') || paragraphs[paragraphs.length - 1].startsWith('An')
+            ? paragraphs[paragraphs.length - 1]
+            : "A balanced individual with natural leadership qualities, combining wisdom with adaptability.";
+
+        // Remove the shareable summary from the main reading if it exists
+        const mainReading = paragraphs.slice(0, -1).join('\n\n');
+
         const outputTokens = estimateTokens(reading);
         const responseTime = performance.now() - startTime;
 
@@ -179,17 +191,18 @@ export async function getBaziReading(birthDate: Date, birthTime?: string): Promi
         });
 
         // Parse the reading to extract the pillars
-        const yearPillar = reading.match(/Year Pillar: (.*?)(?:\n|$)/)?.[1] || 'Not specified';
-        const monthPillar = reading.match(/Month Pillar: (.*?)(?:\n|$)/)?.[1] || 'Not specified';
-        const dayPillar = reading.match(/Day Pillar: (.*?)(?:\n|$)/)?.[1] || 'Not specified';
-        const hourPillar = reading.match(/Hour Pillar: (.*?)(?:\n|$)/)?.[1] || 'Not specified';
+        const yearPillar = mainReading.match(/Year Pillar: (.*?)(?:\n|$)/)?.[1] || 'Not specified';
+        const monthPillar = mainReading.match(/Month Pillar: (.*?)(?:\n|$)/)?.[1] || 'Not specified';
+        const dayPillar = mainReading.match(/Day Pillar: (.*?)(?:\n|$)/)?.[1] || 'Not specified';
+        const hourPillar = mainReading.match(/Hour Pillar: (.*?)(?:\n|$)/)?.[1] || 'Not specified';
 
         return {
             yearPillar,
             monthPillar,
             dayPillar,
             hourPillar,
-            reading
+            reading: mainReading,
+            shareableSummary
         };
     } catch (error) {
         const responseTime = performance.now() - startTime;
