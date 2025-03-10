@@ -511,18 +511,18 @@ function App() {
             </Fab>
           </Zoom>
 
-          <Box sx={{ my: 4 }}>
+          <Box sx={{ my: 2 }}>
             <Typography
               variant="h2"
               component="h1"
               gutterBottom
               align="center"
               sx={{
-                mb: 4,
+                mb: 2,
                 fontSize: {
-                  xs: '2.5rem',  // Mobile
-                  sm: '3.5rem',  // Tablet
-                  md: '3.75rem'  // Desktop
+                  xs: '2.5rem',
+                  sm: '3.5rem',
+                  md: '3.75rem'
                 },
                 display: 'flex',
                 alignItems: 'center',
@@ -540,7 +540,7 @@ function App() {
               gutterBottom
               align="center"
               sx={{
-                mb: 4,
+                mb: 3,
                 fontSize: {
                   xs: '1.2rem',
                   sm: '1.5rem'
@@ -549,6 +549,32 @@ function App() {
             >
               Discover your Chinese Fortune Reading (Powered by AI!)
             </Typography>
+
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 2, sm: 3 },
+                mb: 3,
+                bgcolor: 'rgba(255, 152, 0, 0.1)',
+                borderRadius: 2,
+                border: '1px solid rgba(255, 152, 0, 0.2)'
+              }}
+            >
+              <Typography
+                variant="body1"
+                align="center"
+                sx={{
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  color: 'text.primary',
+                  '& strong': {
+                    color: 'primary.main',
+                    fontWeight: 600
+                  }
+                }}
+              >
+                <strong>What is Bazi?</strong> Also known as the "Four Pillars of Destiny," Bazi is an ancient Chinese astrology system that analyzes your birth date and time to reveal insights about your personality, relationships, career path, and life's opportunities. Each reading provides personalized guidance based on the cosmic energies present at your birth moment.
+              </Typography>
+            </Paper>
 
             <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 }, mb: 4 }}>
               {!reading ? (
