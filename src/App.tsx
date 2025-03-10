@@ -173,21 +173,10 @@ function App() {
       });
 
       const image = canvas.toDataURL('image/png');
-
-      if (navigator.share) {
-        const blob = await (await fetch(image)).blob();
-        await navigator.share({
-          files: [new File([blob], 'bazi-reading.png', { type: 'image/png' })],
-          title: 'My BaziGPT Reading',
-          text: 'Check out my Chinese Astrology reading from BaziGPT!'
-        });
-      } else {
-        // Fallback to download
-        const link = document.createElement('a');
-        link.download = 'bazi-reading.png';
-        link.href = image;
-        link.click();
-      }
+      const link = document.createElement('a');
+      link.download = 'my-bazi-reading.png';
+      link.href = image;
+      link.click();
     } catch (err) {
       console.error('Error sharing:', err);
     }
@@ -240,7 +229,6 @@ function App() {
             border: '1px solid rgba(255,152,0,0.3)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
             position: 'relative',
-            overflow: 'hidden',
             '&::before': {
               content: '""',
               position: 'absolute',
@@ -255,8 +243,10 @@ function App() {
           <Box sx={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 3
+            alignItems: 'flex-start',
+            mb: 3,
+            position: 'relative',
+            overflow: 'hidden'
           }}>
             <Typography
               variant="h5"
@@ -265,54 +255,50 @@ function App() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
-                fontSize: { xs: '1.4rem', sm: '1.8rem' },
-                fontWeight: 600
+                fontSize: {
+                  xs: 'min(1.4rem, 4.5vw)',  // Responsive font size on mobile
+                  sm: '1.8rem'
+                },
+                fontWeight: 600,
+                flex: 1,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                minWidth: 0
               }}
             >
-              <span role="img" aria-label="mahjong" style={{ fontSize: '1.2em' }}>🀄</span>
+              <span role="img" aria-label="mahjong" style={{ fontSize: '1.2em', flexShrink: 0 }}>🀄</span>
               My BaziGPT Reading
             </Typography>
             <Box sx={{
-              display: { xs: 'none', sm: 'flex' },
-              flexDirection: 'column',
-              alignItems: 'center'
+              display: { xs: 'none', sm: 'block' },
+              width: '80px',
+              height: '80px',
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              p: '6px',
+              ml: 2
             }}>
               <QRCodeSVG
                 value="https://bazigpt.xyz"
-                size={60}
+                size={68}
                 level="L"
                 includeMargin={false}
-                style={{
-                  borderRadius: '8px',
-                  padding: '6px',
-                  background: 'white'
-                }}
               />
               <Typography
                 variant="caption"
                 sx={{
                   color: 'rgba(255, 255, 255, 0.3)',
                   mt: 0.5,
-                  fontSize: '0.7rem'
+                  fontSize: '0.7rem',
+                  display: 'block',
+                  textAlign: 'center'
                 }}
               >
-                https://bazigpt.xyz
+                bazigpt.xyz
               </Typography>
             </Box>
           </Box>
-
-          {birthDate && (
-            <Typography
-              variant="body1"
-              sx={{
-                mb: 2.5,
-                color: 'text.secondary',
-                fontSize: { xs: '0.9rem', sm: '1.1rem' }
-              }}
-            >
-              Birth Date: {formatDate(birthDate)}
-            </Typography>
-          )}
 
           <Box sx={{ my: { xs: 2, sm: 3 } }}>
             <Typography
@@ -345,7 +331,8 @@ function App() {
                       color: 'text.primary',
                       display: 'flex',
                       flexDirection: { xs: 'column', sm: 'row' },
-                      alignItems: { xs: 'flex-start', sm: 'center' },
+                      alignItems: { xs: 'center', sm: 'flex-start' },
+                      textAlign: { xs: 'center', sm: 'left' },
                       gap: { xs: 0.5, sm: 1 }
                     }}
                   >
@@ -358,14 +345,15 @@ function App() {
                             sx={{
                               color: '#ff9800',
                               fontWeight: 500,
-                              fontSize: { xs: '0.9rem', sm: '1.1rem' }
+                              fontSize: { xs: '0.9rem', sm: '1.1rem' },
+                              textAlign: { xs: 'center', sm: 'left' }
                             }}
                           >
                             {part}
                           </Typography>
                         );
                       }
-                      return <span key={i} style={{ display: 'block' }}>{part}</span>;
+                      return <span key={i} style={{ display: 'block', textAlign: 'inherit' }}>{part}</span>;
                     })}
                   </Typography>
                 );
@@ -400,7 +388,8 @@ function App() {
               flexDirection: { xs: 'row', sm: 'column' },
               alignItems: { xs: 'center', sm: 'stretch' },
               justifyContent: { xs: 'space-between', sm: 'center' },
-              gap: { xs: 2, sm: 0 }
+              gap: { xs: 2, sm: 0 },
+              position: 'relative'
             }}
           >
             <Typography
@@ -419,30 +408,31 @@ function App() {
               Get your own reading at <span className="highlight">bazigpt.xyz</span>
             </Typography>
             <Box sx={{
-              display: { xs: 'flex', sm: 'none' },
-              flexDirection: 'column',
-              alignItems: 'center'
+              display: { xs: 'block', sm: 'none' },
+              width: '60px',
+              height: '60px',
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              p: '4px',
+              flexShrink: 0
             }}>
               <QRCodeSVG
                 value="https://bazigpt.xyz"
-                size={50}
+                size={52}
                 level="L"
                 includeMargin={false}
-                style={{
-                  borderRadius: '8px',
-                  padding: '4px',
-                  background: 'white'
-                }}
               />
               <Typography
                 variant="caption"
                 sx={{
                   color: 'rgba(255, 255, 255, 0.3)',
                   mt: 0.5,
-                  fontSize: '0.6rem'
+                  fontSize: '0.6rem',
+                  display: { xs: 'none', sm: 'block' },
+                  textAlign: 'center'
                 }}
               >
-                https://bazigpt.xyz
+                bazigpt.xyz
               </Typography>
             </Box>
           </Box>
@@ -459,7 +449,7 @@ function App() {
             px: 3
           }}
         >
-          Save & Share
+          Save Reading
         </Button>
       </DialogActions>
     </Dialog>
