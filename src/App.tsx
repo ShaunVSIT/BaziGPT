@@ -234,7 +234,7 @@ function App() {
         <Box
           ref={shareCardRef}
           sx={{
-            p: 4,
+            p: { xs: 2, sm: 4 },
             borderRadius: 3,
             background: 'linear-gradient(135deg, rgba(33,33,33,0.95) 0%, rgba(44,44,44,0.95) 100%)',
             border: '1px solid rgba(255,152,0,0.3)',
@@ -252,7 +252,12 @@ function App() {
             }
           }}
         >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 3
+          }}>
             <Typography
               variant="h5"
               sx={{
@@ -260,22 +265,26 @@ function App() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
-                fontSize: '1.8rem',
+                fontSize: { xs: '1.4rem', sm: '1.8rem' },
                 fontWeight: 600
               }}
             >
               <span role="img" aria-label="mahjong" style={{ fontSize: '1.2em' }}>🀄</span>
               My BaziGPT Reading
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Box sx={{
+              display: { xs: 'none', sm: 'flex' },
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}>
               <QRCodeSVG
                 value="https://bazigpt.xyz"
-                size={80}
+                size={60}
                 level="L"
                 includeMargin={false}
                 style={{
                   borderRadius: '8px',
-                  padding: '8px',
+                  padding: '6px',
                   background: 'white'
                 }}
               />
@@ -283,7 +292,7 @@ function App() {
                 variant="caption"
                 sx={{
                   color: 'rgba(255, 255, 255, 0.3)',
-                  mt: 1,
+                  mt: 0.5,
                   fontSize: '0.7rem'
                 }}
               >
@@ -298,21 +307,21 @@ function App() {
               sx={{
                 mb: 2.5,
                 color: 'text.secondary',
-                fontSize: '1.1rem'
+                fontSize: { xs: '0.9rem', sm: '1.1rem' }
               }}
             >
               Birth Date: {formatDate(birthDate)}
             </Typography>
           )}
 
-          <Box sx={{ my: 3 }}>
+          <Box sx={{ my: { xs: 2, sm: 3 } }}>
             <Typography
               variant="h6"
               sx={{
                 color: 'primary.main',
                 fontWeight: 600,
                 mb: 2,
-                fontSize: '1.3rem'
+                fontSize: { xs: '1.1rem', sm: '1.3rem' }
               }}
             >
               Key Insights:
@@ -332,41 +341,42 @@ function App() {
                     variant="body1"
                     sx={{
                       mb: 1.5,
-                      fontSize: '1.1rem',
+                      fontSize: { xs: '0.9rem', sm: '1.1rem' },
                       color: 'text.primary',
                       display: 'flex',
-                      alignItems: 'center',
-                      gap: 1
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: { xs: 'flex-start', sm: 'center' },
+                      gap: { xs: 0.5, sm: 1 }
                     }}
                   >
                     {parts.map((part, i) => {
                       if (part.startsWith('(') && part.endsWith(')')) {
-                        // This is the Chinese characters part
                         return (
                           <Typography
                             key={i}
                             component="span"
                             sx={{
                               color: '#ff9800',
-                              fontWeight: 500
+                              fontWeight: 500,
+                              fontSize: { xs: '0.9rem', sm: '1.1rem' }
                             }}
                           >
                             {part}
                           </Typography>
                         );
                       }
-                      return part;
+                      return <span key={i} style={{ display: 'block' }}>{part}</span>;
                     })}
                   </Typography>
                 );
               })}
           </Box>
 
-          <Box sx={{ my: 3 }}>
+          <Box sx={{ my: { xs: 2, sm: 3 } }}>
             <Typography
               variant="body1"
               sx={{
-                fontSize: '1.1rem',
+                fontSize: { xs: '0.9rem', sm: '1.1rem' },
                 color: 'text.primary',
                 fontStyle: 'italic',
                 textAlign: 'center',
@@ -383,24 +393,58 @@ function App() {
 
           <Box
             sx={{
-              mt: 4,
-              pt: 3,
+              mt: { xs: 2, sm: 4 },
+              pt: { xs: 2, sm: 3 },
               borderTop: '1px solid rgba(255,152,0,0.2)',
-              textAlign: 'center'
+              display: 'flex',
+              flexDirection: { xs: 'row', sm: 'column' },
+              alignItems: { xs: 'center', sm: 'stretch' },
+              justifyContent: { xs: 'space-between', sm: 'center' },
+              gap: { xs: 2, sm: 0 }
             }}
           >
             <Typography
               sx={{
-                fontSize: '1.2rem',
+                fontSize: { xs: '0.9rem', sm: '1.2rem' },
                 fontWeight: 500,
+                textAlign: 'center',
+                flex: { xs: 1, sm: 'auto' },
                 '& .highlight': {
                   color: '#ff9800',
-                  fontWeight: 600
+                  fontWeight: 600,
+                  display: { xs: 'block', sm: 'inline' }
                 }
               }}
             >
               Get your own reading at <span className="highlight">bazigpt.xyz</span>
             </Typography>
+            <Box sx={{
+              display: { xs: 'flex', sm: 'none' },
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}>
+              <QRCodeSVG
+                value="https://bazigpt.xyz"
+                size={50}
+                level="L"
+                includeMargin={false}
+                style={{
+                  borderRadius: '8px',
+                  padding: '4px',
+                  background: 'white'
+                }}
+              />
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.3)',
+                  mt: 0.5,
+                  fontSize: '0.6rem'
+                }}
+              >
+                https://bazigpt.xyz
+              </Typography>
+            </Box>
           </Box>
         </Box>
       </DialogContent>
