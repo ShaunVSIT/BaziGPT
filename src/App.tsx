@@ -13,6 +13,12 @@ import {
   TextField,
   Collapse,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Fab,
+  Zoom,
 } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -24,6 +30,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from '@vercel/analytics/react';
 import TelegramIcon from '@mui/icons-material/Telegram';
+import InfoIcon from '@mui/icons-material/Info';
 
 // Add this custom X icon component
 const XIcon = () => (
@@ -55,6 +62,8 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [isMainReadingExpanded, setIsMainReadingExpanded] = useState(true);
   const [cachedAnswers, setCachedAnswers] = useState<Record<string, string>>({});
+  const [disclaimerOpen, setDisclaimerOpen] = useState(true);
+  const [hasSeenDisclaimer, setHasSeenDisclaimer] = useState(false);
 
   const handleDateChange = (newValue: Date | null) => {
     setBirthDate(newValue);
@@ -137,11 +146,67 @@ function App() {
     }).format(date);
   };
 
+  const handleCloseDisclaimer = () => {
+    setDisclaimerOpen(false);
+    setHasSeenDisclaimer(true);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <Container maxWidth="md">
+        <Container maxWidth="md" sx={{ py: 4 }}>
+          <Dialog
+            open={disclaimerOpen}
+            onClose={handleCloseDisclaimer}
+            maxWidth="sm"
+            fullWidth
+            sx={{
+              '& .MuiDialog-paper': {
+                bgcolor: 'background.paper',
+                backgroundImage: 'linear-gradient(rgba(255, 152, 0, 0.05), rgba(255, 152, 0, 0.02))',
+              }
+            }}
+          >
+            <DialogTitle sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <InfoIcon /> Privacy & Disclaimer
+            </DialogTitle>
+            <DialogContent>
+              <Typography paragraph>
+                We respect your privacy. We only ask for the minimum information needed for your reading (birth date and time) and do not store any personal data.
+              </Typography>
+              <Typography>
+                Please note: This tool is for entertainment purposes only. The readings should not be taken as factually accurate or followed religiously. Use this as a fun way to explore Chinese Astrology!
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDisclaimer} variant="contained" color="primary">
+                I Understand
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          <Zoom in={hasSeenDisclaimer}>
+            <Fab
+              size="small"
+              color="primary"
+              aria-label="info"
+              onClick={() => setDisclaimerOpen(true)}
+              sx={{
+                position: 'fixed',
+                bottom: 16,
+                right: 16,
+                bgcolor: 'background.paper',
+                color: 'primary.main',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 152, 0, 0.1)',
+                }
+              }}
+            >
+              <InfoIcon />
+            </Fab>
+          </Zoom>
+
           <Box sx={{ my: 4 }}>
             <Typography
               variant="h2"
