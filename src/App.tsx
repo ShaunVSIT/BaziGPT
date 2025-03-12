@@ -205,8 +205,7 @@ function App() {
       // Track successful shares
       track('reading_shared');
     } catch (err) {
-      console.error('Error sharing:', err);
-      // Track share errors
+      // Track share errors with Vercel Analytics instead of console.error
       track('share_error', {
         error: err instanceof Error ? err.message : 'Unknown error',
       });

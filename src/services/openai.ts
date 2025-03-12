@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { track } from '@vercel/analytics/react';
 
 // Add development test type
 declare global {
@@ -34,22 +35,28 @@ const API_URL = 'https://api.openai.com/v1/chat/completions';
 const MODEL_NAME = 'gpt-4o-mini';
 const IS_DEV = import.meta.env.MODE === 'development';
 
-// Test function for monitoring
+// Development-only test function
 export async function testApiMonitoring() {
-    console.log('🧪 Starting API monitoring tests...');
+    if (!IS_DEV) return;
+
+    const log = (msg: string) => IS_DEV && console.log(msg);
+
+    log('🧪 Starting API monitoring tests...');
 
     // Test 1: Normal reading
     try {
-        console.log('Test 1: Getting a Bazi reading...');
+        log('Test 1: Getting a Bazi reading...');
         await getBaziReading(new Date(), '12:00');
-        console.log('✅ Test 1 passed: Successfully got reading');
+        log('✅ Test 1 passed: Successfully got reading');
     } catch (error) {
-        console.error('❌ Test 1 failed:', error);
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        log(`❌ Test 1 failed: ${errorMsg}`);
+        track('test_error', { test: 'reading', error: errorMsg });
     }
 
     // Test 2: Follow-up questions
     try {
-        console.log('Test 2: Testing follow-up questions...');
+        log('Test 2: Testing follow-up questions...');
         const questions = [
             'What about my career?',
             'What about my health?',
@@ -57,16 +64,18 @@ export async function testApiMonitoring() {
         ];
 
         for (const question of questions) {
-            console.log(`Testing question: ${question}`);
+            log(`Testing question: ${question}`);
             await getFollowUpAnswer(new Date(), question);
         }
-        console.log('✅ Test 2 passed: Successfully tested follow-ups');
+        log('✅ Test 2 passed: Successfully tested follow-ups');
     } catch (error) {
-        console.error('❌ Test 2 failed:', error);
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        log(`❌ Test 2 failed: ${errorMsg}`);
+        track('test_error', { test: 'followup', error: errorMsg });
     }
 
-    console.log('🏁 API monitoring tests completed');
-    console.log('Check the logs above for detailed metrics of each call');
+    log('🏁 API monitoring tests completed');
+    log('Check the logs above for detailed metrics of each call');
 }
 
 // Token counting helper (rough estimate)
@@ -88,28 +97,42 @@ function calculateCost(model: string, inputTokens: number, outputTokens: number)
 // Log metrics to Vercel
 async function logApiMetrics(metrics: ApiMetrics) {
     try {
-        // Format for Vercel logs
-        const vercelLog = {
-            timestamp: new Date(metrics.timestamp).toISOString(),
-            level: metrics.success ? 'info' : 'error',
-            message: `API ${metrics.endpoint}`,
-            data: {
-                responseTime: `${Math.round(metrics.responseTime)}ms`,
-                tokens: {
-                    input: metrics.inputTokens,
-                    output: metrics.outputTokens,
-                    total: metrics.inputTokens + metrics.outputTokens
-                },
-                cost: `$${metrics.estimatedCost.toFixed(4)}`,
-                model: metrics.model,
-                success: metrics.success
-            }
-        };
+        if (IS_DEV) {
+            // Development logging
+            const vercelLog = {
+                timestamp: new Date(metrics.timestamp).toISOString(),
+                level: metrics.success ? 'info' : 'error',
+                message: `API ${metrics.endpoint}`,
+                data: {
+                    responseTime: `${Math.round(metrics.responseTime)}ms`,
+                    tokens: {
+                        input: metrics.inputTokens,
+                        output: metrics.outputTokens,
+                        total: metrics.inputTokens + metrics.outputTokens
+                    },
+                    cost: `$${metrics.estimatedCost.toFixed(4)}`,
+                    model: metrics.model,
+                    success: metrics.success
+                }
+            };
+            console.log(JSON.stringify(vercelLog));
+        }
 
-        // Log in a format that Vercel can parse nicely
-        console.log(JSON.stringify(vercelLog));
+        // Track metrics in Vercel Analytics for both dev and prod
+        track('api_call', {
+            endpoint: metrics.endpoint,
+            success: metrics.success,
+            responseTime: Math.round(metrics.responseTime),
+            model: metrics.model,
+            ...(metrics.error && { error: metrics.error })
+        });
     } catch (error) {
-        console.error('Error logging metrics:', error);
+        if (IS_DEV) {
+            console.error('Error logging metrics:', error);
+        }
+        track('logging_error', {
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
     }
 }
 
@@ -206,6 +229,7 @@ export async function getBaziReading(birthDate: Date, birthTime?: string): Promi
         };
     } catch (error) {
         const responseTime = performance.now() - startTime;
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
 
         // Log error metrics
         await logApiMetrics({
@@ -216,11 +240,13 @@ export async function getBaziReading(birthDate: Date, birthTime?: string): Promi
             outputTokens: 0,
             model,
             success: false,
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: errorMsg,
             estimatedCost: calculateCost(model, inputTokens, 0)
         });
 
-        console.error('Error getting Bazi reading:', error);
+        if (IS_DEV) {
+            console.error('Error getting Bazi reading:', error);
+        }
         throw new Error('Failed to generate Bazi reading. Please try again later.');
     }
 }
@@ -285,6 +311,7 @@ export async function getFollowUpAnswer(birthDate: Date, question: string): Prom
         return content;
     } catch (error) {
         const responseTime = performance.now() - startTime;
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
 
         // Log error metrics
         await logApiMetrics({
@@ -295,11 +322,13 @@ export async function getFollowUpAnswer(birthDate: Date, question: string): Prom
             outputTokens: 0,
             model,
             success: false,
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: errorMsg,
             estimatedCost: calculateCost(model, inputTokens, 0)
         });
 
-        console.error('Error getting follow-up answer:', error);
+        if (IS_DEV) {
+            console.error('Error getting follow-up answer:', error);
+        }
         throw new Error('Failed to generate follow-up answer. Please try again later.');
     }
 } 
