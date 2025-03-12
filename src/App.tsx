@@ -28,7 +28,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { Analytics } from '@vercel/analytics/react';
+import { Analytics, track } from '@vercel/analytics/react';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import InfoIcon from '@mui/icons-material/Info';
 import ShareIcon from '@mui/icons-material/Share';
@@ -101,9 +101,17 @@ function App() {
     try {
       const baziReading = await getBaziReading(birthDate, birthTime || undefined);
       setReading(baziReading);
+      // Track successful reading generation
+      track('reading_generated', {
+        hasTime: !!birthTime,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while generating your reading.');
       setReading(null);
+      // Track errors
+      track('reading_error', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+      });
     } finally {
       setLoading(false);
     }
@@ -118,6 +126,10 @@ function App() {
 
     if (cachedAnswers[question]) {
       setFollowUpAnswer(cachedAnswers[question]);
+      // Track cached answer usage
+      track('followup_cached', {
+        question,
+      });
       return;
     }
 
@@ -130,15 +142,26 @@ function App() {
         ...prev,
         [question]: answer
       }));
+      // Track successful follow-up question
+      track('followup_generated', {
+        question,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while generating the answer.');
       setFollowUpAnswer(null);
+      // Track follow-up errors
+      track('followup_error', {
+        question,
+        error: err instanceof Error ? err.message : 'Unknown error',
+      });
     } finally {
       setFollowUpLoading(false);
     }
   };
 
   const handleRestart = () => {
+    // Track when users start over
+    track('reading_restart');
     setBirthDate(null);
     setBirthTime('');
     setReading(null);
@@ -159,6 +182,8 @@ function App() {
   };
 
   const handleCloseDisclaimer = () => {
+    // Track disclaimer acceptance
+    track('disclaimer_accepted');
     setDisclaimerOpen(false);
     setHasSeenDisclaimer(true);
   };
@@ -177,8 +202,14 @@ function App() {
       link.download = 'my-bazi-reading.png';
       link.href = image;
       link.click();
+      // Track successful shares
+      track('reading_shared');
     } catch (err) {
       console.error('Error sharing:', err);
+      // Track share errors
+      track('share_error', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+      });
     }
   };
 
