@@ -1191,7 +1191,7 @@ function App() {
                   <XIcon />
                 </IconButton>
                 <IconButton
-                  href="https://t.me/CryptoBarnum"
+                  href="https://t.me/ZeroXBarnum"
                   target="_blank"
                   aria-label="Telegram"
                   sx={{
