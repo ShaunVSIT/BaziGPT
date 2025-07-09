@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -36,6 +37,8 @@ import ShareIcon from '@mui/icons-material/Share';
 import html2canvas from 'html2canvas';
 import { QRCodeSVG } from 'qrcode.react';
 import SEOAnalytics from './components/SEOAnalytics';
+import Privacy from './components/Privacy';
+import Terms from './components/Terms';
 
 // Add this custom X icon component
 const XIcon = () => (
@@ -61,7 +64,7 @@ interface BaziReading {
   shareableSummary: string;
 }
 
-function App() {
+function MainApp() {
   const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [birthTime, setBirthTime] = useState<string>('');
   const [reading, setReading] = useState<BaziReading | null>(null);
@@ -1192,6 +1195,7 @@ function App() {
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
                   <Button
+                    component="a"
                     href="/privacy"
                     size="small"
                     sx={{
@@ -1206,6 +1210,7 @@ function App() {
                     Privacy Policy
                   </Button>
                   <Button
+                    component="a"
                     href="/terms"
                     size="small"
                     sx={{
@@ -1276,6 +1281,18 @@ function App() {
         />
       </LocalizationProvider>
     </ThemeProvider>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainApp />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+      </Routes>
+    </Router>
   );
 }
 
