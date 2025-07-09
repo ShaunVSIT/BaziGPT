@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import {
   Container,
   Box,
@@ -34,6 +35,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import ShareIcon from '@mui/icons-material/Share';
 import html2canvas from 'html2canvas';
 import { QRCodeSVG } from 'qrcode.react';
+import SEOAnalytics from './components/SEOAnalytics';
 
 // Add this custom X icon component
 const XIcon = () => (
@@ -487,6 +489,27 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
+      <Helmet>
+        <title>BaziGPT - AI-Powered Chinese Astrology & BaZi Reading</title>
+        <meta name="description" content="Get personalized Chinese Astrology readings and BaZi analysis powered by AI. Discover your destiny, personality traits, and life path based on your birth date and time." />
+        <meta name="keywords" content="Chinese astrology, BaZi, Four Pillars, destiny reading, birth chart, Chinese horoscope, AI astrology, free reading, personality analysis, life path" />
+
+        {/* Open Graph */}
+        <meta property="og:title" content="BaziGPT - AI-Powered Chinese Astrology & BaZi Reading" />
+        <meta property="og:description" content="Get personalized Chinese Astrology readings and BaZi analysis powered by AI. Discover your destiny, personality traits, and life path based on your birth date and time." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://bazigpt.com" />
+        <meta property="og:image" content="https://bazigpt.com/og-image.svg" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="BaziGPT - AI-Powered Chinese Astrology & BaZi Reading" />
+        <meta name="twitter:description" content="Get personalized Chinese Astrology readings and BaZi analysis powered by AI. Discover your destiny, personality traits, and life path based on your birth date and time." />
+        <meta name="twitter:image" content="https://bazigpt.com/og-image.svg" />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href="https://bazigpt.com" />
+      </Helmet>
       <CssBaseline />
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <Container maxWidth="md" sx={{ py: 4 }}>
@@ -1167,6 +1190,36 @@ function App() {
                 <Typography variant="body2" color="text.secondary">
                   Built with React, Material-UI, and GPT-4
                 </Typography>
+                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                  <Button
+                    href="/privacy"
+                    size="small"
+                    sx={{
+                      color: 'text.secondary',
+                      textTransform: 'none',
+                      fontSize: '0.75rem',
+                      '&:hover': {
+                        color: 'primary.main'
+                      }
+                    }}
+                  >
+                    Privacy Policy
+                  </Button>
+                  <Button
+                    href="/terms"
+                    size="small"
+                    sx={{
+                      color: 'text.secondary',
+                      textTransform: 'none',
+                      fontSize: '0.75rem',
+                      '&:hover': {
+                        color: 'primary.main'
+                      }
+                    }}
+                  >
+                    Terms of Service
+                  </Button>
+                </Box>
               </Box>
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <IconButton
@@ -1216,6 +1269,11 @@ function App() {
         </Container>
         <SpeedInsights />
         <Analytics />
+        <SEOAnalytics
+          pageTitle="BaziGPT - AI-Powered Chinese Astrology & BaZi Reading"
+          pageDescription="Get personalized Chinese Astrology readings and BaZi analysis powered by AI. Discover your destiny, personality traits, and life path based on your birth date and time."
+          keywords={["Chinese astrology", "BaZi", "Four Pillars", "destiny reading", "birth chart", "Chinese horoscope", "AI astrology", "free reading", "personality analysis", "life path"]}
+        />
       </LocalizationProvider>
     </ThemeProvider>
   );

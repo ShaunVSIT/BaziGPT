@@ -1,0 +1,40 @@
+{
+    "name": "BaziGPT - AI-Powered Chinese Astrology",
+    "short_name": "BaziGPT",
+    "description": "Get personalized Chinese Astrology readings and BaZi analysis powered by AI",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#1a1a1a",
+    "theme_color": "#ff9800",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/favicon-32x32.png",
+            "sizes": "32x32",
+            "type": "image/png"
+        },
+        {
+            "src": "/favicon-16x16.png",
+            "sizes": "16x16",
+            "type": "image/png"
+        },
+        {
+            "src": "/apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png"
+        }
+    ],
+    "categories": [
+        "lifestyle",
+        "entertainment",
+        "astrology"
+    ],
+    "lang": "en",
+    "dir": "ltr"
+}
