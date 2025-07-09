@@ -539,9 +539,29 @@ function MainApp() {
                 Please note: This tool is for entertainment purposes only. The readings should not be taken as factually accurate or followed religiously. Use this as a fun way to explore Chinese Astrology!
               </Typography>
             </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseDisclaimer} variant="contained" color="primary">
-                I Understand
+            <DialogActions
+              sx={{
+                justifyContent: { xs: 'center', sm: 'flex-end' },
+                pb: { xs: 3, sm: 4 },
+                pr: { xs: 0, sm: 4 },
+                pt: 2,
+              }}
+            >
+              <Button
+                onClick={handleCloseDisclaimer}
+                variant="contained"
+                color="primary"
+                sx={{
+                  minWidth: 160,
+                  fontWeight: 500,
+                  fontSize: '1.1rem',
+                  borderRadius: 2,
+                  px: 3,
+                  py: 1.5,
+                  mb: { xs: 1, sm: 0 },
+                }}
+              >
+                I UNDERSTAND
               </Button>
             </DialogActions>
           </Dialog>

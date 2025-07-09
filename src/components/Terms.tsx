@@ -48,7 +48,7 @@ const Terms: React.FC = () => {
                     </Typography>
 
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-                        <strong>Last updated:</strong> January 2024
+                        <strong>Last updated:</strong> July 2025
                     </Typography>
 
                     <Box sx={{ '& h2': { color: 'primary.main', mt: 4, mb: 2 }, '& p': { mb: 2 }, '& ul': { mb: 2 } }}>
@@ -108,11 +108,10 @@ const Terms: React.FC = () => {
                             Contact
                         </Typography>
                         <Typography variant="body1">
-                            For questions about these terms, contact us at{' '}
-                            <a href="https://twitter.com/0xBarnum" target="_blank" rel="noopener noreferrer" style={{ color: '#ff9800' }}>
-                                @0xBarnum
-                            </a>{' '}
-                            on Twitter.
+                            For questions about these terms, contact me on Telegram at{' '}
+                            <a href="https://t.me/ZeroXBarnum" target="_blank" rel="noopener noreferrer" style={{ color: '#ff9800' }}>
+                                @ZeroXBarnum
+                            </a>.
                         </Typography>
                     </Box>
                 </Paper>

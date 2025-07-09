@@ -48,7 +48,7 @@ const Privacy: React.FC = () => {
                     </Typography>
 
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-                        <strong>Last updated:</strong> January 2024
+                        <strong>Last updated:</strong> July 2025
                     </Typography>
 
                     <Box sx={{ '& h2': { color: 'primary.main', mt: 4, mb: 2 }, '& p': { mb: 2 }, '& ul': { mb: 2 } }}>
@@ -99,11 +99,10 @@ const Privacy: React.FC = () => {
                             Contact
                         </Typography>
                         <Typography variant="body1">
-                            If you have questions about this privacy policy, please contact us at{' '}
-                            <a href="https://twitter.com/0xBarnum" target="_blank" rel="noopener noreferrer" style={{ color: '#ff9800' }}>
-                                @0xBarnum
-                            </a>{' '}
-                            on Twitter.
+                            If you have questions about this privacy policy, please contact me on Telegram at{' '}
+                            <a href="https://t.me/ZeroXBarnum" target="_blank" rel="noopener noreferrer" style={{ color: '#ff9800' }}>
+                                @ZeroXBarnum
+                            </a>.
                         </Typography>
                     </Box>
                 </Paper>
