@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://bazigpt.com/sitemap.xml
+Sitemap: https://bazigpt.xyz/sitemap.xml
 
 # Crawl-delay
 Crawl-delay: 1 
