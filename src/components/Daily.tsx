@@ -13,7 +13,6 @@ import { format } from 'date-fns';
 
 function Daily() {
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
     const today = new Date();
     const formattedDate = format(today, 'MMMM d, yyyy');
@@ -114,10 +113,6 @@ function Daily() {
                         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
                             <CircularProgress size={60} color="primary" />
                         </Box>
-                    ) : error ? (
-                        <Alert severity="error" sx={{ mb: 2 }}>
-                            {error}
-                        </Alert>
                     ) : (
                         <Box>
                             <Typography variant="h6" color="primary.main" gutterBottom>
