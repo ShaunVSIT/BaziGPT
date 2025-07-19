@@ -107,7 +107,7 @@ function generateShareCardHTML(data: ShareCardData): string {
             <div class="date">${formattedDate}</div>
             <div class="pillar">${baziPillar}</div>
             <div class="forecast">${forecast}</div>
-            <div class="footer">BaziGPT.com</div>
+            <div class="footer">BaziGPT.xyz</div>
         </div>
     </body>
     </html>

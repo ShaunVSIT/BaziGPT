@@ -65,7 +65,7 @@ function generateShareCardSVG(data: ShareCardData): string {
             
             <!-- Footer -->
             <text x="600" y="580" text-anchor="middle" font-size="16" fill="#888888">
-                BaziGPT.com
+                BaziGPT.xyz
             </text>
         </g>
     </svg>
