@@ -1,6 +1,4 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { writeFileSync, readFileSync, existsSync } from 'fs';
-import { join } from 'path';
 
 interface DailyBaziForecast {
     date: string;
@@ -15,41 +13,11 @@ let isGenerating = false;
 let lastApiCallTime = 0;
 const MIN_API_CALL_INTERVAL = 60000; // 1 minute minimum between API calls
 
-// File-based cache for persistence across serverless instances
-const CACHE_FILE = '/tmp/daily-bazi-cache.json';
-
 function getCache(): Map<string, DailyBaziForecast> {
     if (!globalCache) {
         globalCache = new Map<string, DailyBaziForecast>();
-
-        // Load from file if exists
-        try {
-            if (existsSync(CACHE_FILE)) {
-                const fileContent = readFileSync(CACHE_FILE, 'utf8');
-                const cachedData = JSON.parse(fileContent);
-                Object.entries(cachedData).forEach(([key, value]) => {
-                    globalCache!.set(key, value as DailyBaziForecast);
-                });
-                console.log(`[${new Date().toISOString()}] Loaded cache from file with ${globalCache.size} entries`);
-            }
-        } catch (error) {
-            console.log(`[${new Date().toISOString()}] No cache file found or error loading:`, error);
-        }
     }
     return globalCache;
-}
-
-function saveCacheToFile(cache: Map<string, DailyBaziForecast>): void {
-    try {
-        const cacheObject: Record<string, DailyBaziForecast> = {};
-        cache.forEach((value, key) => {
-            cacheObject[key] = value;
-        });
-        writeFileSync(CACHE_FILE, JSON.stringify(cacheObject, null, 2));
-        console.log(`[${new Date().toISOString()}] Saved cache to file with ${cache.size} entries`);
-    } catch (error) {
-        console.error(`[${new Date().toISOString()}] Error saving cache to file:`, error);
-    }
 }
 
 // Get today's date in YYYY-MM-DD format (UTC)
@@ -140,14 +108,26 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
     }
 
     try {
-        const today = getTodayDate();
+        // Check for force refresh parameter
+        const forceRefresh = req.query.force === 'true';
+        const testDate = req.query.date as string;
+
+        const today = testDate || getTodayDate();
         const cacheKey = `daily-bazi-${today}`;
+
+        if (forceRefresh) {
+            console.log(`[${new Date().toISOString()}] Force refresh requested - bypassing cache`);
+        }
+
+        if (testDate) {
+            console.log(`[${new Date().toISOString()}] Test date requested: ${testDate}`);
+        }
 
         // Check if we have a cached forecast from today
         const cache = getCache();
         const cachedForecast = cache.get(cacheKey);
 
-        if (cachedForecast && isForecastFromToday(cachedForecast)) {
+        if (cachedForecast && isForecastFromToday(cachedForecast) && !forceRefresh) {
             // Return cached forecast
             console.log(`[${new Date().toISOString()}] Returning cached forecast for ${today}`);
             res.status(200).json({
@@ -192,7 +172,6 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
                 cached: false
             };
             cache.set(cacheKey, fallbackForecast);
-            saveCacheToFile(cache);
             isGenerating = false;
             res.status(200).json(fallbackForecast);
             return;
@@ -215,7 +194,6 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
 
             // Cache the forecast
             cache.set(cacheKey, dailyForecast);
-            saveCacheToFile(cache); // Save cache to file
             console.log(`[${new Date().toISOString()}] Generated and cached new forecast for ${today}`);
         } finally {
             // Always reset the generating flag
@@ -233,7 +211,6 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
                 cache.delete(key);
             }
         }
-        saveCacheToFile(cache); // Save cache to file after cleanup
 
         res.status(200).json(dailyForecast);
     } catch (error) {
