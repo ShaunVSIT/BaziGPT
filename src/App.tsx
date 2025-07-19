@@ -615,21 +615,21 @@ function MainApp() {
   return (
     <ThemeProvider theme={theme}>
       <Helmet>
-        <title>BaziGPT - AI-Powered Chinese Astrology & BaZi Reading</title>
-        <meta name="description" content="Get personalized Chinese Astrology readings and BaZi analysis powered by AI. Discover your destiny, personality traits, and life path based on your birth date and time." />
-        <meta name="keywords" content="Chinese astrology, BaZi, Four Pillars, destiny reading, birth chart, Chinese horoscope, AI astrology, free reading, personality analysis, life path" />
+        <title>BaziGPT - AI-Powered Chinese Astrology & Relationship Compatibility</title>
+        <meta name="description" content="Get personalized Chinese Astrology readings and relationship compatibility analysis powered by AI. Discover your destiny, personality traits, and relationship compatibility based on your birth date and time." />
+        <meta name="keywords" content="Chinese astrology, BaZi, Four Pillars, destiny reading, birth chart, Chinese horoscope, AI astrology, free reading, personality analysis, life path, relationship compatibility, love compatibility, couple compatibility, romantic compatibility, Chinese love astrology, relationship reading, couple reading, love horoscope, relationship analysis, compatibility test, love match, relationship advice, Chinese relationship astrology, couple horoscope, love reading, relationship guidance" />
 
         {/* Open Graph */}
-        <meta property="og:title" content="BaziGPT - AI-Powered Chinese Astrology & BaZi Reading" />
-        <meta property="og:description" content="Get personalized Chinese Astrology readings and BaZi analysis powered by AI. Discover your destiny, personality traits, and life path based on your birth date and time." />
+        <meta property="og:title" content="BaziGPT - AI-Powered Chinese Astrology & Relationship Compatibility" />
+        <meta property="og:description" content="Get personalized Chinese Astrology readings and relationship compatibility analysis powered by AI. Discover your destiny, personality traits, and relationship compatibility based on your birth date and time." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://bazigpt.com" />
         <meta property="og:image" content="https://bazigpt.com/og-image.svg" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="BaziGPT - AI-Powered Chinese Astrology & BaZi Reading" />
-        <meta name="twitter:description" content="Get personalized Chinese Astrology readings and BaZi analysis powered by AI. Discover your destiny, personality traits, and life path based on your birth date and time." />
+        <meta name="twitter:title" content="BaziGPT - AI-Powered Chinese Astrology & Relationship Compatibility" />
+        <meta name="twitter:description" content="Get personalized Chinese Astrology readings and relationship compatibility analysis powered by AI. Discover your destiny, personality traits, and relationship compatibility based on your birth date and time." />
         <meta name="twitter:image" content="https://bazigpt.com/og-image.svg" />
 
         {/* Canonical URL */}
@@ -745,7 +745,7 @@ function MainApp() {
                 }
               }}
             >
-              Discover your Chinese Fortune Reading (Powered by AI!)
+              Discover your Chinese Fortune Reading & Relationship Compatibility (Powered by AI!)
             </Typography>
             <Paper
               elevation={0}
@@ -2213,9 +2213,16 @@ function MainApp() {
         <SpeedInsights />
         <Analytics />
         <SEOAnalytics
-          pageTitle="BaziGPT - AI-Powered Chinese Astrology & BaZi Reading"
-          pageDescription="Get personalized Chinese Astrology readings and BaZi analysis powered by AI. Discover your destiny, personality traits, and life path based on your birth date and time."
-          keywords={["Chinese astrology", "BaZi", "Four Pillars", "destiny reading", "birth chart", "Chinese horoscope", "AI astrology", "free reading", "personality analysis", "life path"]}
+          pageTitle="BaziGPT - AI-Powered Chinese Astrology & Relationship Compatibility"
+          pageDescription="Get personalized Chinese Astrology readings and relationship compatibility analysis powered by AI. Discover your destiny, personality traits, and relationship compatibility based on your birth date and time."
+          keywords={[
+            "Chinese astrology", "BaZi", "Four Pillars", "destiny reading", "birth chart",
+            "Chinese horoscope", "AI astrology", "free reading", "personality analysis", "life path",
+            "relationship compatibility", "love compatibility", "couple compatibility", "romantic compatibility",
+            "Chinese love astrology", "relationship reading", "couple reading", "love horoscope",
+            "relationship analysis", "compatibility test", "love match", "relationship advice",
+            "Chinese relationship astrology", "couple horoscope", "love reading", "relationship guidance"
+          ]}
         />
       </LocalizationProvider>
     </ThemeProvider>
