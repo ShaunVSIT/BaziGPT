@@ -1,4 +1,6 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { writeFileSync, readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
 interface DailyBaziForecast {
     date: string;
@@ -10,12 +12,44 @@ interface DailyBaziForecast {
 // Cache using a more robust approach for serverless environments
 let globalCache: Map<string, DailyBaziForecast> | null = null;
 let isGenerating = false;
+let lastApiCallTime = 0;
+const MIN_API_CALL_INTERVAL = 60000; // 1 minute minimum between API calls
+
+// File-based cache for persistence across serverless instances
+const CACHE_FILE = '/tmp/daily-bazi-cache.json';
 
 function getCache(): Map<string, DailyBaziForecast> {
     if (!globalCache) {
         globalCache = new Map<string, DailyBaziForecast>();
+
+        // Load from file if exists
+        try {
+            if (existsSync(CACHE_FILE)) {
+                const fileContent = readFileSync(CACHE_FILE, 'utf8');
+                const cachedData = JSON.parse(fileContent);
+                Object.entries(cachedData).forEach(([key, value]) => {
+                    globalCache!.set(key, value as DailyBaziForecast);
+                });
+                console.log(`[${new Date().toISOString()}] Loaded cache from file with ${globalCache.size} entries`);
+            }
+        } catch (error) {
+            console.log(`[${new Date().toISOString()}] No cache file found or error loading:`, error);
+        }
     }
     return globalCache;
+}
+
+function saveCacheToFile(cache: Map<string, DailyBaziForecast>): void {
+    try {
+        const cacheObject: Record<string, DailyBaziForecast> = {};
+        cache.forEach((value, key) => {
+            cacheObject[key] = value;
+        });
+        writeFileSync(CACHE_FILE, JSON.stringify(cacheObject, null, 2));
+        console.log(`[${new Date().toISOString()}] Saved cache to file with ${cache.size} entries`);
+    } catch (error) {
+        console.error(`[${new Date().toISOString()}] Error saving cache to file:`, error);
+    }
 }
 
 // Get today's date in YYYY-MM-DD format (UTC)
@@ -87,7 +121,7 @@ End with a single-line affirmation or reflection like:
     }
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+const handler = async (req: VercelRequest, res: VercelResponse) => {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -146,6 +180,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Set generating flag to prevent race conditions
         isGenerating = true;
 
+        // Rate limiting: prevent too frequent API calls
+        const now = Date.now();
+        if (now - lastApiCallTime < MIN_API_CALL_INTERVAL) {
+            console.log(`[${new Date().toISOString()}] Rate limiting: too soon since last API call`);
+            // Return fallback instead of calling API
+            const fallbackForecast: DailyBaziForecast = {
+                date: today,
+                baziPillar: "Yang Fire over Monkey",
+                forecast: "Today brings the energy of Yang Fire over Monkey. This combination suggests a day of dynamic activity and clever problem-solving. The Fire element provides warmth and enthusiasm, while the Monkey brings wit and adaptability. Focus on creative projects and social interactions today. Avoid rushing into decisions without careful consideration. Let the steady flow of Fire guide your actions today.",
+                cached: false
+            };
+            cache.set(cacheKey, fallbackForecast);
+            saveCacheToFile(cache);
+            isGenerating = false;
+            res.status(200).json(fallbackForecast);
+            return;
+        }
+
+        lastApiCallTime = now;
         let dailyForecast: DailyBaziForecast;
 
         try {
@@ -162,6 +215,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
             // Cache the forecast
             cache.set(cacheKey, dailyForecast);
+            saveCacheToFile(cache); // Save cache to file
             console.log(`[${new Date().toISOString()}] Generated and cached new forecast for ${today}`);
         } finally {
             // Always reset the generating flag
@@ -179,6 +233,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 cache.delete(key);
             }
         }
+        saveCacheToFile(cache); // Save cache to file after cleanup
 
         res.status(200).json(dailyForecast);
     } catch (error) {
@@ -193,4 +248,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             error: "Generated fallback forecast due to API error"
         });
     }
-} 
+};
+
+export default handler; 
