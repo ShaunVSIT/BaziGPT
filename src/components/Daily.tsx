@@ -9,18 +9,33 @@ import {
     Button,
 } from '@mui/material';
 import { format } from 'date-fns';
+import { fetchDailyForecast, type DailyBaziForecast } from '../services/dailyBaziApi';
 
 function Daily() {
     const [loading, setLoading] = useState(true);
+    const [forecast, setForecast] = useState<DailyBaziForecast | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const today = new Date();
     const formattedDate = format(today, 'MMMM d, yyyy');
 
-    useEffect(() => {
-        // Simulate loading
-        setTimeout(() => {
+    const fetchDailyForecastData = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const data = await fetchDailyForecast();
+            setForecast(data);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching the daily forecast.';
+            setError(errorMessage);
+        } finally {
             setLoading(false);
-        }, 1000);
+        }
+    };
+
+    useEffect(() => {
+        fetchDailyForecastData();
     }, []);
 
     return (
@@ -111,6 +126,24 @@ function Daily() {
                     {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
                             <CircularProgress size={60} color="primary" />
+                        </Box>
+                    ) : error ? (
+                        <Box>
+                            <Typography variant="h6" color="error" gutterBottom>
+                                Error Loading Forecast
+                            </Typography>
+                            <Typography variant="body1" color="error">
+                                {error}
+                            </Typography>
+                        </Box>
+                    ) : forecast ? (
+                        <Box>
+                            <Typography variant="h6" color="primary.main" gutterBottom>
+                                Today's Energy: {forecast.baziPillar}
+                            </Typography>
+                            <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
+                                {forecast.forecast}
+                            </Typography>
                         </Box>
                     ) : (
                         <Box>
