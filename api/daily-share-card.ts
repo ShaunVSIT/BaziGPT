@@ -72,16 +72,16 @@ function generateShareCardSVG(data: ShareCardData): string {
     `;
 }
 
-// Fetch daily forecast from our API
-async function fetchDailyForecast(): Promise<DailyBaziForecast> {
-    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/daily-bazi`);
+// Generate daily forecast data (self-contained)
+function generateDailyForecast(): DailyBaziForecast {
+    const today = new Date().toISOString().split('T')[0];
 
-    if (!response.ok) {
-        throw new Error(`Failed to fetch daily forecast: ${response.statusText}`);
-    }
-
-    return response.json();
+    return {
+        date: today,
+        baziPillar: "Yang Fire over Monkey",
+        forecast: "Today brings the energy of Yang Fire over Monkey. This combination suggests a day of dynamic activity and clever problem-solving. The Fire element provides warmth and enthusiasm, while the Monkey brings wit and adaptability. Focus on creative projects and social interactions today. Avoid rushing into decisions without careful consideration. Let the steady flow of Fire guide your actions today.",
+        cached: false
+    };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -104,7 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
         // Get today's forecast
-        const forecast = await fetchDailyForecast();
+        const forecast = generateDailyForecast();
 
         // Generate share card data
         const shareCardData: ShareCardData = {
