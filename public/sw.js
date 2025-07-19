@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bazigpt-v1';
+const CACHE_NAME = 'bazigpt-v2'; // Increment version for cache busting
 const urlsToCache = [
     '/',
     '/index.html',
@@ -16,20 +16,70 @@ self.addEventListener('install', (event) => {
                 return cache.addAll(urlsToCache);
             })
     );
+    // Skip waiting to activate immediately
+    self.skipWaiting();
 });
 
-// Fetch event - serve from cache if available
+// Fetch event - network first for API calls, cache first for static assets
 self.addEventListener('fetch', (event) => {
+    const { request } = event;
+
+    // Skip non-GET requests
+    if (request.method !== 'GET') {
+        return;
+    }
+
+    // API calls - network first, fallback to cache
+    if (request.url.includes('/api/')) {
+        event.respondWith(
+            fetch(request)
+                .then((response) => {
+                    // Cache successful API responses
+                    if (response.ok) {
+                        const responseClone = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(request, responseClone);
+                        });
+                    }
+                    return response;
+                })
+                .catch(() => {
+                    // Fallback to cache for API calls
+                    return caches.match(request);
+                })
+        );
+        return;
+    }
+
+    // Static assets - cache first, network fallback
     event.respondWith(
-        caches.match(event.request)
+        caches.match(request)
             .then((response) => {
-                // Return cached version or fetch from network
-                return response || fetch(event.request);
+                if (response) {
+                    // Return cached version
+                    return response;
+                }
+
+                // Fetch from network if not in cache
+                return fetch(request).then((response) => {
+                    // Don't cache non-successful responses
+                    if (!response || response.status !== 200 || response.type !== 'basic') {
+                        return response;
+                    }
+
+                    // Cache the response
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(request, responseClone);
+                    });
+
+                    return response;
+                });
             })
     );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and take control
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
@@ -41,6 +91,16 @@ self.addEventListener('activate', (event) => {
                     }
                 })
             );
+        }).then(() => {
+            // Take control of all clients immediately
+            return self.clients.claim();
         })
     );
+});
+
+// Handle service worker updates gracefully
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 }); 

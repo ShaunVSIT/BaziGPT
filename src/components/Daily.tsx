@@ -198,18 +198,7 @@ function Daily() {
                                                 }
                                             }}
                                         />
-                                        {forecast.cached && (
-                                            <Chip
-                                                label="Cached"
-                                                size="small"
-                                                color="secondary"
-                                                variant="outlined"
-                                                sx={{
-                                                    borderColor: 'secondary.main',
-                                                    color: 'secondary.main'
-                                                }}
-                                            />
-                                        )}
+
                                     </Box>
                                 </Box>
                                 <Box>

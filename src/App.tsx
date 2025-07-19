@@ -104,17 +104,37 @@ function MainApp() {
   const [compatibilityShareDialogOpen, setCompatibilityShareDialogOpen] = useState(false);
   const compatibilityShareCardRef = useRef<HTMLDivElement>(null);
 
+  // Handle mode switching - preserve readings
+  const handleModeSwitch = (newMode: 'solo' | 'compatibility') => {
+    setReadingMode(newMode);
+    // Don't clear readings when switching modes
+    // Only clear errors to show fresh state
+    setError(null);
+    setCompatibilityError(null);
+  };
+
   const handleDateChange = (newValue: Date | null) => {
     setBirthDate(newValue);
     setError(null);
-    setReading(null);
-    setSelectedQuestion(null);
-    setFollowUpAnswer(null);
-    setCachedAnswers({});
+    // Only clear reading if date actually changed
+    if (newValue?.getTime() !== birthDate?.getTime()) {
+      setReading(null);
+      setSelectedQuestion(null);
+      setFollowUpAnswer(null);
+      setCachedAnswers({});
+    }
   };
 
   const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setBirthTime(event.target.value);
+    const newTime = event.target.value;
+    setBirthTime(newTime);
+    // Only clear reading if time actually changed
+    if (newTime !== birthTime) {
+      setReading(null);
+      setSelectedQuestion(null);
+      setFollowUpAnswer(null);
+      setCachedAnswers({});
+    }
   };
 
   const handleSubmit = async () => {
@@ -205,21 +225,37 @@ function MainApp() {
   const handlePerson1DateChange = (newValue: Date | null) => {
     setPerson1BirthDate(newValue);
     setCompatibilityError(null);
-    setCompatibilityReading(null);
+    // Only clear reading if date actually changed
+    if (newValue?.getTime() !== person1BirthDate?.getTime()) {
+      setCompatibilityReading(null);
+    }
   };
 
   const handlePerson1TimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPerson1BirthTime(event.target.value);
+    const newTime = event.target.value;
+    setPerson1BirthTime(newTime);
+    // Only clear reading if time actually changed
+    if (newTime !== person1BirthTime) {
+      setCompatibilityReading(null);
+    }
   };
 
   const handlePerson2DateChange = (newValue: Date | null) => {
     setPerson2BirthDate(newValue);
     setCompatibilityError(null);
-    setCompatibilityReading(null);
+    // Only clear reading if date actually changed
+    if (newValue?.getTime() !== person2BirthDate?.getTime()) {
+      setCompatibilityReading(null);
+    }
   };
 
   const handlePerson2TimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPerson2BirthTime(event.target.value);
+    const newTime = event.target.value;
+    setPerson2BirthTime(newTime);
+    // Only clear reading if time actually changed
+    if (newTime !== person2BirthTime) {
+      setCompatibilityReading(null);
+    }
   };
 
   const handleCompatibilitySubmit = async () => {
@@ -267,10 +303,6 @@ function MainApp() {
     setCompatibilityReading(null);
     setCompatibilityError(null);
   };
-
-
-
-
 
   const handleCompatibilityShareDownload = async () => {
     if (!compatibilityShareCardRef.current) return;
@@ -834,12 +866,7 @@ function MainApp() {
               exclusive
               onChange={(_, newMode) => {
                 if (newMode !== null) {
-                  setReadingMode(newMode);
-                  // Clear any existing readings when switching modes
-                  setReading(null);
-                  setCompatibilityReading(null);
-                  setError(null);
-                  setCompatibilityError(null);
+                  handleModeSwitch(newMode);
                 }
               }}
               aria-label="reading mode"
@@ -1139,7 +1166,7 @@ function MainApp() {
             </Alert>
           )}
 
-          {reading && !loading && (
+          {reading && !loading && readingMode === 'solo' && (
             <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 }, mb: 4 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography
@@ -1162,7 +1189,7 @@ function MainApp() {
                 <IconButton
                   onClick={() => setIsMainReadingExpanded(!isMainReadingExpanded)}
                   sx={{
-                    transform: isMainReadingExpanded ? 'rotate(0deg)' : 'rotate(180deg)',
+                    transform: isMainReadingExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
                     transition: 'transform 0.3s',
                     color: 'primary.main',
                     padding: '12px',
@@ -1408,7 +1435,7 @@ function MainApp() {
             </Paper>
           )}
 
-          {reading && !loading && (
+          {reading && !loading && readingMode === 'solo' && (
             <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 }, mb: 4 }}>
               <Typography
                 variant="h5"
@@ -1543,14 +1570,14 @@ function MainApp() {
             </Paper>
           )}
 
-          {reading && !loading && (
+          {reading && !loading && readingMode === 'solo' && (
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
               {renderShareButton()}
             </Box>
           )}
 
           {/* Compatibility Results */}
-          {compatibilityReading && !compatibilityLoading && (
+          {compatibilityReading && !compatibilityLoading && readingMode === 'compatibility' && (
             <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 }, mb: 4 }}>
               <Typography
                 variant="h5"
@@ -1808,7 +1835,7 @@ function MainApp() {
             </Paper>
           )}
 
-          {compatibilityReading && !compatibilityLoading && (
+          {compatibilityReading && !compatibilityLoading && readingMode === 'compatibility' && (
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
               <Button
                 variant="contained"
