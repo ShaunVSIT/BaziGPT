@@ -72,6 +72,11 @@ function generateShareCardHTML(data: ShareCardData): string {
                 line-height: 1.6;
                 color: #e0e0e0;
                 margin-bottom: 40px;
+                white-space: pre-line;
+                text-align: left;
+                max-width: 900px;
+                margin-left: auto;
+                margin-right: auto;
             }
             .footer {
                 font-size: 16px;

@@ -58,10 +58,28 @@ function generateShareCardSVG(data: ShareCardData): string {
                 ${baziPillar}
             </text>
             
-            <!-- Forecast text -->
-            <text x="600" y="320" text-anchor="middle" font-size="20" fill="#e0e0e0" max-width="1000">
-                ${forecast}
-            </text>
+                        <!-- Forecast text -->
+            ${forecast.split('\n\n').map((paragraph, index) => {
+        const words = paragraph.replace(/\n/g, ' ').split(' ');
+        const lines: string[] = [];
+        let currentLine = '';
+
+        words.forEach(word => {
+            if ((currentLine + ' ' + word).length > 50) {
+                lines.push(currentLine.trim());
+                currentLine = word;
+            } else {
+                currentLine += (currentLine ? ' ' : '') + word;
+            }
+        });
+        if (currentLine) lines.push(currentLine.trim());
+
+        return lines.map((line, lineIndex) => `
+                    <text x="600" y="${320 + (index * 80) + (lineIndex * 25)}" text-anchor="middle" font-size="20" fill="#e0e0e0">
+                        ${line}
+                    </text>
+                `).join('');
+    }).join('')}
             
             <!-- Footer -->
             <text x="600" y="580" text-anchor="middle" font-size="16" fill="#888888">
