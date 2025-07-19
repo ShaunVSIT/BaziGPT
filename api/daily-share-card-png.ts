@@ -48,40 +48,46 @@ function generateShareCardHTML(data: ShareCardData): string {
             .container {
                 text-align: center;
                 max-width: 1000px;
-                padding: 40px;
+                padding: 20px;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
             }
             .title {
-                font-size: 48px;
+                font-size: 42px;
                 font-weight: bold;
-                margin-bottom: 20px;
+                margin-bottom: 15px;
                 color: #ffffff;
             }
             .date {
-                font-size: 24px;
+                font-size: 20px;
                 color: #ff9800;
-                margin-bottom: 30px;
+                margin-bottom: 20px;
             }
             .pillar {
-                font-size: 32px;
+                font-size: 28px;
                 font-weight: bold;
-                margin-bottom: 40px;
+                margin-bottom: 25px;
                 color: #ffffff;
             }
             .forecast {
-                font-size: 20px;
-                line-height: 1.6;
+                font-size: 18px;
+                line-height: 1.5;
                 color: #e0e0e0;
-                margin-bottom: 40px;
+                margin-bottom: 20px;
                 white-space: pre-line;
                 text-align: left;
                 max-width: 900px;
                 margin-left: auto;
                 margin-right: auto;
+                flex: 1;
+                overflow: hidden;
             }
             .footer {
-                font-size: 16px;
+                font-size: 14px;
                 color: #888888;
-                margin-top: 40px;
+                margin-top: 15px;
             }
             .decorative {
                 position: absolute;

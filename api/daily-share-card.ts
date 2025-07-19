@@ -58,14 +58,14 @@ function generateShareCardSVG(data: ShareCardData): string {
                 ${baziPillar}
             </text>
             
-                        <!-- Forecast text -->
-            ${forecast.split('\n\n').map((paragraph, index) => {
+                                    <!-- Forecast text -->
+            ${forecast.split('\n\n').slice(0, 3).map((paragraph, index) => {
         const words = paragraph.replace(/\n/g, ' ').split(' ');
         const lines: string[] = [];
         let currentLine = '';
 
         words.forEach(word => {
-            if ((currentLine + ' ' + word).length > 50) {
+            if ((currentLine + ' ' + word).length > 45) {
                 lines.push(currentLine.trim());
                 currentLine = word;
             } else {
@@ -74,8 +74,8 @@ function generateShareCardSVG(data: ShareCardData): string {
         });
         if (currentLine) lines.push(currentLine.trim());
 
-        return lines.map((line, lineIndex) => `
-                    <text x="600" y="${320 + (index * 80) + (lineIndex * 25)}" text-anchor="middle" font-size="20" fill="#e0e0e0">
+        return lines.slice(0, 4).map((line, lineIndex) => `
+                    <text x="600" y="${320 + (index * 70) + (lineIndex * 22)}" text-anchor="middle" font-size="18" fill="#e0e0e0">
                         ${line}
                     </text>
                 `).join('');
