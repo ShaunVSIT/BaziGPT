@@ -364,7 +364,6 @@ function MainApp() {
     setHasSeenDisclaimer(true);
     // Save to localStorage so disclaimer doesn't show again
     localStorage.setItem('bazigpt_disclaimer_seen', 'true');
-    console.log('Disclaimer closed and saved to localStorage');
   };
 
   const handleShare = async () => {
