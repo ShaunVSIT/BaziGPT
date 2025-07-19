@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import {
@@ -87,8 +87,24 @@ function MainApp() {
   const [error, setError] = useState<string | null>(null);
   const [isMainReadingExpanded, setIsMainReadingExpanded] = useState(true);
   const [cachedAnswers, setCachedAnswers] = useState<Record<string, string>>({});
-  const [disclaimerOpen, setDisclaimerOpen] = useState(true);
-  const [hasSeenDisclaimer, setHasSeenDisclaimer] = useState(false);
+  const [disclaimerOpen, setDisclaimerOpen] = useState(() => {
+    // Check if user has seen disclaimer before
+    const hasSeen = localStorage.getItem('bazigpt_disclaimer_seen');
+    return !hasSeen; // Show disclaimer if not seen before
+  });
+  const [hasSeenDisclaimer, setHasSeenDisclaimer] = useState(() => {
+    // Check if user has seen disclaimer before
+    return !!localStorage.getItem('bazigpt_disclaimer_seen');
+  });
+
+  // Effect to sync disclaimer state with localStorage
+  useEffect(() => {
+    const hasSeen = localStorage.getItem('bazigpt_disclaimer_seen');
+    if (hasSeen) {
+      setDisclaimerOpen(false);
+      setHasSeenDisclaimer(true);
+    }
+  }, []);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [isBaziInfoExpanded, setIsBaziInfoExpanded] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
@@ -346,6 +362,9 @@ function MainApp() {
     track('disclaimer_accepted');
     setDisclaimerOpen(false);
     setHasSeenDisclaimer(true);
+    // Save to localStorage so disclaimer doesn't show again
+    localStorage.setItem('bazigpt_disclaimer_seen', 'true');
+    console.log('Disclaimer closed and saved to localStorage');
   };
 
   const handleShare = async () => {
