@@ -30,6 +30,11 @@ interface BaziReading {
     shareableSummary: string;
 }
 
+interface CompatibilityReading {
+    reading: string;
+    shareableSummary: string;
+}
+
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 const API_URL = 'https://api.openai.com/v1/chat/completions';
 const MODEL_NAME = 'gpt-4o-mini';
@@ -330,5 +335,120 @@ export async function getFollowUpAnswer(birthDate: Date, question: string): Prom
             console.error('Error getting follow-up answer:', error);
         }
         throw new Error('Failed to generate follow-up answer. Please try again later.');
+    }
+}
+
+export async function getCompatibilityReading(
+    person1BirthDate: Date,
+    person1BirthTime: string | undefined,
+    person2BirthDate: Date,
+    person2BirthTime: string | undefined
+): Promise<CompatibilityReading> {
+    const startTime = performance.now();
+    const person1FormattedDate = format(person1BirthDate, 'd MMM yyyy');
+    const person2FormattedDate = format(person2BirthDate, 'd MMM yyyy');
+    const person1TimeContext = person1BirthTime ? `at ${person1BirthTime}` : "at an estimated time (noon)";
+    const person2TimeContext = person2BirthTime ? `at ${person2BirthTime}` : "at an estimated time (noon)";
+
+    const systemPrompt = 'You are an expert in Chinese Four Pillars (Bazi) astrology, specializing in relationship compatibility analysis. Provide clear, structured compatibility insights based on two birth charts. Use grounded language and avoid vague generalizations.';
+    const userPrompt = `Analyze the compatibility between two people using Chinese Bazi astrology:
+
+You: ${person1FormattedDate} ${person1TimeContext}
+Your Partner: ${person2FormattedDate} ${person2TimeContext}
+
+Please provide a structured compatibility analysis including:
+
+1. **Elemental Compatibility**: How your Five Elements (Wood, Fire, Earth, Metal, Water) support or weaken each other
+2. **Pillar-by-Pillar Analysis**: Year, Month, Day, and Hour pillar interactions between you both
+3. **Relationship Dynamics**: Your communication styles, emotional tendencies, and potential friction points
+4. **Strengths & Challenges**: Key alignments vs areas needing effort in your relationship
+5. **Practical Advice**: Specific, actionable suggestions to improve harmony or address imbalances
+
+Format your response with clear section headings and bullet points where helpful. Use "you" and "your partner" throughout the analysis to make it more personal and relatable.
+
+Include 2-3 key bullet points that would be perfect for sharing, starting with "•" and focusing on the most interesting compatibility insights. These should be specific to this couple's birth charts and focus on relationship dynamics, communication styles, and practical advice rather than technical elemental jargon.
+
+At the end, include a concise, shareable summary (2–3 lines) starting with **"You and your partner show..."** or **"Your relationship demonstrates..."**. Make it personal and specific to the couple, avoiding generic statements. Keep the tone balanced and insightful.
+
+Note: If exact time of birth is missing for either person, use **12:00 PM** as the default Hour Pillar reference.`;
+
+    const model = MODEL_NAME;
+    const inputTokens = estimateTokens(systemPrompt + userPrompt);
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            },
+            body: JSON.stringify({
+                model,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                temperature: 0.7,
+                max_tokens: 1200,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`API call failed: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const reading = data.choices[0].message.content;
+
+        // Extract the shareable summary (last paragraph)
+        const paragraphs = reading.split('\n\n');
+        const shareableSummary = paragraphs[paragraphs.length - 1].startsWith('You and your partner show') ||
+            paragraphs[paragraphs.length - 1].startsWith('Your relationship demonstrates')
+            ? paragraphs[paragraphs.length - 1]
+            : "You and your partner show balanced compatibility with complementary strengths and areas for growth.";
+
+        // Remove the shareable summary from the main reading if it exists
+        const mainReading = paragraphs.slice(0, -1).join('\n\n');
+
+        const outputTokens = estimateTokens(reading);
+        const responseTime = performance.now() - startTime;
+
+        // Log metrics
+        await logApiMetrics({
+            timestamp: Date.now(),
+            endpoint: 'getCompatibilityReading',
+            responseTime,
+            inputTokens,
+            outputTokens,
+            model,
+            success: true,
+            estimatedCost: calculateCost(model, inputTokens, outputTokens)
+        });
+
+        return {
+            reading: mainReading,
+            shareableSummary
+        };
+    } catch (error) {
+        const responseTime = performance.now() - startTime;
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+
+        // Log error metrics
+        await logApiMetrics({
+            timestamp: Date.now(),
+            endpoint: 'getCompatibilityReading',
+            responseTime,
+            inputTokens,
+            outputTokens: 0,
+            model,
+            success: false,
+            error: errorMsg,
+            estimatedCost: calculateCost(model, inputTokens, 0)
+        });
+
+        if (IS_DEV) {
+            console.error('Error getting compatibility reading:', error);
+        }
+        throw new Error('Failed to generate compatibility reading. Please try again later.');
     }
 } 
