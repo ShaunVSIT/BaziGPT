@@ -80,6 +80,40 @@ function Daily() {
                     name="description"
                     content="Get your daily Bazi forecast for today. Discover the energy of the day and practical guidance based on Chinese Four Pillars astrology."
                 />
+                <meta name="keywords" content="daily bazi forecast, Chinese astrology, Four Pillars, daily horoscope, bazi reading, Chinese zodiac, daily energy, bazi analysis" />
+
+                {/* Open Graph */}
+                <meta property="og:title" content={`Daily Bazi Forecast - ${formattedDate} | BaziGPT`} />
+                <meta property="og:description" content="Get your daily Bazi forecast for today. Discover the energy of the day and practical guidance based on Chinese Four Pillars astrology." />
+                <meta property="og:url" content="https://bazigpt.xyz/daily" />
+                <meta property="og:type" content="website" />
+                <meta property="og:image" content="https://bazigpt.xyz/og-image.svg" />
+
+                {/* Twitter */}
+                <meta property="twitter:card" content="summary_large_image" />
+                <meta property="twitter:title" content={`Daily Bazi Forecast - ${formattedDate} | BaziGPT`} />
+                <meta property="twitter:description" content="Get your daily Bazi forecast for today. Discover the energy of the day and practical guidance based on Chinese Four Pillars astrology." />
+                <meta property="twitter:image" content="https://bazigpt.xyz/og-image.svg" />
+
+                {/* Canonical */}
+                <link rel="canonical" href="https://bazigpt.xyz/daily" />
+
+                {/* Structured Data */}
+                <script type="application/ld+json">
+                    {JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "WebPage",
+                        "name": "Daily Bazi Forecast",
+                        "description": "Get your daily Bazi forecast for today. Discover the energy of the day and practical guidance based on Chinese Four Pillars astrology.",
+                        "url": "https://bazigpt.xyz/daily",
+                        "datePublished": formattedDate,
+                        "dateModified": formattedDate,
+                        "publisher": {
+                            "@type": "Organization",
+                            "name": "BaziGPT"
+                        }
+                    })}
+                </script>
             </Helmet>
 
             <Container maxWidth="md" sx={{ py: 4 }}>
