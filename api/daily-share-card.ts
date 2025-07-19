@@ -58,28 +58,46 @@ function generateShareCardSVG(data: ShareCardData): string {
                 ${baziPillar}
             </text>
             
-                                    <!-- Forecast text -->
-            ${forecast.split('\n\n').slice(0, 3).map((paragraph, index) => {
-        const words = paragraph.replace(/\n/g, ' ').split(' ');
-        const lines: string[] = [];
-        let currentLine = '';
+                                                <!-- Forecast text -->
+            ${(() => {
+            const paragraphs = forecast.split('\n\n');
+            let currentY = 320;
+            let totalLines = 0;
+            const maxLines = 10;
 
-        words.forEach(word => {
-            if ((currentLine + ' ' + word).length > 45) {
-                lines.push(currentLine.trim());
-                currentLine = word;
-            } else {
-                currentLine += (currentLine ? ' ' : '') + word;
-            }
-        });
-        if (currentLine) lines.push(currentLine.trim());
+            return paragraphs.map((paragraph, index) => {
+                const words = paragraph.replace(/\n/g, ' ').split(' ');
+                const lines: string[] = [];
+                let currentLine = '';
 
-        return lines.slice(0, 4).map((line, lineIndex) => `
-                    <text x="600" y="${320 + (index * 70) + (lineIndex * 22)}" text-anchor="middle" font-size="18" fill="#e0e0e0">
-                        ${line}
-                    </text>
-                `).join('');
-    }).join('')}
+                words.forEach(word => {
+                    if ((currentLine + ' ' + word).length > 40) {
+                        lines.push(currentLine.trim());
+                        currentLine = word;
+                    } else {
+                        currentLine += (currentLine ? ' ' : '') + word;
+                    }
+                });
+                if (currentLine) lines.push(currentLine.trim());
+
+                // Only add lines if we haven't exceeded maxLines
+                const linesToShow = lines.slice(0, maxLines - totalLines);
+                totalLines += linesToShow.length;
+
+                return linesToShow.map((line, lineIndex) => {
+                    // Simple justification by adding extra spaces between words
+                    const words = line.split(' ');
+                    const extraSpaces = Math.floor((40 - line.length) / (words.length - 1));
+                    const justifiedLine = words.join(' '.repeat(extraSpaces + 1));
+
+                    return `
+                        <text x="600" y="${currentY + (lineIndex * 20)}" text-anchor="middle" font-size="16" fill="#e0e0e0">
+                            ${justifiedLine}
+                        </text>
+                    `;
+                }).join('');
+            }).join('');
+        })()}
             
             <!-- Footer -->
             <text x="600" y="580" text-anchor="middle" font-size="16" fill="#888888">

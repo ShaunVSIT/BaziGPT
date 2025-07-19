@@ -72,16 +72,21 @@ function generateShareCardHTML(data: ShareCardData): string {
                 color: #ffffff;
             }
             .forecast {
-                font-size: 18px;
-                line-height: 1.5;
+                font-size: 16px;
+                line-height: 1.4;
                 color: #e0e0e0;
                 margin-bottom: 20px;
                 white-space: pre-line;
-                text-align: left;
+                text-align: justify;
                 max-width: 900px;
                 margin-left: auto;
                 margin-right: auto;
                 flex: 1;
+                overflow: hidden;
+                max-height: 300px;
+                display: -webkit-box;
+                -webkit-line-clamp: 12;
+                -webkit-box-orient: vertical;
                 overflow: hidden;
             }
             .footer {
