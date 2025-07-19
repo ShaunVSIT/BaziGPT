@@ -11,6 +11,7 @@ BaziGPT is an AI-powered Chinese astrology application that provides personalize
 ## ✨ Features
 
 - **Personalized Readings**: Get detailed BaZi analysis based on your exact birth date and time
+- **Daily Forecast**: Get daily Bazi forecasts with energy insights and practical guidance
 - **AI-Powered Insights**: Advanced AI technology provides comprehensive and accurate readings
 - **Interactive Follow-ups**: Ask specific questions about health, love, career, wealth, and more
 - **Shareable Results**: Generate beautiful share cards to share your reading with friends
