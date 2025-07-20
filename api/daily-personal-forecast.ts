@@ -79,12 +79,13 @@ Birthday: ${birthDate}${timeContext}
 
 What is the personal Bazi forecast for this individual?
 
-Format: 2–3 bullet points focused on:
-- What to be mindful of today
-- Emotional or strategic tone
-- Actionable advice (e.g. avoid conflict, focus on collaboration)
+Format as 2–3 bullet points using only plain text (no markdown, no asterisks, no bold formatting):
 
-Keep it concise and practical.`;
+• What to be mindful of today
+• Emotional or strategic tone  
+• Actionable advice (e.g. avoid conflict, focus on collaboration)
+
+Use only bullet points (•) and plain text. Do not use any markdown formatting like **bold** or __italic__. Keep it concise and practical.`;
 
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
