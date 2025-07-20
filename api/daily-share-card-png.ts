@@ -38,7 +38,7 @@ function generateShareCardHTML(data: ShareCardData): string {
                 width: 1200px;
                 height: 630px;
                 background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-                font-family: Arial, sans-serif;
+                font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", "Source Han Sans SC", Arial, sans-serif;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;

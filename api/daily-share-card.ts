@@ -42,7 +42,7 @@ function generateShareCardSVG(data: ShareCardData): string {
         <circle cx="1100" cy="530" r="80" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.2"/>
         
         <!-- Main content -->
-        <g font-family="Arial, sans-serif">
+        <g font-family="Microsoft YaHei, PingFang SC, Hiragino Sans GB, WenQuanYi Micro Hei, Noto Sans CJK SC, Source Han Sans SC, Arial, sans-serif">
             <!-- Title -->
             <text x="600" y="120" text-anchor="middle" font-size="48" font-weight="bold" fill="#ffffff">
                 Daily Bazi Forecast
