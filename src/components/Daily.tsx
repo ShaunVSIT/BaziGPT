@@ -13,10 +13,15 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
+    TextField,
+    Collapse,
+    Alert,
 } from '@mui/material';
 import { format } from 'date-fns';
 import ShareIcon from '@mui/icons-material/Share';
-import { fetchDailyForecast, type DailyBaziForecast } from '../services/dailyBaziApi';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { fetchDailyForecast, fetchPersonalForecast, type DailyBaziForecast, type PersonalForecastResponse } from '../services/dailyBaziApi';
 import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import SocialFooter from './SocialFooter';
@@ -27,6 +32,33 @@ function Daily() {
     const [error, setError] = useState<string | null>(null);
     const [shareDialogOpen, setShareDialogOpen] = useState(false);
     const shareCardRef = useRef<HTMLDivElement>(null);
+
+    // Personal forecast state with persistence
+    const [showPersonalForecast, setShowPersonalForecast] = useState(false);
+    const [birthDate, setBirthDate] = useState(() => {
+        return localStorage.getItem('bazi-birth-date') || '';
+    });
+    const [birthTime, setBirthTime] = useState(() => {
+        return localStorage.getItem('bazi-birth-time') || '';
+    });
+    const [personalForecast, setPersonalForecast] = useState<PersonalForecastResponse | null>(() => {
+        const saved = localStorage.getItem('bazi-personal-forecast');
+        const today = new Date().toISOString().split('T')[0];
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                // Only restore if it's from today
+                if (parsed.date === today) {
+                    return parsed;
+                }
+            } catch (e) {
+                console.error('Error parsing saved forecast:', e);
+            }
+        }
+        return null;
+    });
+    const [personalLoading, setPersonalLoading] = useState(false);
+    const [personalError, setPersonalError] = useState<string | null>(null);
 
     const today = new Date();
     const formattedDate = format(today, 'MMMM d, yyyy');
@@ -50,6 +82,39 @@ function Daily() {
         fetchDailyForecastData();
     }, []);
 
+    // Save birth details to localStorage when they change
+    useEffect(() => {
+        if (birthDate) {
+            localStorage.setItem('bazi-birth-date', birthDate);
+        }
+    }, [birthDate]);
+
+    useEffect(() => {
+        if (birthTime) {
+            localStorage.setItem('bazi-birth-time', birthTime);
+        } else {
+            localStorage.removeItem('bazi-birth-time');
+        }
+    }, [birthTime]);
+
+    // Save personal forecast to localStorage when it changes
+    useEffect(() => {
+        if (personalForecast) {
+            const forecastWithDate = {
+                ...personalForecast,
+                date: new Date().toISOString().split('T')[0]
+            };
+            localStorage.setItem('bazi-personal-forecast', JSON.stringify(forecastWithDate));
+        }
+    }, [personalForecast]);
+
+    // Auto-show personal forecast section if we have saved data from today
+    useEffect(() => {
+        if (personalForecast && birthDate) {
+            setShowPersonalForecast(true);
+        }
+    }, [personalForecast, birthDate]);
+
     const handleShare = () => {
         setShareDialogOpen(true);
     };
@@ -71,6 +136,42 @@ function Daily() {
         } catch (error) {
             console.error('Error generating share image:', error);
         }
+    };
+
+    const handlePersonalForecastToggle = () => {
+        setShowPersonalForecast(!showPersonalForecast);
+        // Don't clear the forecast when collapsing - just toggle visibility
+    };
+
+    const handlePersonalForecastSubmit = async () => {
+        if (!birthDate) {
+            setPersonalError('Please enter your birth date');
+            return;
+        }
+
+        setPersonalLoading(true);
+        setPersonalError(null);
+
+        try {
+            const data = await fetchPersonalForecast(birthDate, birthTime || undefined);
+            setPersonalForecast(data);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching your personal forecast.';
+            setPersonalError(errorMessage);
+        } finally {
+            setPersonalLoading(false);
+        }
+    };
+
+    const handleClearSavedData = () => {
+        setBirthDate('');
+        setBirthTime('');
+        setPersonalForecast(null);
+        setPersonalError(null);
+        setShowPersonalForecast(false);
+        localStorage.removeItem('bazi-birth-date');
+        localStorage.removeItem('bazi-birth-time');
+        localStorage.removeItem('bazi-personal-forecast');
     };
 
     return (
@@ -176,7 +277,7 @@ function Daily() {
                                 }
                             }}
                         >
-                            🀄 Personal Reading
+                            🀄 View Personal Reading
                         </Button>
                     </Box>
                 </Box>
@@ -270,6 +371,168 @@ function Daily() {
                                 {forecast.forecast}
                             </Typography>
 
+                            {/* Personal Forecast Section */}
+                            <Box sx={{
+                                mt: { xs: 2, sm: 4 },
+                                pt: { xs: 2, sm: 3 },
+                                borderTop: '1px solid rgba(255,152,0,0.2)',
+                            }}>
+                                <Button
+                                    onClick={handlePersonalForecastToggle}
+                                    variant="outlined"
+                                    color="primary"
+                                    fullWidth
+                                    sx={{
+                                        mb: 2,
+                                        borderRadius: 2,
+                                        py: 1.5,
+                                        borderColor: 'primary.main',
+                                        color: 'primary.main',
+                                        '&:hover': {
+                                            bgcolor: 'rgba(255, 152, 0, 0.1)',
+                                            borderColor: 'primary.main',
+                                        }
+                                    }}
+                                    endIcon={showPersonalForecast ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                >
+                                    How does today affect me?
+                                </Button>
+
+                                <Collapse in={showPersonalForecast}>
+                                    <Box sx={{ mt: 2 }}>
+                                        {!personalForecast ? (
+                                            <>
+                                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                                    Enter your birth details to get a personalized daily forecast based on your Bazi chart.
+                                                    {birthDate && (
+                                                        <span style={{ color: '#ff9800', fontWeight: 500 }}>
+                                                            {' '}Your details are saved for this session.
+                                                        </span>
+                                                    )}
+                                                </Typography>
+
+                                                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 3 }}>
+                                                    <TextField
+                                                        label="Birth Date"
+                                                        type="date"
+                                                        value={birthDate}
+                                                        onChange={(e) => setBirthDate(e.target.value)}
+                                                        fullWidth
+                                                        InputLabelProps={{ shrink: true }}
+                                                        sx={{
+                                                            '& .MuiOutlinedInput-root': {
+                                                                '&:hover fieldset': {
+                                                                    borderColor: 'primary.main',
+                                                                },
+                                                            },
+                                                        }}
+                                                    />
+                                                    <TextField
+                                                        label="Birth Time (optional)"
+                                                        type="time"
+                                                        value={birthTime}
+                                                        onChange={(e) => setBirthTime(e.target.value)}
+                                                        fullWidth
+                                                        InputLabelProps={{ shrink: true }}
+                                                        sx={{
+                                                            '& .MuiOutlinedInput-root': {
+                                                                '&:hover fieldset': {
+                                                                    borderColor: 'primary.main',
+                                                                },
+                                                            },
+                                                        }}
+                                                    />
+                                                </Box>
+
+                                                {personalError && (
+                                                    <Alert severity="error" sx={{ mb: 2 }}>
+                                                        {personalError}
+                                                    </Alert>
+                                                )}
+
+                                                <Button
+                                                    onClick={handlePersonalForecastSubmit}
+                                                    variant="contained"
+                                                    color="primary"
+                                                    disabled={personalLoading}
+                                                    fullWidth
+                                                    sx={{
+                                                        borderRadius: 2,
+                                                        py: 1.5,
+                                                        background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
+                                                        '&:hover': {
+                                                            background: 'linear-gradient(45deg, #ff5722 30%, #ff9800 90%)',
+                                                        },
+                                                        '&:disabled': {
+                                                            background: 'rgba(255, 152, 0, 0.3)',
+                                                        }
+                                                    }}
+                                                >
+                                                    {personalLoading ? (
+                                                        <CircularProgress size={20} color="inherit" />
+                                                    ) : (
+                                                        'Get Personal Forecast'
+                                                    )}
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            <Box sx={{ p: 3, bgcolor: 'rgba(255, 152, 0, 0.05)', borderRadius: 2, border: '1px solid rgba(255, 152, 0, 0.2)' }}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                                                    <Box>
+                                                        <Typography variant="h6" color="primary.main" gutterBottom>
+                                                            Your Personal Forecast
+                                                        </Typography>
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            Birth: {new Date(birthDate).toLocaleDateString()}
+                                                            {birthTime && ` at ${birthTime}`}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Button
+                                                        onClick={() => {
+                                                            setPersonalForecast(null);
+                                                            setPersonalError(null);
+                                                        }}
+                                                        variant="outlined"
+                                                        size="small"
+                                                        sx={{
+                                                            borderColor: 'text.secondary',
+                                                            color: 'text.secondary',
+                                                            '&:hover': {
+                                                                borderColor: 'primary.main',
+                                                                color: 'primary.main',
+                                                            }
+                                                        }}
+                                                    >
+                                                        New Reading
+                                                    </Button>
+                                                </Box>
+                                                <Chip
+                                                    label={personalForecast.todayPillar}
+                                                    color="primary"
+                                                    variant="outlined"
+                                                    sx={{ mb: 2, borderColor: 'primary.main', color: 'primary.main' }}
+                                                />
+                                                <Typography
+                                                    variant="body1"
+                                                    sx={{
+                                                        fontSize: { xs: '0.9rem', sm: '1rem' },
+                                                        color: 'text.primary',
+                                                        lineHeight: 1.6,
+                                                        whiteSpace: 'pre-line',
+                                                        '& .highlight': {
+                                                            color: 'primary.main',
+                                                            fontWeight: 600
+                                                        }
+                                                    }}
+                                                >
+                                                    {personalForecast.personalForecast}
+                                                </Typography>
+                                            </Box>
+                                        )}
+                                    </Box>
+                                </Collapse>
+                            </Box>
+
                             <Box sx={{
                                 mt: { xs: 2, sm: 4 },
                                 pt: { xs: 2, sm: 3 },
@@ -293,7 +556,14 @@ function Daily() {
                                         }
                                     }}
                                 >
-                                    Want a personalized reading?
+                                    Want a complete Bazi analysis?
+                                </Typography>
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{ mb: 1, fontSize: '0.9rem' }}
+                                >
+                                    Get your full birth chart reading with detailed insights
                                 </Typography>
                                 <Button
                                     variant="contained"
@@ -312,7 +582,7 @@ function Daily() {
                                         }
                                     }}
                                 >
-                                    Get Your Personal Bazi Reading
+                                    Get Full Bazi Reading
                                 </Button>
                             </Box>
                         </>

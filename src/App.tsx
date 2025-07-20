@@ -801,7 +801,7 @@ function MainApp() {
                 }
               }}
             >
-              📅 Daily Forecast
+              📅 View Daily Forecast
             </Button>
           </Box>
           <Typography
