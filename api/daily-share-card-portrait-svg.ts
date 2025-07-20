@@ -48,8 +48,9 @@ function generatePortraitShareCardSVG(data: ShareCardData): string {
 
     const maxLineLength = 35;
     const lineHeight = 24;
-    const maxLines = 20;
-    const paragraphGap = 15;
+    const maxLines = 25;
+    const paragraphGap = 20;
+    const forecastHeight = 650;
 
     return `
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
@@ -91,13 +92,15 @@ function generatePortraitShareCardSVG(data: ShareCardData): string {
             </text>
             
             <!-- Forecast text with background -->
-            <rect x="50" y="${forecastStartY - 20}" width="${width - 100}" height="650" rx="12" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+            <rect x="50" y="${forecastStartY - 20}" width="${width - 100}" height="${forecastHeight}" rx="12" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
             
             <!-- Forecast text with paragraphs -->
             ${(() => {
             let currentY = forecastStartY;
             let totalLines = 0;
             let paragraphCount = 0;
+            const availableHeight = forecastHeight - 40; // Account for padding
+            const totalParagraphs = paragraphs.length;
 
             return paragraphs.map((paragraph, paragraphIndex) => {
                 const words = paragraph.replace(/\n/g, ' ').split(' ');
@@ -118,6 +121,11 @@ function generatePortraitShareCardSVG(data: ShareCardData): string {
                 const linesToShow = lines.slice(0, maxLines - totalLines);
                 totalLines += linesToShow.length;
 
+                // Calculate vertical spacing to distribute content evenly
+                const remainingParagraphs = totalParagraphs - paragraphIndex;
+                const remainingHeight = availableHeight - (currentY - forecastStartY);
+                const spacingPerParagraph = remainingHeight / remainingParagraphs;
+
                 // Add paragraph gap if not first paragraph
                 if (paragraphIndex > 0 && linesToShow.length > 0) {
                     currentY += paragraphGap;
@@ -137,6 +145,12 @@ function generatePortraitShareCardSVG(data: ShareCardData): string {
                 }).join('');
 
                 currentY += linesToShow.length * lineHeight;
+
+                // Add extra spacing to distribute content evenly
+                if (remainingParagraphs > 1 && linesToShow.length > 0) {
+                    currentY += Math.max(0, spacingPerParagraph - (linesToShow.length * lineHeight));
+                }
+
                 return paragraphText;
             }).join('');
         })()}

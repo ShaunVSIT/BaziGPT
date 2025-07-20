@@ -59,7 +59,7 @@ function generatePortraitShareCardHTML(data: ShareCardData): string {
                 text-align: center;
                 max-width: 700px;
                 padding: 30px 25px;
-                height: 100%;
+                height: 100vh;
                 display: flex;
                 flex-direction: column;
                 justify-content: flex-start;
@@ -71,6 +71,7 @@ function generatePortraitShareCardHTML(data: ShareCardData): string {
             .header {
                 margin-top: 15px;
                 margin-bottom: 15px;
+                flex-shrink: 0;
             }
             
             .title {
@@ -112,15 +113,16 @@ function generatePortraitShareCardHTML(data: ShareCardData): string {
                 max-width: 650px;
                 margin: 0 auto;
                 flex: 1;
-                overflow: hidden;
-                max-height: 700px;
                 display: flex;
                 flex-direction: column;
-                gap: 15px;
-                padding: 20px;
+                justify-content: space-between;
+                gap: 20px;
+                padding: 25px;
                 background: rgba(255, 255, 255, 0.05);
                 border-radius: 12px;
                 border: 1px solid rgba(255, 255, 255, 0.1);
+                min-height: 0;
+                overflow: hidden;
             }
             
             .forecast p {
@@ -129,6 +131,9 @@ function generatePortraitShareCardHTML(data: ShareCardData): string {
                 text-indent: 0;
                 text-align: justify;
                 line-height: 1.6;
+                flex: 1;
+                display: flex;
+                align-items: center;
             }
             
             .forecast p:first-child {
@@ -156,6 +161,7 @@ function generatePortraitShareCardHTML(data: ShareCardData): string {
                 margin-bottom: 20px;
                 font-weight: 500;
                 text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+                flex-shrink: 0;
             }
             
             .decorative {
