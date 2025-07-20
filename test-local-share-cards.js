@@ -6,10 +6,12 @@ async function testLocalShareCards() {
     // Test URLs for local development
     const localPngUrl = 'http://localhost:3001/api/daily-share-card-png';
     const localSvgUrl = 'http://localhost:3001/api/daily-share-card';
+    const localPortraitPngUrl = 'http://localhost:3001/api/daily-share-card-portrait';
+    const localPortraitSvgUrl = 'http://localhost:3001/api/daily-share-card-portrait-svg';
 
     try {
-        // Test PNG endpoint
-        console.log('📸 Testing Local PNG Share Card...');
+        // Test original PNG endpoint
+        console.log('📸 Testing Original PNG Share Card...');
         const pngResponse = await fetch(localPngUrl);
         console.log(`PNG Status: ${pngResponse.status}`);
         console.log(`PNG Content-Type: ${pngResponse.headers.get('content-type')}`);
@@ -43,8 +45,8 @@ async function testLocalShareCards() {
 
         console.log('\n');
 
-        // Test SVG endpoint
-        console.log('🎨 Testing Local SVG Share Card...');
+        // Test original SVG endpoint
+        console.log('🎨 Testing Original SVG Share Card...');
         const svgResponse = await fetch(localSvgUrl);
         console.log(`SVG Status: ${svgResponse.status}`);
         console.log(`SVG Content-Type: ${svgResponse.headers.get('content-type')}`);
@@ -74,13 +76,69 @@ async function testLocalShareCards() {
             console.log(`❌ SVG Error: ${svgResponse.statusText}`);
         }
 
+        console.log('\n');
+
+        // Test dedicated Portrait PNG endpoint
+        console.log('📱 Testing Dedicated Portrait PNG Share Card...');
+        const portraitPngResponse = await fetch(localPortraitPngUrl);
+        console.log(`Portrait PNG Status: ${portraitPngResponse.status}`);
+        console.log(`Portrait PNG Content-Type: ${portraitPngResponse.headers.get('content-type')}`);
+
+        if (portraitPngResponse.ok) {
+            const portraitPngHtml = await portraitPngResponse.text();
+            console.log(`Portrait PNG HTML Length: ${portraitPngHtml.length} characters`);
+
+            // Check for portrait-specific features
+            const hasPortraitDimensions = portraitPngHtml.includes('width: 800px') && portraitPngHtml.includes('height: 1200px');
+            const hasPortraitLayout = portraitPngHtml.includes('justify-content: flex-start') && portraitPngHtml.includes('gap: 25px');
+            const hasEnhancedTypography = portraitPngHtml.includes('font-size: 52px') && portraitPngHtml.includes('font-size: 20px');
+            const hasTextShadows = portraitPngHtml.includes('text-shadow: 0 2px 4px rgba(0,0,0,0.3)');
+            const hasBackgroundElements = portraitPngHtml.includes('background: rgba(255, 255, 255, 0.05)');
+
+            console.log(`Portrait PNG Has Portrait Dimensions: ${hasPortraitDimensions}`);
+            console.log(`Portrait PNG Has Portrait Layout: ${hasPortraitLayout}`);
+            console.log(`Portrait PNG Has Enhanced Typography: ${hasEnhancedTypography}`);
+            console.log(`Portrait PNG Has Text Shadows: ${hasTextShadows}`);
+            console.log(`Portrait PNG Has Background Elements: ${hasBackgroundElements}`);
+        } else {
+            console.log(`❌ Portrait PNG Error: ${portraitPngResponse.statusText}`);
+        }
+
+        console.log('\n');
+
+        // Test dedicated Portrait SVG endpoint
+        console.log('🎨 Testing Dedicated Portrait SVG Share Card...');
+        const portraitSvgResponse = await fetch(localPortraitSvgUrl);
+        console.log(`Portrait SVG Status: ${portraitSvgResponse.status}`);
+        console.log(`Portrait SVG Content-Type: ${portraitSvgResponse.headers.get('content-type')}`);
+
+        if (portraitSvgResponse.ok) {
+            const portraitSvgContent = await portraitSvgResponse.text();
+            console.log(`Portrait SVG Content Length: ${portraitSvgContent.length} characters`);
+
+            // Check for portrait-specific SVG features
+            const hasPortraitDimensions = portraitSvgContent.includes('width="800"') && portraitSvgContent.includes('height="1200"');
+            const hasEnhancedStyling = portraitSvgContent.includes('filter="url(#shadow)"');
+            const hasBackgroundRect = portraitSvgContent.includes('fill="rgba(255,152,0,0.1)"');
+            const hasForecastBackground = portraitSvgContent.includes('fill="rgba(255,255,255,0.05)"');
+            const hasOptimizedText = portraitSvgContent.includes('font-size="56"') && portraitSvgContent.includes('font-size="20"');
+
+            console.log(`Portrait SVG Has Portrait Dimensions: ${hasPortraitDimensions}`);
+            console.log(`Portrait SVG Has Enhanced Styling: ${hasEnhancedStyling}`);
+            console.log(`Portrait SVG Has Background Elements: ${hasBackgroundRect}`);
+            console.log(`Portrait SVG Has Forecast Background: ${hasForecastBackground}`);
+            console.log(`Portrait SVG Has Optimized Text: ${hasOptimizedText}`);
+        } else {
+            console.log(`❌ Portrait SVG Error: ${portraitSvgResponse.statusText}`);
+        }
+
         console.log('\n✅ Local share card tests completed!');
 
         // Test with different User-Agent headers to simulate different devices
         console.log('\n📱 Testing with different device simulations...');
 
         // Test with mobile User-Agent (portrait)
-        const mobileResponse = await fetch(localPngUrl, {
+        const mobileResponse = await fetch(localPortraitPngUrl, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1'
             }
@@ -88,7 +146,7 @@ async function testLocalShareCards() {
 
         if (mobileResponse.ok) {
             const mobileHtml = await mobileResponse.text();
-            const hasMobileOptimization = mobileHtml.includes('max-aspect-ratio: 1/1');
+            const hasMobileOptimization = mobileHtml.includes('width: 800px') && mobileHtml.includes('height: 1200px');
             console.log(`Mobile Optimization Present: ${hasMobileOptimization}`);
         }
 
