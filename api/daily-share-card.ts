@@ -25,45 +25,68 @@ function generateShareCardSVG(data: ShareCardData): string {
         day: 'numeric'
     });
 
+    // Detect orientation based on viewport or default to landscape
+    const isPortrait = typeof window !== 'undefined' ? window.innerHeight > window.innerWidth : false;
+
+    // Set dimensions based on orientation
+    const width = isPortrait ? 800 : 1200;
+    const height = isPortrait ? 1200 : 630;
+
+    // Adjust positioning and sizing for portrait mode
+    const titleY = isPortrait ? 120 : 120;
+    const dateY = isPortrait ? 180 : 180;
+    const pillarY = isPortrait ? 240 : 240;
+    const forecastStartY = isPortrait ? 320 : 320;
+    const footerY = isPortrait ? 1150 : 580;
+
+    const titleSize = isPortrait ? 56 : 48;
+    const dateSize = isPortrait ? 28 : 24;
+    const pillarSize = isPortrait ? 36 : 32;
+    const forecastSize = isPortrait ? 18 : 16;
+    const footerSize = isPortrait ? 18 : 16;
+
+    const maxLineLength = isPortrait ? 35 : 40;
+    const lineHeight = isPortrait ? 24 : 20;
+    const maxLines = isPortrait ? 16 : 10;
+
     return `
-    <svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="bg" x1="0%" y1="0%" x2="${isPortrait ? '0%' : '100%'}" y2="${isPortrait ? '100%' : '100%'}">
                 <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
                 <stop offset="100%" style="stop-color:#2d2d2d;stop-opacity:1" />
             </linearGradient>
         </defs>
         
         <!-- Background -->
-        <rect width="1200" height="630" fill="url(#bg)"/>
+        <rect width="${width}" height="${height}" fill="url(#bg)"/>
         
         <!-- Decorative elements -->
-        <circle cx="100" cy="100" r="50" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.3"/>
-        <circle cx="1100" cy="530" r="80" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.2"/>
+        <circle cx="${isPortrait ? 120 : 100}" cy="${isPortrait ? 120 : 100}" r="${isPortrait ? 60 : 50}" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.3"/>
+        <circle cx="${isPortrait ? width - 120 : 1100}" cy="${isPortrait ? height - 120 : 530}" r="${isPortrait ? 70 : 80}" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.2"/>
         
         <!-- Main content -->
         <g font-family="Microsoft YaHei, PingFang SC, Hiragino Sans GB, WenQuanYi Micro Hei, Noto Sans CJK SC, Source Han Sans SC, Arial, sans-serif">
             <!-- Title -->
-            <text x="600" y="120" text-anchor="middle" font-size="48" font-weight="bold" fill="#ffffff">
+            <text x="${width / 2}" y="${titleY}" text-anchor="middle" font-size="${titleSize}" font-weight="bold" fill="#ffffff">
                 Daily Bazi Forecast
             </text>
             
             <!-- Date -->
-            <text x="600" y="180" text-anchor="middle" font-size="24" fill="#ff9800">
+            <text x="${width / 2}" y="${dateY}" text-anchor="middle" font-size="${dateSize}" fill="#ff9800">
                 ${formattedDate}
             </text>
             
             <!-- Bazi Pillar -->
-            <text x="600" y="240" text-anchor="middle" font-size="32" font-weight="bold" fill="#ffffff">
+            <text x="${width / 2}" y="${pillarY}" text-anchor="middle" font-size="${pillarSize}" font-weight="bold" fill="#ffffff">
                 ${baziPillar}
             </text>
             
-                                                <!-- Forecast text -->
+            <!-- Forecast text -->
             ${(() => {
             const paragraphs = forecast.split('\n\n');
-            let currentY = 320;
+            let currentY = forecastStartY;
             let totalLines = 0;
-            const maxLines = 10;
 
             return paragraphs.map((paragraph, index) => {
                 const words = paragraph.replace(/\n/g, ' ').split(' ');
@@ -71,7 +94,7 @@ function generateShareCardSVG(data: ShareCardData): string {
                 let currentLine = '';
 
                 words.forEach(word => {
-                    if ((currentLine + ' ' + word).length > 40) {
+                    if ((currentLine + ' ' + word).length > maxLineLength) {
                         lines.push(currentLine.trim());
                         currentLine = word;
                     } else {
@@ -87,11 +110,11 @@ function generateShareCardSVG(data: ShareCardData): string {
                 return linesToShow.map((line, lineIndex) => {
                     // Simple justification by adding extra spaces between words
                     const words = line.split(' ');
-                    const extraSpaces = Math.floor((40 - line.length) / (words.length - 1));
+                    const extraSpaces = Math.floor((maxLineLength - line.length) / (words.length - 1));
                     const justifiedLine = words.join(' '.repeat(extraSpaces + 1));
 
                     return `
-                        <text x="600" y="${currentY + (lineIndex * 20)}" text-anchor="middle" font-size="16" fill="#e0e0e0">
+                        <text x="${width / 2}" y="${currentY + (lineIndex * lineHeight)}" text-anchor="middle" font-size="${forecastSize}" fill="#e0e0e0">
                             ${justifiedLine}
                         </text>
                     `;
@@ -100,7 +123,7 @@ function generateShareCardSVG(data: ShareCardData): string {
         })()}
             
             <!-- Footer -->
-            <text x="600" y="580" text-anchor="middle" font-size="16" fill="#888888">
+            <text x="${width / 2}" y="${footerY}" text-anchor="middle" font-size="${footerSize}" fill="#888888">
                 BaziGPT.xyz
             </text>
         </g>
