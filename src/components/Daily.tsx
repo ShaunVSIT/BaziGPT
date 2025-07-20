@@ -163,16 +163,7 @@ function Daily() {
         }
     };
 
-    const handleClearSavedData = () => {
-        setBirthDate('');
-        setBirthTime('');
-        setPersonalForecast(null);
-        setPersonalError(null);
-        setShowPersonalForecast(false);
-        localStorage.removeItem('bazi-birth-date');
-        localStorage.removeItem('bazi-birth-time');
-        localStorage.removeItem('bazi-personal-forecast');
-    };
+
 
     return (
         <>
