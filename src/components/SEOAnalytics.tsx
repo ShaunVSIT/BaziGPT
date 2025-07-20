@@ -21,30 +21,8 @@ export const SEOAnalytics: React.FC<SEOAnalyticsProps> = ({
             timestamp: new Date().toISOString()
         });
 
-        // Track Core Web Vitals if available (simplified)
-        if (typeof window !== 'undefined' && 'web-vital' in window) {
-            try {
-                import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-                    const trackWebVital = (metric: any) => {
-                        track('web_vital', {
-                            name: metric.name,
-                            value: metric.value,
-                            rating: metric.rating
-                        });
-                    };
-
-                    getCLS(trackWebVital);
-                    getFID(trackWebVital);
-                    getFCP(trackWebVital);
-                    getLCP(trackWebVital);
-                    getTTFB(trackWebVital);
-                }).catch(() => {
-                    // Silently fail if web-vitals is not available
-                });
-            } catch (error) {
-                // Silently fail if there are any issues
-            }
-        }
+        // Note: Web Vitals tracking removed to avoid TypeScript issues
+        // Core Web Vitals are automatically tracked by Vercel Analytics
     }, [pageTitle, pageDescription, keywords]);
 
     return null; // This component doesn't render anything
