@@ -19,6 +19,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import { fetchDailyForecast, type DailyBaziForecast } from '../services/dailyBaziApi';
 import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
+import SocialFooter from './SocialFooter';
 
 function Daily() {
     const [loading, setLoading] = useState(true);
@@ -352,6 +353,9 @@ function Daily() {
                         </Box>
                     </Box>
                 </Paper>
+
+                {/* Social Footer */}
+                <SocialFooter />
             </Container>
 
             {/* Share Dialog */}

@@ -42,6 +42,7 @@ import SEOAnalytics from './components/SEOAnalytics';
 import Privacy from './components/Privacy';
 import Terms from './components/Terms';
 import Daily from './components/Daily';
+import SocialFooter from './components/SocialFooter';
 
 // Add this custom X icon component
 const XIcon = () => (
@@ -2173,6 +2174,9 @@ function MainApp() {
 
         {/* Only render share dialog when we have a reading */}
         {reading && renderShareDialog()}
+
+        {/* Social Footer */}
+        <SocialFooter />
 
         {/* Footer */}
         <Paper
