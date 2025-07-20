@@ -46,16 +46,24 @@ function getBaziPillarForDate(date: Date): string {
 
     // Add element based on stem
     const elementMap: { [key: string]: string } = {
-        "Jia": "Yang Wood", "Yi": "Yin Wood",
-        "Bing": "Yang Fire", "Ding": "Yin Fire",
-        "Wu": "Yang Earth", "Ji": "Yin Earth",
-        "Geng": "Yang Metal", "Xin": "Yin Metal",
-        "Ren": "Yang Water", "Gui": "Yin Water"
+        "Jia": "Yang Wood (甲)", "Yi": "Yin Wood (乙)",
+        "Bing": "Yang Fire (丙)", "Ding": "Yin Fire (丁)",
+        "Wu": "Yang Earth (戊)", "Ji": "Yin Earth (己)",
+        "Geng": "Yang Metal (庚)", "Xin": "Yin Metal (辛)",
+        "Ren": "Yang Water (壬)", "Gui": "Yin Water (癸)"
     };
 
-    const element = elementMap[stem] || "Yang Fire";
+    // Add Chinese characters for branches
+    const branchMap: { [key: string]: string } = {
+        "Zi": "Zi (子)", "Chou": "Chou (丑)", "Yin": "Yin (寅)", "Mao": "Mao (卯)",
+        "Chen": "Chen (辰)", "Si": "Si (巳)", "Wu": "Wu (午)", "Wei": "Wei (未)",
+        "Shen": "Shen (申)", "You": "You (酉)", "Xu": "Xu (戌)", "Hai": "Hai (亥)"
+    };
 
-    return `${element} over ${branch}`;
+    const element = elementMap[stem] || "Yang Fire (丙)";
+    const branchWithChar = branchMap[branch] || branch;
+
+    return `${element} over ${branchWithChar}`;
 }
 
 // Check if forecast is from today
