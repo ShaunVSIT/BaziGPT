@@ -26,11 +26,36 @@ function getTodayDate(): string {
     return today.toISOString().split('T')[0];
 }
 
-// Generate Bazi pillar for a given date (simplified for now)
+// Generate Bazi pillar for a given date
 function getBaziPillarForDate(date: Date): string {
-    // For now, using the fallback as specified in requirements
-    // In a real implementation, this would calculate the actual Bazi pillar
-    return "Yang Fire over Monkey";
+    // Simple Bazi calculation based on date
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+
+    // Calculate Heavenly Stem (based on year and day)
+    const heavenlyStems = ["Jia", "Yi", "Bing", "Ding", "Wu", "Ji", "Geng", "Xin", "Ren", "Gui"];
+    const earthlyBranches = ["Zi", "Chou", "Yin", "Mao", "Chen", "Si", "Wu", "Wei", "Shen", "You", "Xu", "Hai"];
+
+    // Simple calculation (this is a simplified version)
+    const stemIndex = (year + day) % 10;
+    const branchIndex = (month + day) % 12;
+
+    const stem = heavenlyStems[stemIndex];
+    const branch = earthlyBranches[branchIndex];
+
+    // Add element based on stem
+    const elementMap: { [key: string]: string } = {
+        "Jia": "Yang Wood", "Yi": "Yin Wood",
+        "Bing": "Yang Fire", "Ding": "Yin Fire",
+        "Wu": "Yang Earth", "Ji": "Yin Earth",
+        "Geng": "Yang Metal", "Xin": "Yin Metal",
+        "Ren": "Yang Water", "Gui": "Yin Water"
+    };
+
+    const element = elementMap[stem] || "Yang Fire";
+
+    return `${element} over ${branch}`;
 }
 
 // Check if forecast is from today
