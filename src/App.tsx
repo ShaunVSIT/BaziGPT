@@ -32,7 +32,8 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { Analytics, track } from '@vercel/analytics/react';
+import { track } from '@vercel/analytics/react';
+import DevelopmentAnalytics from './components/DevelopmentAnalytics';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import InfoIcon from '@mui/icons-material/Info';
 import ShareIcon from '@mui/icons-material/Share';
@@ -2176,7 +2177,12 @@ function MainApp() {
         {reading && renderShareDialog()}
 
         {/* Social Footer */}
-        <SocialFooter />
+        <Box sx={{ position: 'relative' }}>
+          {(() => {
+            console.log('App: Rendering SocialFooter');
+            return <SocialFooter />;
+          })()}
+        </Box>
 
         {/* Footer */}
         <Paper
@@ -2281,7 +2287,7 @@ function MainApp() {
         </Paper>
       </Container>
       <SpeedInsights />
-      <Analytics />
+      <DevelopmentAnalytics />
       <SEOAnalytics
         pageTitle="BaziGPT - AI-Powered Chinese Astrology & Relationship Compatibility"
         pageDescription="Get personalized Chinese Astrology readings and relationship compatibility analysis powered by AI. Discover your destiny, personality traits, and relationship compatibility based on your birth date and time."

@@ -25,6 +25,7 @@ import { fetchDailyForecast, fetchPersonalForecast, type DailyBaziForecast, type
 import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import SocialFooter from './SocialFooter';
+import SEOAnalytics from './SEOAnalytics';
 
 function Daily() {
     const [loading, setLoading] = useState(true);
@@ -209,6 +210,15 @@ function Daily() {
                 </script>
             </Helmet>
 
+            <SEOAnalytics
+                pageTitle={`Daily Bazi Forecast - ${formattedDate} | BaziGPT`}
+                pageDescription="Get your daily Bazi forecast for today. Discover the energy of the day and practical guidance based on Chinese Four Pillars astrology."
+                keywords={[
+                    "daily bazi forecast", "Chinese astrology", "Four Pillars", "daily horoscope",
+                    "bazi reading", "Chinese zodiac", "daily energy", "bazi analysis"
+                ]}
+            />
+
             <Container maxWidth="md" sx={{ py: 4 }}>
                 <Box sx={{ my: 2 }}>
                     <Typography
@@ -268,7 +278,7 @@ function Daily() {
                                 }
                             }}
                         >
-                            🀄 View Personal Reading
+                            🀄 Get Personal Reading
                         </Button>
                     </Box>
                 </Box>
@@ -616,7 +626,12 @@ function Daily() {
                 </Paper>
 
                 {/* Social Footer */}
-                <SocialFooter />
+                <Box sx={{ position: 'relative' }}>
+                    {(() => {
+                        console.log('Daily: Rendering SocialFooter');
+                        return <SocialFooter />;
+                    })()}
+                </Box>
             </Container>
 
             {/* Share Dialog */}

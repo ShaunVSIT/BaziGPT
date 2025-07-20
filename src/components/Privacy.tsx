@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { Helmet } from 'react-helmet-async';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import SEOAnalytics from './SEOAnalytics';
 
 const theme = createTheme({
     palette: {
@@ -32,6 +33,11 @@ const Privacy: React.FC = () => {
                 <meta name="description" content="Privacy Policy for BaziGPT - Learn how we protect your data and privacy." />
                 <link rel="canonical" href="https://bazigpt.com/privacy" />
             </Helmet>
+            <SEOAnalytics
+                pageTitle="Privacy Policy - BaziGPT"
+                pageDescription="Privacy Policy for BaziGPT - Learn how we protect your data and privacy."
+                keywords={["privacy policy", "data protection", "BaziGPT privacy", "user privacy"]}
+            />
             <CssBaseline />
             <Container maxWidth="md" sx={{ py: 4 }}>
                 <Button
