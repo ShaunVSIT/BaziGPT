@@ -9,7 +9,10 @@
     "clean": "rm -rf node_modules package-lock.json dist .vite",
     "clean:install": "npm run clean && npm install",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test-card": "node test-share-cards.js",
+    "test-caching": "node test-caching.js",
+    "test-caching-extended": "node test-caching-extended.js"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
