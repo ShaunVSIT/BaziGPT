@@ -25,6 +25,9 @@ function generatePortraitShareCardSVG(data: ShareCardData): string {
         day: 'numeric'
     });
 
+    // Split forecast into paragraphs for better formatting
+    const paragraphs = forecast.split('\n\n').filter(p => p.trim().length > 0);
+
     // Portrait dimensions optimized for mobile/Telegram
     const width = 800;
     const height = 1200;
@@ -37,15 +40,16 @@ function generatePortraitShareCardSVG(data: ShareCardData): string {
     const footerY = 1150;
 
     // Font sizes optimized for portrait
-    const titleSize = 56;
-    const dateSize = 28;
-    const pillarSize = 38;
-    const forecastSize = 20;
-    const footerSize = 18;
+    const titleSize = 48;
+    const dateSize = 24;
+    const pillarSize = 32;
+    const forecastSize = 18;
+    const footerSize = 16;
 
     const maxLineLength = 35;
-    const lineHeight = 26;
-    const maxLines = 18;
+    const lineHeight = 24;
+    const maxLines = 20;
+    const paragraphGap = 15;
 
     return `
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
@@ -63,10 +67,10 @@ function generatePortraitShareCardSVG(data: ShareCardData): string {
         <rect width="${width}" height="${height}" fill="url(#bg)"/>
         
         <!-- Decorative elements -->
-        <circle cx="120" cy="120" r="60" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.3"/>
-        <circle cx="${width - 120}" cy="${height - 120}" r="70" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.2"/>
-        <circle cx="${width - 100}" cy="140" r="40" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.15"/>
-        <circle cx="140" cy="${height - 140}" r="50" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.15"/>
+        <circle cx="100" cy="100" r="50" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.3"/>
+        <circle cx="${width - 100}" cy="${height - 100}" r="60" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.2"/>
+        <circle cx="${width - 80}" cy="120" r="35" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.15"/>
+        <circle cx="120" cy="${height - 120}" r="45" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.15"/>
         
         <!-- Main content -->
         <g font-family="Microsoft YaHei, PingFang SC, Hiragino Sans GB, WenQuanYi Micro Hei, Noto Sans CJK SC, Source Han Sans SC, Arial, sans-serif">
@@ -81,21 +85,21 @@ function generatePortraitShareCardSVG(data: ShareCardData): string {
             </text>
             
             <!-- Bazi Pillar with background -->
-            <rect x="${width / 2 - 150}" y="${pillarY - 30}" width="300" height="60" rx="12" fill="rgba(255,152,0,0.1)" stroke="rgba(255,152,0,0.3)" stroke-width="2"/>
-            <text x="${width / 2}" y="${pillarY + 8}" text-anchor="middle" font-size="${pillarSize}" font-weight="bold" fill="#ffffff" filter="url(#shadow)">
+            <rect x="${width / 2 - 140}" y="${pillarY - 25}" width="280" height="50" rx="10" fill="rgba(255,152,0,0.1)" stroke="rgba(255,152,0,0.3)" stroke-width="2"/>
+            <text x="${width / 2}" y="${pillarY + 5}" text-anchor="middle" font-size="${pillarSize}" font-weight="bold" fill="#ffffff" filter="url(#shadow)">
                 ${baziPillar}
             </text>
             
             <!-- Forecast text with background -->
-            <rect x="50" y="${forecastStartY - 20}" width="${width - 100}" height="600" rx="12" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+            <rect x="50" y="${forecastStartY - 20}" width="${width - 100}" height="650" rx="12" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
             
-            <!-- Forecast text -->
+            <!-- Forecast text with paragraphs -->
             ${(() => {
-            const paragraphs = forecast.split('\n\n');
             let currentY = forecastStartY;
             let totalLines = 0;
+            let paragraphCount = 0;
 
-            return paragraphs.map((paragraph, index) => {
+            return paragraphs.map((paragraph, paragraphIndex) => {
                 const words = paragraph.replace(/\n/g, ' ').split(' ');
                 const lines: string[] = [];
                 let currentLine = '';
@@ -114,7 +118,12 @@ function generatePortraitShareCardSVG(data: ShareCardData): string {
                 const linesToShow = lines.slice(0, maxLines - totalLines);
                 totalLines += linesToShow.length;
 
-                return linesToShow.map((line, lineIndex) => {
+                // Add paragraph gap if not first paragraph
+                if (paragraphIndex > 0 && linesToShow.length > 0) {
+                    currentY += paragraphGap;
+                }
+
+                const paragraphText = linesToShow.map((line, lineIndex) => {
                     // Simple justification by adding extra spaces between words
                     const words = line.split(' ');
                     const extraSpaces = Math.floor((maxLineLength - line.length) / (words.length - 1));
@@ -126,6 +135,9 @@ function generatePortraitShareCardSVG(data: ShareCardData): string {
                         </text>
                     `;
                 }).join('');
+
+                currentY += linesToShow.length * lineHeight;
+                return paragraphText;
             }).join('');
         })()}
             

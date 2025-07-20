@@ -25,6 +25,9 @@ function generatePortraitShareCardHTML(data: ShareCardData): string {
         day: 'numeric'
     });
 
+    // Split forecast into paragraphs for better formatting
+    const paragraphs = forecast.split('\n\n').filter(p => p.trim().length > 0);
+
     return `
     <!DOCTYPE html>
     <html>
@@ -55,77 +58,102 @@ function generatePortraitShareCardHTML(data: ShareCardData): string {
             .container {
                 text-align: center;
                 max-width: 700px;
-                padding: 40px 30px;
+                padding: 30px 25px;
                 height: 100%;
                 display: flex;
                 flex-direction: column;
                 justify-content: flex-start;
-                gap: 25px;
+                gap: 20px;
                 position: relative;
                 z-index: 2;
             }
             
             .header {
-                margin-top: 20px;
-                margin-bottom: 20px;
+                margin-top: 15px;
+                margin-bottom: 15px;
             }
             
             .title {
-                font-size: 52px;
+                font-size: 48px;
                 font-weight: bold;
-                margin-bottom: 15px;
+                margin-bottom: 12px;
                 color: #ffffff;
                 line-height: 1.1;
                 text-shadow: 0 2px 4px rgba(0,0,0,0.3);
             }
             
             .date {
-                font-size: 26px;
+                font-size: 24px;
                 color: #ff9800;
-                margin-bottom: 10px;
+                margin-bottom: 8px;
                 font-weight: 500;
                 text-shadow: 0 1px 2px rgba(0,0,0,0.3);
             }
             
             .pillar {
-                font-size: 36px;
+                font-size: 32px;
                 font-weight: bold;
-                margin-bottom: 20px;
+                margin-bottom: 15px;
                 color: #ffffff;
                 line-height: 1.2;
                 text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                padding: 15px 25px;
+                padding: 12px 20px;
                 background: rgba(255, 152, 0, 0.1);
                 border: 2px solid rgba(255, 152, 0, 0.3);
-                border-radius: 12px;
+                border-radius: 10px;
                 display: inline-block;
             }
             
             .forecast {
-                font-size: 20px;
-                line-height: 1.6;
+                font-size: 18px;
+                line-height: 1.5;
                 color: #e0e0e0;
                 text-align: justify;
                 max-width: 650px;
                 margin: 0 auto;
                 flex: 1;
                 overflow: hidden;
-                max-height: 600px;
-                display: -webkit-box;
-                -webkit-line-clamp: 20;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
+                max-height: 700px;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
                 padding: 20px;
                 background: rgba(255, 255, 255, 0.05);
                 border-radius: 12px;
                 border: 1px solid rgba(255, 255, 255, 0.1);
             }
             
+            .forecast p {
+                margin: 0;
+                padding: 0;
+                text-indent: 0;
+                text-align: justify;
+                line-height: 1.6;
+            }
+            
+            .forecast p:first-child {
+                margin-top: 0;
+            }
+            
+            .forecast p:last-child {
+                margin-bottom: 0;
+            }
+            
+            .forecast strong {
+                color: #ff9800;
+                font-weight: 600;
+            }
+            
+            .forecast em {
+                color: #ffffff;
+                font-style: italic;
+            }
+            
             .footer {
-                font-size: 18px;
+                font-size: 16px;
                 color: #888888;
-                margin-top: 20px;
-                margin-bottom: 30px;
+                margin-top: 15px;
+                margin-bottom: 20px;
                 font-weight: 500;
                 text-shadow: 0 1px 2px rgba(0,0,0,0.3);
             }
@@ -139,69 +167,34 @@ function generatePortraitShareCardHTML(data: ShareCardData): string {
             }
             
             .decorative.top-left {
-                top: 80px;
-                left: 60px;
-                width: 120px;
-                height: 120px;
+                top: 60px;
+                left: 50px;
+                width: 100px;
+                height: 100px;
             }
             
             .decorative.bottom-right {
-                bottom: 80px;
-                right: 60px;
-                width: 140px;
-                height: 140px;
+                bottom: 60px;
+                right: 50px;
+                width: 120px;
+                height: 120px;
                 opacity: 0.2;
             }
             
             .decorative.top-right {
-                top: 100px;
-                right: 80px;
-                width: 80px;
-                height: 80px;
+                top: 80px;
+                right: 70px;
+                width: 70px;
+                height: 70px;
                 opacity: 0.15;
             }
             
             .decorative.bottom-left {
-                bottom: 100px;
-                left: 80px;
-                width: 100px;
-                height: 100px;
+                bottom: 80px;
+                left: 70px;
+                width: 90px;
+                height: 90px;
                 opacity: 0.15;
-            }
-            
-            /* Enhanced text styling for better readability */
-            .forecast p {
-                margin-bottom: 15px;
-                text-indent: 0;
-            }
-            
-            .forecast strong {
-                color: #ff9800;
-                font-weight: 600;
-            }
-            
-            .forecast em {
-                color: #ffffff;
-                font-style: italic;
-            }
-            
-            /* Responsive adjustments for very small screens */
-            @media (max-width: 400px) {
-                .title {
-                    font-size: 44px;
-                }
-                
-                .date {
-                    font-size: 22px;
-                }
-                
-                .pillar {
-                    font-size: 30px;
-                }
-                
-                .forecast {
-                    font-size: 18px;
-                }
             }
         </style>
     </head>
@@ -216,7 +209,9 @@ function generatePortraitShareCardHTML(data: ShareCardData): string {
                 <div class="date">${formattedDate}</div>
                 <div class="pillar">${baziPillar}</div>
             </div>
-            <div class="forecast">${forecast}</div>
+            <div class="forecast">
+                ${paragraphs.map(paragraph => `<p>${paragraph}</p>`).join('')}
+            </div>
             <div class="footer">BaziGPT.xyz</div>
         </div>
     </body>
