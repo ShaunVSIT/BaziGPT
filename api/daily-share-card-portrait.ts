@@ -113,9 +113,10 @@ function generatePortraitShareCardHTML(data: ShareCardData): string {
                 max-width: 650px;
                 margin: 0 auto;
                 flex: 1;
+                max-height: calc(100vh - 300px);
                 display: flex;
                 flex-direction: column;
-                justify-content: space-between;
+                justify-content: flex-start;
                 gap: 20px;
                 padding: 25px;
                 background: rgba(255, 255, 255, 0.05);
@@ -131,7 +132,7 @@ function generatePortraitShareCardHTML(data: ShareCardData): string {
                 text-indent: 0;
                 text-align: justify;
                 line-height: 1.6;
-                flex: 1;
+                flex: 0 0 auto;
                 display: flex;
                 align-items: center;
             }
