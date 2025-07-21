@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import FamousPeopleGrid from '../components/FamousPeopleGrid';
+import FamousPeopleGrid from '../components/FamousPeopleGrid.tsx';
+import { Box, Typography, Button, Stack, CircularProgress } from '@mui/material';
 
 export type FamousPerson = {
     id: string;
@@ -37,31 +38,39 @@ const Famous: React.FC = () => {
     const filtered = category ? people.filter(p => p.category === category) : people;
 
     return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-4">Famous Bazi Readings</h1>
-            <div className="mb-6 flex flex-wrap gap-2">
-                <button
-                    className={`px-3 py-1 rounded ${!category ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+        <Box maxWidth="lg" mx="auto" px={{ xs: 2, sm: 4 }} py={6}>
+            <Typography variant="h4" fontWeight={700} mb={3} textAlign="center">
+                Famous Bazi Readings
+            </Typography>
+            <Stack direction="row" spacing={1} mb={4} justifyContent="center" flexWrap="wrap">
+                <Button
+                    variant={!category ? 'contained' : 'outlined'}
+                    color="primary"
                     onClick={() => setCategory('')}
+                    sx={{ fontWeight: 600, textTransform: 'none', mb: 1 }}
                 >
                     All
-                </button>
+                </Button>
                 {categories.map(cat => (
-                    <button
+                    <Button
                         key={cat}
-                        className={`px-3 py-1 rounded ${category === cat ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                        variant={category === cat ? 'contained' : 'outlined'}
+                        color="primary"
                         onClick={() => setCategory(cat!)}
+                        sx={{ fontWeight: 600, textTransform: 'none', mb: 1 }}
                     >
                         {cat}
-                    </button>
+                    </Button>
                 ))}
-            </div>
+            </Stack>
             {loading ? (
-                <div>Loading…</div>
+                <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+                    <CircularProgress />
+                </Box>
             ) : (
                 <FamousPeopleGrid people={filtered} />
             )}
-        </div>
+        </Box>
     );
 };
 

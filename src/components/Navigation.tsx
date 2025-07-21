@@ -23,6 +23,12 @@ const navigationItems: NavigationItem[] = [
         description: 'Today\'s Bazi forecast for everyone'
     },
     {
+        path: '/famous',
+        label: 'Famous People',
+        icon: '🌟',
+        description: 'Explore Bazi charts of famous people'
+    },
+    {
         path: '/about',
         label: 'About',
         icon: 'ℹ️',
