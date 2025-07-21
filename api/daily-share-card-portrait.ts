@@ -113,7 +113,7 @@ function generatePortraitShareCardHTML(data: ShareCardData): string {
                 max-width: 650px;
                 margin: 0 auto;
                 flex: 1;
-                max-height: calc(100vh - 300px);
+                max-height: calc(100vh - 480px);
                 display: flex;
                 flex-direction: column;
                 justify-content: flex-start;
