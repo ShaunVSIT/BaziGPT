@@ -10,9 +10,13 @@
     "clean:install": "npm run clean && npm install",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test-card": "node test-share-cards.js",
-    "test-caching": "node test-caching.js",
-    "test-caching-extended": "node test-caching-extended.js"
+    "test-card": "node tests/ui/test-share-cards.js",
+    "test-caching": "node tests/api/test-caching.js",
+    "test-caching-extended": "node tests/api/test-caching-extended.js",
+    "test:ui": "node tests/ui/test-local-share-cards.js",
+    "test:api": "node tests/api/test-api.js",
+    "test:analytics": "node tests/analytics/test-analytics.js",
+    "test:debug": "node tests/debug/debug-footer.js"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
@@ -33,6 +37,7 @@
     "web-vitals": "^5.0.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.31.0",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -42,6 +47,7 @@
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
+    "globals": "^16.3.0",
     "typescript": "^5.3.3",
     "vite": "^6.3.5"
   }

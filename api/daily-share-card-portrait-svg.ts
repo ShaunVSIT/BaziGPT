@@ -98,7 +98,6 @@ function generatePortraitShareCardSVG(data: ShareCardData): string {
             ${(() => {
             let currentY = forecastStartY;
             let totalLines = 0;
-            let paragraphCount = 0;
             const availableHeight = forecastHeight - 40; // Account for padding
             const totalParagraphs = paragraphs.length;
 

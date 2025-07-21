@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
+// Navigation now handled by Layout component
 import {
     Container,
     Box,
@@ -24,7 +25,6 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { fetchDailyForecast, fetchPersonalForecast, type DailyBaziForecast, type PersonalForecastResponse } from '../services/dailyBaziApi';
 import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
-import SocialFooter from './SocialFooter';
 import SEOAnalytics from './SEOAnalytics';
 
 function Daily() {
@@ -259,28 +259,7 @@ function Daily() {
                     >
                         {formattedDate}
                     </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-                        <Button
-                            component="a"
-                            href="/"
-                            variant="contained"
-                            color="primary"
-                            sx={{
-                                borderRadius: 2,
-                                px: 4,
-                                py: 1.5,
-                                fontSize: '1rem',
-                                fontWeight: 500,
-                                textTransform: 'none',
-                                background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
-                                '&:hover': {
-                                    background: 'linear-gradient(45deg, #ff5722 30%, #ff9800 90%)',
-                                }
-                            }}
-                        >
-                            🀄 Get Personal Reading
-                        </Button>
-                    </Box>
+                    {/* Navigation removed - now handled by Layout component */}
                 </Box>
 
                 <Paper
@@ -599,39 +578,7 @@ function Daily() {
                     )}
                 </Paper>
 
-                <Paper
-                    elevation={3}
-                    sx={{
-                        p: { xs: 2, sm: 3 },
-                        mt: 4,
-                        mb: 2,
-                        background: 'linear-gradient(to right, rgba(26,26,26,0.8), rgba(255,152,0,0.1))',
-                        borderLeft: '4px solid',
-                        borderColor: 'primary.main'
-                    }}
-                >
-                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-                        <Box>
-                            <Typography variant="h6" color="primary.main" gutterBottom>
-                                About Daily Forecasts
-                            </Typography>
-                            <Typography variant="body2" sx={{ mb: 1 }}>
-                                Daily forecasts are generated using AI and traditional Bazi astrology principles. Each day brings unique cosmic energies that influence our daily experiences and opportunities.
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                Built with React, Material-UI, and GPT-4
-                            </Typography>
-                        </Box>
-                    </Box>
-                </Paper>
 
-                {/* Social Footer */}
-                <Box sx={{ position: 'relative' }}>
-                    {(() => {
-                        console.log('Daily: Rendering SocialFooter');
-                        return <SocialFooter />;
-                    })()}
-                </Box>
             </Container>
 
             {/* Share Dialog */}

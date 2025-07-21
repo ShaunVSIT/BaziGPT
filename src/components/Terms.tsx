@@ -12,7 +12,7 @@ import {
 import { Helmet } from 'react-helmet-async';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SEOAnalytics from './SEOAnalytics';
-import SocialFooter from './SocialFooter';
+
 
 const theme = createTheme({
     palette: {
@@ -123,13 +123,7 @@ const Terms: React.FC = () => {
                     </Box>
                 </Paper>
 
-                {/* Social Footer */}
-                <Box sx={{ position: 'relative', mt: 4 }}>
-                    {(() => {
-                        console.log('Terms: Rendering SocialFooter');
-                        return <SocialFooter />;
-                    })()}
-                </Box>
+
             </Container>
         </ThemeProvider>
     );

@@ -88,7 +88,7 @@ function generateShareCardSVG(data: ShareCardData): string {
             let currentY = forecastStartY;
             let totalLines = 0;
 
-            return paragraphs.map((paragraph, index) => {
+            return paragraphs.map((paragraph) => {
                 const words = paragraph.replace(/\n/g, ' ').split(' ');
                 const lines: string[] = [];
                 let currentLine = '';
