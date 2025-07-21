@@ -456,7 +456,7 @@ function Daily() {
                                                     {personalLoading ? (
                                                         <CircularProgress size={20} color="inherit" />
                                                     ) : (
-                                                        'Get Personal Forecast'
+                                                        'Get Personal Daily Forecast'
                                                     )}
                                                 </Button>
                                             </>

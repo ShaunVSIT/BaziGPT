@@ -27,6 +27,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import html2canvas from 'html2canvas';
 import ReactMarkdown from 'react-markdown';
 import ShareCardBase from './ShareCardBase';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 interface BaziReading {
     reading: string;
@@ -55,6 +56,17 @@ function extractShareCardSections(readingMarkdown: string) {
     return { fourPillars, keyInsights, coreSelf };
 }
 
+// Helper to get a unique key for follow-ups based on birth details
+function getFollowupsKey(birthDate: Date | null, birthTime: string) {
+    if (!birthDate) return 'bazi-solo-followups'; // Fallback key if no birth date
+    const dateStr = birthDate instanceof Date ? birthDate.toISOString().split('T')[0] : new Date(birthDate).toISOString().split('T')[0];
+    return `bazi-solo-followups-${dateStr}-${birthTime || 'no-time'}`;
+}
+
+// Session storage keys
+const SOLO_READING_KEY = 'bazi-solo-reading';
+const SOLO_FOLLOWUPS_KEY = 'bazi-solo-followups';
+
 const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
     const [birthDate, setBirthDate] = useState<Date | null>(null);
     const [birthTime, setBirthTime] = useState<string>('');
@@ -70,26 +82,68 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
     const [shareDialogOpen, setShareDialogOpen] = useState(false);
     const shareCardRef = useRef<HTMLDivElement>(null);
 
-    const handleDateChange = (newValue: Date | null) => {
-        setBirthDate(newValue);
-        setError(null);
-        if (newValue?.getTime() !== birthDate?.getTime()) {
-            setReading(null);
-            setSelectedQuestion(null);
-            setFollowUpAnswer(null);
-            setCachedAnswers({});
+    // On mount, restore birthDate and birthTime first, then reading and follow-ups
+    React.useEffect(() => {
+        const storedBirth = sessionStorage.getItem('bazi-solo-birth');
+        let parsedDate = null;
+        let birthTime = '';
+        if (storedBirth) {
+            const parsed = JSON.parse(storedBirth);
+            parsedDate = parsed.birthDate ? new Date(parsed.birthDate) : null;
+            birthTime = parsed.birthTime || '';
+            setBirthDate(parsedDate);
+            setBirthTime(birthTime);
         }
+        // Now restore reading and follow-ups for this birth details
+        const storedReading = sessionStorage.getItem(SOLO_READING_KEY);
+        if (storedReading) {
+            setReading(JSON.parse(storedReading));
+        }
+        if (parsedDate) {
+            const followupsKey = getFollowupsKey(parsedDate, birthTime);
+            const storedFollowups = sessionStorage.getItem(followupsKey);
+            if (storedFollowups) {
+                setCachedAnswers(JSON.parse(storedFollowups));
+            }
+        }
+    }, []);
+
+    // Store reading in sessionStorage when it changes
+    React.useEffect(() => {
+        if (reading) {
+            sessionStorage.setItem(SOLO_READING_KEY, JSON.stringify(reading));
+        }
+    }, [reading]);
+    // Store birth details in sessionStorage when they change, but never set to null except on restart
+    React.useEffect(() => {
+        if (birthDate instanceof Date && !isNaN(birthDate.getTime())) {
+            sessionStorage.setItem('bazi-solo-birth', JSON.stringify({ birthDate: birthDate.toISOString(), birthTime }));
+        }
+    }, [birthDate, birthTime]);
+    // Store follow-ups only if birthDate is valid
+    React.useEffect(() => {
+        if (birthDate instanceof Date && !isNaN(birthDate.getTime())) {
+            const followupsKey = getFollowupsKey(birthDate, birthTime);
+            if (Object.keys(cachedAnswers).length > 0) {
+                sessionStorage.setItem(followupsKey, JSON.stringify(cachedAnswers));
+            } else {
+                sessionStorage.removeItem(followupsKey);
+            }
+        }
+    }, [cachedAnswers, birthDate, birthTime]);
+
+    const handleDateChange = (newValue: any) => {
+        if (newValue instanceof Date && !isNaN(newValue.getTime())) {
+            setBirthDate(newValue);
+        }
+        setError(null);
+        // Do NOT auto-clear reading or follow-ups
     };
 
     const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newTime = event.target.value;
         setBirthTime(newTime);
-        if (newTime !== birthTime) {
-            setReading(null);
-            setSelectedQuestion(null);
-            setFollowUpAnswer(null);
-            setCachedAnswers({});
-        }
+        // Do NOT auto-clear reading or follow-ups
     };
 
     const handleSubmit = async () => {
@@ -104,6 +158,13 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
         try {
             const baziReading = await getBaziReading(birthDate, birthTime || undefined);
             setReading(baziReading);
+            // Clear and reset follow-ups for this new reading
+            setCachedAnswers({});
+            // Store birth details
+            sessionStorage.setItem('bazi-solo-birth', JSON.stringify({ birthDate: birthDate.toISOString(), birthTime }));
+            // Remove old follow-ups for this birth details
+            const followupsKey = getFollowupsKey(birthDate, birthTime);
+            sessionStorage.removeItem(followupsKey);
             track('reading_generated', {
                 hasTime: !!birthTime,
             });
@@ -168,6 +229,12 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
         setError(null);
         setIsMainReadingExpanded(true);
         setCachedAnswers({});
+        sessionStorage.removeItem(SOLO_READING_KEY);
+        sessionStorage.removeItem('bazi-solo-birth');
+        // Remove all follow-ups for all possible keys
+        Object.keys(sessionStorage).forEach(key => {
+            if (key.startsWith(SOLO_FOLLOWUPS_KEY)) sessionStorage.removeItem(key);
+        });
     };
 
     const handleShare = async () => {
@@ -558,6 +625,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                                                 color: 'primary.main',
                                             }
                                         }}
+                                        endIcon={cachedAnswers[question] ? <CheckCircleIcon color="success" fontSize="small" /> : null}
                                     >
                                         {question}
                                     </Button>
@@ -571,36 +639,38 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                                 </Box>
                             )}
 
-                            {followUpAnswer && (
-                                <Paper elevation={1} sx={{ p: 2, bgcolor: 'rgba(255, 152, 0, 0.05)' }}>
-                                    <Typography variant="h6" color="primary.main" gutterBottom>
-                                        {selectedQuestion}
-                                    </Typography>
-                                    <Box sx={{
-                                        '& h1, & h2, & h3, & h4, & h5, & h6': {
-                                            color: 'primary.main',
-                                            fontWeight: 700,
-                                            mt: 2,
-                                            mb: 1
-                                        },
-                                        '& strong': {
-                                            color: 'primary.main',
-                                            fontWeight: 600
-                                        },
-                                        '& ul, & ol': {
-                                            pl: 3,
-                                            mb: 2
-                                        },
-                                        '& li': {
-                                            mb: 0.5
-                                        },
-                                        color: 'text.primary',
-                                        lineHeight: 1.6
-                                    }}>
-                                        <ReactMarkdown>{followUpAnswer}</ReactMarkdown>
-                                    </Box>
-                                </Paper>
-                            )}
+                            <Collapse in={!!followUpAnswer} unmountOnExit={false}>
+                                {followUpAnswer && (
+                                    <Paper elevation={1} sx={{ p: 2, bgcolor: 'rgba(255, 152, 0, 0.05)' }}>
+                                        <Typography variant="h6" color="primary.main" gutterBottom>
+                                            {selectedQuestion}
+                                        </Typography>
+                                        <Box sx={{
+                                            '& h1, & h2, & h3, & h4, & h5, & h6': {
+                                                color: 'primary.main',
+                                                fontWeight: 700,
+                                                mt: 2,
+                                                mb: 1
+                                            },
+                                            '& strong': {
+                                                color: 'primary.main',
+                                                fontWeight: 600
+                                            },
+                                            '& ul, & ol': {
+                                                pl: 3,
+                                                mb: 2
+                                            },
+                                            '& li': {
+                                                mb: 0.5
+                                            },
+                                            color: 'text.primary',
+                                            lineHeight: 1.6
+                                        }}>
+                                            <ReactMarkdown>{followUpAnswer}</ReactMarkdown>
+                                        </Box>
+                                    </Paper>
+                                )}
+                            </Collapse>
                         </Paper>
 
                         {/* Share Button */}

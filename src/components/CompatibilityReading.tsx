@@ -33,13 +33,25 @@ interface CompatibilityReadingProps {
     onModeSwitch: (mode: 'solo' | 'compatibility') => void;
 }
 
-function extractShareableBullets(readingMarkdown: string) {
-    // Extract lines starting with '•' (Unicode bullet)
-    return readingMarkdown
-        .split('\n')
-        .filter(line => line.trim().startsWith('•'))
-        .join('\n');
+// Helper to extract Elemental Compatibility and Key Insights sections from the reading markdown
+function extractCompatShareSections(readingMarkdown: string) {
+    if (!readingMarkdown) return { elemental: '', keyInsights: '' };
+    const elementalMatch = readingMarkdown.match(/#+\s*Elemental Compatibility[\s\S]*?(?=\n#+\s|$)/i);
+    const keyInsightsMatch = readingMarkdown.match(/#+\s*Key Insights[\s\S]*?(?=\n#+\s|$)/i);
+    return {
+        elemental: elementalMatch ? elementalMatch[0] : '',
+        keyInsights: keyInsightsMatch ? keyInsightsMatch[0] : ''
+    };
 }
+
+// Helper to clean duplicate bullets from markdown
+function cleanBullets(markdown: string) {
+    return markdown.replace(/^(\s*•\s*)/gm, '');
+}
+
+// Session storage keys
+const COMPAT_READING_KEY = 'bazi-compat-reading';
+const COMPAT_BIRTH_KEY = 'bazi-compat-birth';
 
 const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitch }) => {
     const [person1BirthDate, setPerson1BirthDate] = useState<Date | null>(null);
@@ -52,36 +64,68 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
     const [compatibilityShareDialogOpen, setCompatibilityShareDialogOpen] = useState(false);
     const compatibilityShareCardRef = useRef<HTMLDivElement>(null);
 
+    // On mount, restore birth details and reading from sessionStorage
+    React.useEffect(() => {
+        // 1. Try to restore Compatibility session
+        const storedBirth = sessionStorage.getItem(COMPAT_BIRTH_KEY);
+        const storedReading = sessionStorage.getItem(COMPAT_READING_KEY);
+        if (storedBirth) {
+            const { person1BirthDate: p1d, person1BirthTime: p1t, person2BirthDate: p2d, person2BirthTime: p2t } = JSON.parse(storedBirth);
+            if (p1d) setPerson1BirthDate(new Date(p1d));
+            if (p1t) setPerson1BirthTime(p1t);
+            if (p2d) setPerson2BirthDate(new Date(p2d));
+            if (p2t) setPerson2BirthTime(p2t);
+        } else {
+            // 2. If no Compatibility session, auto-fill person1 from Solo session
+            const soloBirth = sessionStorage.getItem('bazi-solo-birth');
+            if (soloBirth) {
+                const { birthDate, birthTime } = JSON.parse(soloBirth);
+                if (birthDate) setPerson1BirthDate(new Date(birthDate));
+                if (birthTime) setPerson1BirthTime(birthTime);
+            }
+        }
+        if (storedReading) {
+            setCompatibilityReading(JSON.parse(storedReading));
+        }
+    }, []);
+
+    // Store reading and birth details in sessionStorage when they change
+    React.useEffect(() => {
+        if (compatibilityReading) {
+            sessionStorage.setItem(COMPAT_READING_KEY, JSON.stringify(compatibilityReading));
+        }
+    }, [compatibilityReading]);
+    React.useEffect(() => {
+        sessionStorage.setItem(COMPAT_BIRTH_KEY, JSON.stringify({
+            person1BirthDate: person1BirthDate instanceof Date && !isNaN(person1BirthDate.getTime()) ? person1BirthDate.toISOString() : null,
+            person1BirthTime,
+            person2BirthDate: person2BirthDate instanceof Date && !isNaN(person2BirthDate.getTime()) ? person2BirthDate.toISOString() : null,
+            person2BirthTime
+        }));
+    }, [person1BirthDate, person1BirthTime, person2BirthDate, person2BirthTime]);
+
     const handlePerson1DateChange = (newValue: Date | null) => {
         setPerson1BirthDate(newValue);
         setCompatibilityError(null);
-        if (newValue?.getTime() !== person1BirthDate?.getTime()) {
-            setCompatibilityReading(null);
-        }
+        // Do NOT auto-clear reading
     };
 
     const handlePerson1TimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newTime = event.target.value;
         setPerson1BirthTime(newTime);
-        if (newTime !== person1BirthTime) {
-            setCompatibilityReading(null);
-        }
+        // Do NOT auto-clear reading
     };
 
     const handlePerson2DateChange = (newValue: Date | null) => {
         setPerson2BirthDate(newValue);
         setCompatibilityError(null);
-        if (newValue?.getTime() !== person2BirthDate?.getTime()) {
-            setCompatibilityReading(null);
-        }
+        // Do NOT auto-clear reading
     };
 
     const handlePerson2TimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newTime = event.target.value;
         setPerson2BirthTime(newTime);
-        if (newTime !== person2BirthTime) {
-            setCompatibilityReading(null);
-        }
+        // Do NOT auto-clear reading
     };
 
     const handleCompatibilitySubmit = async () => {
@@ -125,6 +169,8 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
         setPerson2BirthTime('');
         setCompatibilityReading(null);
         setCompatibilityError(null);
+        sessionStorage.removeItem(COMPAT_READING_KEY);
+        sessionStorage.removeItem(COMPAT_BIRTH_KEY);
     };
 
     const handleCompatibilityShareDownload = async () => {
@@ -149,12 +195,8 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
         }
     };
 
-    const getCompatibilityShareableSummary = () => {
-        return compatibilityReading?.shareableSummary || "This couple shows balanced compatibility with complementary strengths and areas for growth.";
-    };
-
     const renderCompatibilityShareDialog = () => {
-        const bullets = compatibilityReading ? extractShareableBullets(compatibilityReading.reading) : '';
+        const sections = compatibilityReading ? extractCompatShareSections(compatibilityReading.reading) : { elemental: '', keyInsights: '' };
         return (
             <Dialog
                 open={compatibilityShareDialogOpen}
@@ -181,16 +223,18 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                             title="Our Compatibility Reading"
                             qrValue={window.location.href}
                         >
-                            {/* Shareable Bullets */}
-                            {bullets && (
-                                <Box sx={{ color: 'white', mb: 2, textAlign: 'left', fontSize: '1rem' }}>
-                                    <ReactMarkdown>{bullets}</ReactMarkdown>
+                            {/* Elemental Compatibility */}
+                            {sections.elemental && (
+                                <Box sx={{ color: 'white', mb: 2, textAlign: 'center', fontSize: '1rem' }}>
+                                    <ReactMarkdown>{cleanBullets(sections.elemental)}</ReactMarkdown>
                                 </Box>
                             )}
-                            {/* Shareable Summary */}
-                            <Typography variant="body1" sx={{ color: 'white', mb: 2, lineHeight: 1.6, textAlign: 'left' }}>
-                                {getCompatibilityShareableSummary()}
-                            </Typography>
+                            {/* Key Insights */}
+                            {sections.keyInsights && (
+                                <Box sx={{ color: 'white', mb: 2, textAlign: 'center', fontSize: '1rem' }}>
+                                    <ReactMarkdown>{cleanBullets(sections.keyInsights)}</ReactMarkdown>
+                                </Box>
+                            )}
                         </ShareCardBase>
                     </Box>
                 </DialogContent>
@@ -327,7 +371,7 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                                 </Typography>
                                 <DatePicker
                                     label="Birth Date"
-                                    value={person1BirthDate}
+                                    value={person1BirthDate || null}
                                     onChange={handlePerson1DateChange}
                                     format="dd-MM-yyyy"
                                     slotProps={{
@@ -366,7 +410,7 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                                 </Typography>
                                 <DatePicker
                                     label="Birth Date"
-                                    value={person2BirthDate}
+                                    value={person2BirthDate || null}
                                     onChange={handlePerson2DateChange}
                                     format="dd-MM-yyyy"
                                     slotProps={{
