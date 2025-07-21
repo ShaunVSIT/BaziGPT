@@ -8,7 +8,6 @@ import {
     Paper,
     CircularProgress,
     Button,
-    IconButton,
     Chip,
     Dialog,
     DialogTitle,
@@ -23,10 +22,15 @@ import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { fetchDailyForecast, fetchPersonalForecast, type DailyBaziForecast, type PersonalForecastResponse } from '../services/dailyBaziApi';
-import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import SEOAnalytics from './SEOAnalytics';
 import ReactMarkdown from 'react-markdown';
+import ShareCardBase from './ShareCardBase';
+
+function formatPersonalForecast(text: string) {
+    // Ensure each bullet starts on a new line
+    return text.replace(/\s*•\s*/g, '\n• ');
+}
 
 function Daily() {
     const [loading, setLoading] = useState(true);
@@ -37,25 +41,27 @@ function Daily() {
 
     // Personal forecast state with persistence
     const [showPersonalForecast, setShowPersonalForecast] = useState(false);
-    const [birthDate, setBirthDate] = useState(() => {
-        return localStorage.getItem('bazi-birth-date') || '';
-    });
-    const [birthTime, setBirthTime] = useState(() => {
-        return localStorage.getItem('bazi-birth-time') || '';
-    });
+    // Initialize as empty string
+    const [birthDate, setBirthDate] = useState('');
+    const [birthTime, setBirthTime] = useState('');
+    // Session storage key for personal forecast
+    const PERSONAL_FORECAST_KEY = 'bazi-personal-forecast-session';
     const [personalForecast, setPersonalForecast] = useState<PersonalForecastResponse | null>(() => {
-        const saved = localStorage.getItem('bazi-personal-forecast');
+        // Prefer sessionStorage, then localStorage
         const today = new Date().toISOString().split('T')[0];
-        if (saved) {
+        const sessionSaved = sessionStorage.getItem(PERSONAL_FORECAST_KEY);
+        if (sessionSaved) {
             try {
-                const parsed = JSON.parse(saved);
-                // Only restore if it's from today
-                if (parsed.date === today) {
-                    return parsed;
-                }
-            } catch (e) {
-                console.error('Error parsing saved forecast:', e);
-            }
+                const parsed = JSON.parse(sessionSaved);
+                if (parsed.date === today) return parsed;
+            } catch { }
+        }
+        const localSaved = localStorage.getItem('bazi-personal-forecast');
+        if (localSaved) {
+            try {
+                const parsed = JSON.parse(localSaved);
+                if (parsed.date === today) return parsed;
+            } catch { }
         }
         return null;
     });
@@ -99,14 +105,17 @@ function Daily() {
         }
     }, [birthTime]);
 
-    // Save personal forecast to localStorage when it changes
+    // Save personal forecast to sessionStorage and localStorage when it changes
     useEffect(() => {
         if (personalForecast) {
             const forecastWithDate = {
                 ...personalForecast,
                 date: new Date().toISOString().split('T')[0]
             };
+            sessionStorage.setItem(PERSONAL_FORECAST_KEY, JSON.stringify(forecastWithDate));
             localStorage.setItem('bazi-personal-forecast', JSON.stringify(forecastWithDate));
+        } else {
+            sessionStorage.removeItem(PERSONAL_FORECAST_KEY);
         }
     }, [personalForecast]);
 
@@ -117,9 +126,26 @@ function Daily() {
         }
     }, [personalForecast, birthDate]);
 
-    const handleShare = () => {
-        setShareDialogOpen(true);
-    };
+    useEffect(() => {
+        // On mount, prefer solo sessionStorage, then localStorage
+        let filled = false;
+        const soloBirth = sessionStorage.getItem('bazi-solo-birth');
+        if (soloBirth) {
+            const { birthDate: soloDate, birthTime: soloTime } = JSON.parse(soloBirth);
+            if (soloDate) {
+                setBirthDate(soloDate.split('T')[0]);
+                filled = true;
+            }
+            if (soloTime) setBirthTime(soloTime);
+        }
+        if (!filled) {
+            const localDate = localStorage.getItem('bazi-birth-date');
+            if (localDate) setBirthDate(localDate);
+            const localTime = localStorage.getItem('bazi-birth-time');
+            if (localTime) setBirthTime(localTime);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleShareDownload = async () => {
         if (!shareCardRef.current) return;
@@ -318,20 +344,7 @@ function Daily() {
 
                                     </Box>
                                 </Box>
-                                <Box>
-                                    <IconButton
-                                        onClick={handleShare}
-                                        color="primary"
-                                        sx={{
-                                            '&:hover': {
-                                                bgcolor: 'rgba(255, 152, 0, 0.1)',
-                                            }
-                                        }}
-                                        aria-label="Share forecast"
-                                    >
-                                        <ShareIcon />
-                                    </IconButton>
-                                </Box>
+                                {/* Remove the IconButton for the standard daily forecast share (do not render it) */}
                             </Box>
 
                             <Typography
@@ -518,6 +531,31 @@ function Daily() {
                                 </Collapse>
                             </Box>
 
+                            {personalForecast && (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                                    <Button
+                                        variant="contained"
+                                        startIcon={<ShareIcon />}
+                                        onClick={() => setShareDialogOpen(true)}
+                                        sx={{
+                                            py: 1.5,
+                                            px: 4,
+                                            fontSize: '1.1rem',
+                                            width: { xs: '100%', sm: 'auto' },
+                                            background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
+                                            boxShadow: '0 3px 5px 2px rgba(255, 152, 0, .3)',
+                                            '&:hover': {
+                                                background: 'linear-gradient(45deg, #ff9800 60%, #ff5722 90%)',
+                                                transform: 'translateY(-2px)',
+                                                transition: 'transform 0.2s'
+                                            }
+                                        }}
+                                    >
+                                        Share My Personal Forecast
+                                    </Button>
+                                </Box>
+                            )}
+
                             <Box sx={{
                                 mt: { xs: 2, sm: 4 },
                                 pt: { xs: 2, sm: 3 },
@@ -587,202 +625,75 @@ function Daily() {
             </Container>
 
             {/* Share Dialog */}
-            {forecast && (
+            {shareDialogOpen && personalForecast && (
                 <Dialog
                     open={shareDialogOpen}
                     onClose={() => setShareDialogOpen(false)}
                     maxWidth="sm"
                     fullWidth
+                    PaperProps={{
+                        sx: {
+                            bgcolor: '#1e1e1e',
+                            color: 'white',
+                            borderRadius: 3,
+                        }
+                    }}
                 >
-                    <DialogTitle>Share Daily Forecast</DialogTitle>
+                    <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
+                        Share Your Personal Daily Forecast
+                    </DialogTitle>
                     <DialogContent>
-                        <Box
-                            ref={shareCardRef}
+                        <Box sx={{ textAlign: 'center', mb: 3 }}>
+                            <ShareCardBase
+                                title="My Personal Daily Forecast"
+                                qrValue={window.location.href}
+                            >
+                                <Typography variant="h6" sx={{ color: '#ff9800', mb: 2, fontWeight: 'bold' }}>
+                                    {formattedDate}
+                                </Typography>
+                                {personalForecast.todayPillar && (
+                                    <Chip
+                                        label={personalForecast.todayPillar}
+                                        color="primary"
+                                        variant="outlined"
+                                        sx={{
+                                            borderColor: 'primary.main',
+                                            color: 'primary.main',
+                                            mb: 2
+                                        }}
+                                    />
+                                )}
+                                <Typography variant="body1" sx={{ color: 'white', mb: 2, lineHeight: 1.6, textAlign: 'center' }}>
+                                    <ReactMarkdown>{formatPersonalForecast(personalForecast.personalForecast)}</ReactMarkdown>
+                                </Typography>
+                            </ShareCardBase>
+                        </Box>
+                    </DialogContent>
+                    <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+                        <Button
+                            onClick={() => setShareDialogOpen(false)}
+                            variant="outlined"
                             sx={{
-                                p: { xs: 2, sm: 4 },
-                                borderRadius: 3,
-                                background: 'linear-gradient(135deg, rgba(33,33,33,0.95) 0%, rgba(44,44,44,0.95) 100%)',
-                                border: '1px solid rgba(255,152,0,0.3)',
-                                boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                                position: 'relative',
-                                '&::before': {
-                                    content: '""',
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    height: '4px',
-                                    background: 'linear-gradient(90deg, #ff9800, #ff5722)',
+                                borderColor: 'rgba(255, 152, 0, 0.3)',
+                                color: '#ff9800',
+                                '&:hover': {
+                                    borderColor: '#ff9800',
                                 }
                             }}
                         >
-                            <Box sx={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'flex-start',
-                                mb: 3,
-                                position: 'relative',
-                                overflow: 'hidden'
-                            }}>
-                                <Typography
-                                    variant="h5"
-                                    sx={{
-                                        color: 'primary.main',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 1,
-                                        fontSize: {
-                                            xs: 'min(1.4rem, 4.5vw)',
-                                            sm: '1.8rem'
-                                        },
-                                        fontWeight: 600,
-                                        flex: 1,
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        minWidth: 0
-                                    }}
-                                >
-                                    <span role="img" aria-label="mahjong" style={{ fontSize: '1.2em', flexShrink: 0 }}>🀄</span>
-                                    Daily Bazi Forecast
-                                </Typography>
-                                <Box sx={{
-                                    display: { xs: 'none', sm: 'block' },
-                                    width: '80px',
-                                    height: '80px',
-                                    backgroundColor: 'white',
-                                    borderRadius: '8px',
-                                    p: '6px',
-                                    ml: 2
-                                }}>
-                                    <QRCodeSVG
-                                        value="https://bazigpt.xyz"
-                                        size={68}
-                                        level="L"
-                                        includeMargin={false}
-                                    />
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: 'rgba(255, 255, 255, 0.3)',
-                                            mt: 0.5,
-                                            fontSize: '0.7rem',
-                                            display: 'block',
-                                            textAlign: 'center'
-                                        }}
-                                    >
-                                        bazigpt.xyz
-                                    </Typography>
-                                </Box>
-                            </Box>
-
-                            <Box sx={{ my: { xs: 2, sm: 3 } }}>
-                                <Typography
-                                    variant="h6"
-                                    sx={{
-                                        color: 'primary.main',
-                                        fontWeight: 600,
-                                        mb: 2,
-                                        fontSize: { xs: '1.1rem', sm: '1.3rem' }
-                                    }}
-                                >
-                                    {formattedDate}
-                                </Typography>
-                                <Chip
-                                    label={forecast.baziPillar}
-                                    color="primary"
-                                    variant="outlined"
-                                    sx={{
-                                        borderColor: 'primary.main',
-                                        color: 'primary.main',
-                                        mb: 2
-                                    }}
-                                />
-                                <Typography
-                                    variant="body1"
-                                    sx={{
-                                        fontSize: { xs: '0.9rem', sm: '1rem' },
-                                        color: 'text.primary',
-                                        lineHeight: 1.6,
-                                        whiteSpace: 'pre-line',
-                                        '& .highlight': {
-                                            color: 'primary.main',
-                                            fontWeight: 600
-                                        }
-                                    }}
-                                >
-                                    {forecast.forecast}
-                                </Typography>
-                            </Box>
-
-                            <Box
-                                sx={{
-                                    mt: { xs: 2, sm: 4 },
-                                    pt: { xs: 2, sm: 3 },
-                                    borderTop: '1px solid rgba(255,152,0,0.2)',
-                                    display: 'flex',
-                                    flexDirection: { xs: 'row', sm: 'column' },
-                                    alignItems: { xs: 'center', sm: 'stretch' },
-                                    justifyContent: { xs: 'space-between', sm: 'center' },
-                                    gap: { xs: 2, sm: 0 },
-                                    position: 'relative'
-                                }}
-                            >
-                                <Typography
-                                    sx={{
-                                        fontSize: { xs: '0.9rem', sm: '1.2rem' },
-                                        fontWeight: 500,
-                                        textAlign: 'center',
-                                        flex: { xs: 1, sm: 'auto' },
-                                        '& .highlight': {
-                                            color: '#ff9800',
-                                            fontWeight: 600,
-                                            display: { xs: 'block', sm: 'inline' }
-                                        }
-                                    }}
-                                >
-                                    Get your personalized reading at <span className="highlight">bazigpt.xyz</span>
-                                </Typography>
-                                <Box sx={{
-                                    display: { xs: 'block', sm: 'none' },
-                                    width: '60px',
-                                    height: '60px',
-                                    backgroundColor: 'white',
-                                    borderRadius: '8px',
-                                    p: '4px',
-                                    flexShrink: 0
-                                }}>
-                                    <QRCodeSVG
-                                        value="https://bazigpt.xyz"
-                                        size={52}
-                                        level="L"
-                                        includeMargin={false}
-                                    />
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: 'rgba(255, 255, 255, 0.3)',
-                                            mt: 0.5,
-                                            fontSize: '0.6rem',
-                                            display: { xs: 'none', sm: 'block' },
-                                            textAlign: 'center'
-                                        }}
-                                    >
-                                        bazigpt.xyz
-                                    </Typography>
-                                </Box>
-                            </Box>
-                        </Box>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setShareDialogOpen(false)}>Cancel</Button>
+                            Cancel
+                        </Button>
                         <Button
                             onClick={handleShareDownload}
                             variant="contained"
-                            color="primary"
                             sx={{
                                 background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
-                                px: 3
+                                color: 'white',
+                                px: 4,
+                                py: 1.5,
+                                '&:hover': {
+                                    background: 'linear-gradient(45deg, #ff9800 60%, #ff5722 90%)',
+                                }
                             }}
                         >
                             Save Forecast
