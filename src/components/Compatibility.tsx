@@ -21,6 +21,8 @@ import ShareIcon from '@mui/icons-material/Share';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { getCompatibilityReading } from '../services/openai';
 import { track } from '@vercel/analytics/react';
+import ReactMarkdown from 'react-markdown';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 interface CompatibilityReading {
     reading: string;
@@ -249,6 +251,17 @@ export default function Compatibility() {
 
                 {/* Results Section */}
                 {reading && (
+                    <Box sx={{ mb: 2, textAlign: 'center' }}>
+                        <Typography variant="subtitle1" color="text.secondary">
+                            You: {person1BirthDate ? new Date(person1BirthDate).toLocaleDateString() : ''}
+                            {person1BirthTime && ` at ${person1BirthTime}`}
+                            <br />
+                            Partner: {person2BirthDate ? new Date(person2BirthDate).toLocaleDateString() : ''}
+                            {person2BirthTime && ` at ${person2BirthTime}`}
+                        </Typography>
+                    </Box>
+                )}
+                {reading && (
                     <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                             <Typography variant="h5" sx={{ color: '#ff9800' }}>
@@ -273,16 +286,30 @@ export default function Compatibility() {
                         </Box>
 
                         <Box sx={{ mb: 3 }}>
-                            <Typography variant="body1" sx={{ whiteSpace: 'pre-line', lineHeight: 1.6 }}>
+                            <ReactMarkdown
+                                components={{
+                                    h1: ({ node, ...props }) => <h1 style={{ color: '#ff9800', fontWeight: 700, marginTop: 16, marginBottom: 8, fontSize: '1.5rem' }} {...props} />,
+                                    h2: ({ node, ...props }) => <h2 style={{ color: '#ff9800', fontWeight: 700, marginTop: 12, marginBottom: 8, fontSize: '1.2rem' }} {...props} />,
+                                    p: ({ node, ...props }) => <p style={{ lineHeight: 1.6, marginBottom: 8, fontSize: '1rem', color: '#fff' }} {...props} />,
+                                    li: ({ node, ...props }) => <li style={{ marginBottom: 4 }}>{props.children}</li>
+                                }}
+                            >
                                 {reading.reading}
-                            </Typography>
+                            </ReactMarkdown>
                         </Box>
 
-                        <Box sx={{ textAlign: 'center' }}>
+                        <Box sx={{ textAlign: 'center', mt: 3 }}>
                             <Button
                                 variant="outlined"
+                                startIcon={<RefreshIcon />}
                                 onClick={handleRestart}
-                                sx={{ mr: 2 }}
+                                sx={{
+                                    borderColor: 'rgba(255, 152, 0, 0.3)',
+                                    color: '#ff9800',
+                                    '&:hover': {
+                                        borderColor: '#ff9800',
+                                    }
+                                }}
                             >
                                 Start New Analysis
                             </Button>

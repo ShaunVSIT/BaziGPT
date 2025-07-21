@@ -21,7 +21,8 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import { track } from '@vercel/analytics/react';
 import ShareIcon from '@mui/icons-material/Share';
 import html2canvas from 'html2canvas';
-import { QRCodeSVG } from 'qrcode.react';
+import ReactMarkdown from 'react-markdown';
+import ShareCardBase from './ShareCardBase';
 
 interface CompatibilityReadingData {
     reading: string;
@@ -30,6 +31,14 @@ interface CompatibilityReadingData {
 
 interface CompatibilityReadingProps {
     onModeSwitch: (mode: 'solo' | 'compatibility') => void;
+}
+
+function extractShareableBullets(readingMarkdown: string) {
+    // Extract lines starting with '•' (Unicode bullet)
+    return readingMarkdown
+        .split('\n')
+        .filter(line => line.trim().startsWith('•'))
+        .join('\n');
 }
 
 const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitch }) => {
@@ -144,128 +153,80 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
         return compatibilityReading?.shareableSummary || "This couple shows balanced compatibility with complementary strengths and areas for growth.";
     };
 
-    const renderCompatibilityShareDialog = () => (
-        <Dialog
-            open={compatibilityShareDialogOpen}
-            onClose={() => setCompatibilityShareDialogOpen(false)}
-            maxWidth="sm"
-            fullWidth
-            PaperProps={{
-                sx: {
-                    bgcolor: '#1e1e1e',
-                    color: 'white',
-                    borderRadius: 3,
-                }
-            }}
-        >
-            <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
-                Share Your Compatibility Reading
-            </DialogTitle>
-            <DialogContent>
-                <Box sx={{ textAlign: 'center', mb: 3 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        Share your compatibility reading with friends and family
-                    </Typography>
-
-                    {/* Share Card Preview */}
-                    <Box
-                        ref={compatibilityShareCardRef}
+    const renderCompatibilityShareDialog = () => {
+        const bullets = compatibilityReading ? extractShareableBullets(compatibilityReading.reading) : '';
+        return (
+            <Dialog
+                open={compatibilityShareDialogOpen}
+                onClose={() => setCompatibilityShareDialogOpen(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        bgcolor: '#1e1e1e',
+                        color: 'white',
+                        borderRadius: 3,
+                    }
+                }}
+            >
+                <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
+                    Share Your Compatibility Reading
+                </DialogTitle>
+                <DialogContent>
+                    <Box sx={{ textAlign: 'center', mb: 3 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Share your compatibility reading with friends and family
+                        </Typography>
+                        <ShareCardBase
+                            title="Our Compatibility Reading"
+                            qrValue={window.location.href}
+                        >
+                            {/* Shareable Bullets */}
+                            {bullets && (
+                                <Box sx={{ color: 'white', mb: 2, textAlign: 'left', fontSize: '1rem' }}>
+                                    <ReactMarkdown>{bullets}</ReactMarkdown>
+                                </Box>
+                            )}
+                            {/* Shareable Summary */}
+                            <Typography variant="body1" sx={{ color: 'white', mb: 2, lineHeight: 1.6, textAlign: 'left' }}>
+                                {getCompatibilityShareableSummary()}
+                            </Typography>
+                        </ShareCardBase>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+                    <Button
+                        onClick={handleCompatibilityShareDownload}
+                        variant="contained"
                         sx={{
-                            bgcolor: '#121212',
-                            borderRadius: 2,
-                            p: 3,
-                            mb: 3,
-                            border: '1px solid rgba(255, 152, 0, 0.3)',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            '&::before': {
-                                content: '""',
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                height: '4px',
-                                background: 'linear-gradient(90deg, #ff9800, #ff5722)',
+                            background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
+                            color: 'white',
+                            px: 4,
+                            py: 1.5,
+                            '&:hover': {
+                                background: 'linear-gradient(45deg, #ff9800 60%, #ff5722 90%)',
                             }
                         }}
                     >
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                            <Box
-                                sx={{
-                                    width: 40,
-                                    height: 40,
-                                    borderRadius: '50%',
-                                    background: 'linear-gradient(45deg, #ff9800, #ff5722)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    mr: 2,
-                                }}
-                            >
-                                <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
-                                    八字
-                                </Typography>
-                            </Box>
-                            <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
-                                BaziGPT
-                            </Typography>
-                        </Box>
-
-                        <Typography variant="h5" sx={{ color: '#ff9800', mb: 2, fontWeight: 'bold' }}>
-                            Our Compatibility Reading
-                        </Typography>
-
-                        <Typography variant="body1" sx={{ color: 'white', mb: 2, lineHeight: 1.6 }}>
-                            {getCompatibilityShareableSummary()}
-                        </Typography>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                Generated with AI
-                            </Typography>
-                            <QRCodeSVG
-                                value={window.location.href}
-                                size={40}
-                                level="M"
-                                fgColor="#ff9800"
-                                bgColor="transparent"
-                            />
-                        </Box>
-                    </Box>
-                </Box>
-            </DialogContent>
-            <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
-                <Button
-                    onClick={handleCompatibilityShareDownload}
-                    variant="contained"
-                    sx={{
-                        background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
-                        color: 'white',
-                        px: 4,
-                        py: 1.5,
-                        '&:hover': {
-                            background: 'linear-gradient(45deg, #ff9800 60%, #ff5722 90%)',
-                        }
-                    }}
-                >
-                    Download Image
-                </Button>
-                <Button
-                    onClick={() => setCompatibilityShareDialogOpen(false)}
-                    variant="outlined"
-                    sx={{
-                        borderColor: 'rgba(255, 152, 0, 0.3)',
-                        color: '#ff9800',
-                        '&:hover': {
-                            borderColor: '#ff9800',
-                        }
-                    }}
-                >
-                    Close
-                </Button>
-            </DialogActions>
-        </Dialog>
-    );
+                        Download Image
+                    </Button>
+                    <Button
+                        onClick={() => setCompatibilityShareDialogOpen(false)}
+                        variant="outlined"
+                        sx={{
+                            borderColor: 'rgba(255, 152, 0, 0.3)',
+                            color: '#ff9800',
+                            '&:hover': {
+                                borderColor: '#ff9800',
+                            }
+                        }}
+                    >
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        );
+    };
 
     return (
         <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, sm: 3 } }}>
@@ -468,19 +429,29 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                             <Typography variant="h5" color="primary.main" gutterBottom>
                                 Your Compatibility Reading
                             </Typography>
-                            <Typography
-                                variant="body1"
-                                sx={{
-                                    whiteSpace: 'pre-line',
-                                    lineHeight: 1.6,
-                                    '& strong': {
-                                        color: 'primary.main',
-                                        fontWeight: 600
-                                    }
-                                }}
-                            >
-                                {compatibilityReading.reading}
-                            </Typography>
+                            <Box sx={{
+                                '& h1, & h2, & h3, & h4, & h5, & h6': {
+                                    color: 'primary.main',
+                                    fontWeight: 700,
+                                    mt: 2,
+                                    mb: 1
+                                },
+                                '& strong': {
+                                    color: 'primary.main',
+                                    fontWeight: 600
+                                },
+                                '& ul, & ol': {
+                                    pl: 3,
+                                    mb: 2
+                                },
+                                '& li': {
+                                    mb: 0.5
+                                },
+                                color: 'text.primary',
+                                lineHeight: 1.6
+                            }}>
+                                <ReactMarkdown>{compatibilityReading.reading}</ReactMarkdown>
+                            </Box>
                         </Paper>
 
                         {/* Share Button */}

@@ -26,6 +26,7 @@ import { fetchDailyForecast, fetchPersonalForecast, type DailyBaziForecast, type
 import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import SEOAnalytics from './SEOAnalytics';
+import ReactMarkdown from 'react-markdown';
 
 function Daily() {
     const [loading, setLoading] = useState(true);
@@ -336,20 +337,24 @@ function Daily() {
                             <Typography
                                 variant="body1"
                                 align="left"
-                                sx={{
+                                sx={{ display: 'none' }}
+                            >
+                                {/* Old plain rendering hidden for now */}
+                            </Typography>
+                            {forecast && (
+                                <Box sx={{
                                     fontSize: { xs: '0.9rem', sm: '1rem' },
                                     color: 'text.primary',
                                     lineHeight: 1.6,
-                                    whiteSpace: 'pre-line',
                                     mb: 3,
                                     '& .highlight': {
                                         color: 'primary.main',
                                         fontWeight: 600
                                     }
-                                }}
-                            >
-                                {forecast.forecast}
-                            </Typography>
+                                }}>
+                                    <ReactMarkdown>{forecast.forecast}</ReactMarkdown>
+                                </Box>
+                            )}
 
                             {/* Personal Forecast Section */}
                             <Box sx={{

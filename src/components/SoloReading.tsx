@@ -25,7 +25,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { track } from '@vercel/analytics/react';
 import ShareIcon from '@mui/icons-material/Share';
 import html2canvas from 'html2canvas';
-import { QRCodeSVG } from 'qrcode.react';
+import ReactMarkdown from 'react-markdown';
+import ShareCardBase from './ShareCardBase';
 
 interface BaziReading {
     reading: string;
@@ -34,6 +35,24 @@ interface BaziReading {
 
 interface SoloReadingProps {
     onModeSwitch: (mode: 'solo' | 'compatibility') => void;
+}
+
+// Helper to extract Four Pillars and Core Self from the reading markdown
+function extractShareCardSections(readingMarkdown: string) {
+    if (!readingMarkdown) return { fourPillars: '', keyInsights: '', coreSelf: '' };
+    // Four Pillars: match any heading level, allow whitespace, tolerate extra newlines
+    const fourPillarsMatch = readingMarkdown.match(/#+\s*Four Pillars[\s\S]*?(?:\n- .+)+/i);
+    let fourPillars = fourPillarsMatch ? fourPillarsMatch[0] : '';
+    // Key Insights: match the whole section, including all sub-sections, until the next top-level heading
+    const keyInsightsMatch = readingMarkdown.match(/#+\s*Key Insights[\s\S]*?(?=\n#+\s|$)/i);
+    let keyInsights = keyInsightsMatch ? keyInsightsMatch[0] : '';
+    // Core Self: match any heading level, allow whitespace, tolerate extra newlines
+    const coreSelfMatch = readingMarkdown.match(/#+\s*Core Self[\s\S]*?(?=\n#+\s|$)/i);
+    let coreSelf = coreSelfMatch ? coreSelfMatch[0] : '';
+    // Fallback: if not found, use first 5 lines of reading
+    if (!fourPillars) fourPillars = readingMarkdown.split('\n').slice(0, 6).join('\n');
+    if (!keyInsights) keyInsights = coreSelf;
+    return { fourPillars, keyInsights, coreSelf };
 }
 
 const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
@@ -202,128 +221,95 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
         return shareableSummary || "A balanced individual with natural leadership qualities, combining wisdom with adaptability.";
     };
 
-    const renderShareDialog = () => (
-        <Dialog
-            open={shareDialogOpen}
-            onClose={() => setShareDialogOpen(false)}
-            maxWidth="sm"
-            fullWidth
-            PaperProps={{
-                sx: {
-                    bgcolor: '#1e1e1e',
-                    color: 'white',
-                    borderRadius: 3,
-                }
-            }}
-        >
-            <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
-                Share Your Bazi Reading
-            </DialogTitle>
-            <DialogContent>
-                <Box sx={{ textAlign: 'center', mb: 3 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        Share your personalized Bazi reading with friends and family
-                    </Typography>
-
-                    {/* Share Card Preview */}
-                    <Box
-                        ref={shareCardRef}
+    const renderShareDialog = () => {
+        const sections = reading ? extractShareCardSections(reading.reading) : { fourPillars: '', keyInsights: '', coreSelf: '' };
+        // Custom markdown renderers for headings and bold
+        const markdownComponents = {
+            h1: (props: any) => <Typography variant="h6" sx={{ color: '#ff9800', fontWeight: 700, mt: 2, mb: 1, fontSize: '1.2rem' }} {...props} />, // h1
+            h2: (props: any) => <Typography variant="subtitle1" sx={{ color: '#ff9800', fontWeight: 700, mt: 2, mb: 1, fontSize: '1.1rem' }} {...props} />, // h2
+            h3: (props: any) => <Typography variant="subtitle2" sx={{ color: '#ff9800', fontWeight: 700, mt: 2, mb: 1, fontSize: '1rem' }} {...props} />, // h3
+            strong: (props: any) => <span style={{ color: '#ff9800', fontWeight: 700 }}>{props.children}</span>,
+            li: (props: any) => <li style={{ marginBottom: 4 }}>{props.children}</li>,
+            p: (props: any) => <Typography variant="body2" sx={{ color: 'white', mb: 1, lineHeight: 1.6 }} {...props} />
+        };
+        return (
+            <Dialog
+                open={shareDialogOpen}
+                onClose={() => setShareDialogOpen(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        bgcolor: '#1e1e1e',
+                        color: 'white',
+                        borderRadius: 3,
+                    }
+                }}
+            >
+                <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
+                    Share Your Bazi Reading
+                </DialogTitle>
+                <DialogContent>
+                    <Box sx={{ textAlign: 'center', mb: 3 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Share your personalized Bazi reading with friends and family
+                        </Typography>
+                        <ShareCardBase
+                            title="Your Bazi Reading"
+                            qrValue={window.location.href}
+                        >
+                            {/* Four Pillars */}
+                            {sections.fourPillars && (
+                                <Box sx={{ color: 'white', mb: 2, textAlign: 'left', fontSize: '1rem' }}>
+                                    <ReactMarkdown components={markdownComponents}>{sections.fourPillars}</ReactMarkdown>
+                                </Box>
+                            )}
+                            {/* Key Insights (includes Core Self, etc.) */}
+                            {sections.keyInsights && (
+                                <Box sx={{ color: 'white', mb: 2, textAlign: 'left', fontSize: '1rem' }}>
+                                    <ReactMarkdown components={markdownComponents}>{sections.keyInsights}</ReactMarkdown>
+                                </Box>
+                            )}
+                            {/* Shareable Summary */}
+                            <Typography variant="body1" sx={{ color: '#ff9800', mb: 2, lineHeight: 1.6, textAlign: 'left', fontWeight: 600 }}>
+                                {getShareableSummary()}
+                            </Typography>
+                        </ShareCardBase>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+                    <Button
+                        onClick={handleShare}
+                        variant="contained"
                         sx={{
-                            bgcolor: '#121212',
-                            borderRadius: 2,
-                            p: 3,
-                            mb: 3,
-                            border: '1px solid rgba(255, 152, 0, 0.3)',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            '&::before': {
-                                content: '""',
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                height: '4px',
-                                background: 'linear-gradient(90deg, #ff9800, #ff5722)',
+                            background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
+                            color: 'white',
+                            px: 4,
+                            py: 1.5,
+                            '&:hover': {
+                                background: 'linear-gradient(45deg, #ff9800 60%, #ff5722 90%)',
                             }
                         }}
                     >
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                            <Box
-                                sx={{
-                                    width: 40,
-                                    height: 40,
-                                    borderRadius: '50%',
-                                    background: 'linear-gradient(45deg, #ff9800, #ff5722)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    mr: 2,
-                                }}
-                            >
-                                <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
-                                    八字
-                                </Typography>
-                            </Box>
-                            <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
-                                BaziGPT
-                            </Typography>
-                        </Box>
-
-                        <Typography variant="h5" sx={{ color: '#ff9800', mb: 2, fontWeight: 'bold' }}>
-                            Your Bazi Reading
-                        </Typography>
-
-                        <Typography variant="body1" sx={{ color: 'white', mb: 2, lineHeight: 1.6 }}>
-                            {getShareableSummary()}
-                        </Typography>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                Generated with AI
-                            </Typography>
-                            <QRCodeSVG
-                                value={window.location.href}
-                                size={40}
-                                level="M"
-                                fgColor="#ff9800"
-                                bgColor="transparent"
-                            />
-                        </Box>
-                    </Box>
-                </Box>
-            </DialogContent>
-            <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
-                <Button
-                    onClick={handleShare}
-                    variant="contained"
-                    sx={{
-                        background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
-                        color: 'white',
-                        px: 4,
-                        py: 1.5,
-                        '&:hover': {
-                            background: 'linear-gradient(45deg, #ff9800 60%, #ff5722 90%)',
-                        }
-                    }}
-                >
-                    Download Image
-                </Button>
-                <Button
-                    onClick={() => setShareDialogOpen(false)}
-                    variant="outlined"
-                    sx={{
-                        borderColor: 'rgba(255, 152, 0, 0.3)',
-                        color: '#ff9800',
-                        '&:hover': {
-                            borderColor: '#ff9800',
-                        }
-                    }}
-                >
-                    Close
-                </Button>
-            </DialogActions>
-        </Dialog>
-    );
+                        Download Image
+                    </Button>
+                    <Button
+                        onClick={() => setShareDialogOpen(false)}
+                        variant="outlined"
+                        sx={{
+                            borderColor: 'rgba(255, 152, 0, 0.3)',
+                            color: '#ff9800',
+                            '&:hover': {
+                                borderColor: '#ff9800',
+                            }
+                        }}
+                    >
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        );
+    };
 
     return (
         <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, sm: 3 } }}>
@@ -505,21 +491,40 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                             </Box>
 
                             <Collapse in={isMainReadingExpanded}>
-                                <Typography
-                                    variant="body1"
-                                    sx={{
-                                        whiteSpace: 'pre-line',
-                                        lineHeight: 1.6,
-                                        '& strong': {
-                                            color: 'primary.main',
-                                            fontWeight: 600
-                                        }
-                                    }}
-                                >
-                                    {reading.reading}
-                                </Typography>
+                                <Box sx={{
+                                    '& h1, & h2, & h3, & h4, & h5, & h6': {
+                                        color: 'primary.main',
+                                        fontWeight: 700,
+                                        mt: 2,
+                                        mb: 1
+                                    },
+                                    '& strong': {
+                                        color: 'primary.main',
+                                        fontWeight: 600
+                                    },
+                                    '& ul, & ol': {
+                                        pl: 3,
+                                        mb: 2
+                                    },
+                                    '& li': {
+                                        mb: 0.5
+                                    },
+                                    color: 'text.primary',
+                                    lineHeight: 1.6
+                                }}>
+                                    <ReactMarkdown>{reading.reading}</ReactMarkdown>
+                                </Box>
                             </Collapse>
                         </Paper>
+
+                        {reading && (
+                            <Box sx={{ mb: 2, textAlign: 'center' }}>
+                                <Typography variant="subtitle1" color="text.secondary">
+                                    Birth: {birthDate ? new Date(birthDate).toLocaleDateString() : ''}
+                                    {birthTime && ` at ${birthTime}`}
+                                </Typography>
+                            </Box>
+                        )}
 
                         {/* Follow-up Questions */}
                         <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
@@ -571,43 +576,57 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                                     <Typography variant="h6" color="primary.main" gutterBottom>
                                         {selectedQuestion}
                                     </Typography>
-                                    <Typography
-                                        variant="body1"
-                                        sx={{
-                                            whiteSpace: 'pre-line',
-                                            lineHeight: 1.6,
-                                            '& strong': {
-                                                color: 'primary.main',
-                                                fontWeight: 600
-                                            }
-                                        }}
-                                    >
-                                        {followUpAnswer}
-                                    </Typography>
+                                    <Box sx={{
+                                        '& h1, & h2, & h3, & h4, & h5, & h6': {
+                                            color: 'primary.main',
+                                            fontWeight: 700,
+                                            mt: 2,
+                                            mb: 1
+                                        },
+                                        '& strong': {
+                                            color: 'primary.main',
+                                            fontWeight: 600
+                                        },
+                                        '& ul, & ol': {
+                                            pl: 3,
+                                            mb: 2
+                                        },
+                                        '& li': {
+                                            mb: 0.5
+                                        },
+                                        color: 'text.primary',
+                                        lineHeight: 1.6
+                                    }}>
+                                        <ReactMarkdown>{followUpAnswer}</ReactMarkdown>
+                                    </Box>
                                 </Paper>
                             )}
                         </Paper>
 
                         {/* Share Button */}
-                        {renderShareButton()}
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                            {renderShareButton()}
+                        </Box>
 
                         {/* Restart Button */}
-                        <Box sx={{ textAlign: 'center', mt: 3 }}>
-                            <Button
-                                variant="outlined"
-                                startIcon={<RefreshIcon />}
-                                onClick={handleRestart}
-                                sx={{
-                                    borderColor: 'rgba(255, 152, 0, 0.3)',
-                                    color: '#ff9800',
-                                    '&:hover': {
-                                        borderColor: '#ff9800',
-                                    }
-                                }}
-                            >
-                                Start Over
-                            </Button>
-                        </Box>
+                        {reading && (
+                            <Box sx={{ textAlign: 'center', mt: 3 }}>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<RefreshIcon />}
+                                    onClick={handleRestart}
+                                    sx={{
+                                        borderColor: 'rgba(255, 152, 0, 0.3)',
+                                        color: '#ff9800',
+                                        '&:hover': {
+                                            borderColor: '#ff9800',
+                                        }
+                                    }}
+                                >
+                                    Start Over
+                                </Button>
+                            </Box>
+                        )}
                     </Box>
                 )}
 
