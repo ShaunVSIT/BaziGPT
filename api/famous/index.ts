@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import sql from '../../src/services/neondb';
+import sql from '../../src/services/bazidb';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
