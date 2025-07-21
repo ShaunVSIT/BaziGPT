@@ -123,7 +123,7 @@ End with a single-line affirmation or reflection like:
 }
 
 // Use mock data only for true local development (not on Vercel)
-const isLocalDev = !process.env.VERCEL || process.env.VERCEL_ENV === 'development';
+const isLocalDev = !process.env.VERCEL;
 
 const handler = async (req: VercelRequest, res: VercelResponse) => {
     // Set CORS headers
