@@ -6,6 +6,7 @@ const Daily = lazy(() => import('../pages/Daily'));
 const Privacy = lazy(() => import('../pages/Privacy'));
 const Terms = lazy(() => import('../pages/Terms'));
 const About = lazy(() => import('../pages/About'));
+const TestError = lazy(() => import('../pages/TestError'));
 
 export interface RouteConfig {
     path: string;
@@ -44,7 +45,18 @@ export const routes: RouteConfig[] = [
         component: Terms,
         title: 'Terms of Service - BaziGPT',
         description: 'Read our terms of service and understand the conditions for using BaziGPT. Learn about your rights and responsibilities when using our AI-powered astrology service.'
-    }
+    },
+    // Only add the test-error route in development
+    ...(
+        process.env.NODE_ENV === 'development'
+            ? [{
+                path: '/test-error',
+                component: TestError,
+                title: 'Test ErrorBoundary',
+                description: 'This route intentionally throws an error to test the ErrorBoundary.'
+            }]
+            : []
+    )
 ];
 
 export default routes; 
