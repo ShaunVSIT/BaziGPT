@@ -128,6 +128,9 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+    // Set CDN cache header for 24 hours
+    res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate');
+
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
         res.status(200).end();
