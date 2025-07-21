@@ -7,6 +7,8 @@ const Privacy = lazy(() => import('../pages/Privacy'));
 const Terms = lazy(() => import('../pages/Terms'));
 const About = lazy(() => import('../pages/About'));
 const TestError = lazy(() => import('../pages/TestError'));
+const Famous = lazy(() => import('../pages/Famous'));
+const FamousPerson = lazy(() => import('../pages/FamousPerson'));
 
 export interface RouteConfig {
     path: string;
@@ -45,6 +47,18 @@ export const routes: RouteConfig[] = [
         component: Terms,
         title: 'Terms of Service - BaziGPT',
         description: 'Read our terms of service and understand the conditions for using BaziGPT. Learn about your rights and responsibilities when using our AI-powered astrology service.'
+    },
+    {
+        path: '/famous',
+        component: Famous,
+        title: 'Famous Bazi Readings - BaziGPT',
+        description: 'Explore the Bazi charts and life stories of famous people, celebrities, and leaders. Discover their destiny and compare with your own.'
+    },
+    {
+        path: '/famous/:slug',
+        component: FamousPerson,
+        title: 'Famous Bazi Chart - BaziGPT',
+        description: 'View the Bazi chart, bio, and social links of a famous person. Compare your chart and share insights.'
     },
     // Only add the test-error route in development
     ...(
