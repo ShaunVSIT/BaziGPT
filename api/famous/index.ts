@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import sql from '../../src/services/bazidb';
+import sql from '../../src/services/neondb.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
@@ -9,4 +9,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.error(err);
         return res.status(500).json({ error: 'Internal server error' });
     }
-} 
+}
