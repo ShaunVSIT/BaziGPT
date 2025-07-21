@@ -122,6 +122,9 @@ End with a single-line affirmation or reflection like:
     }
 }
 
+// Use mock data only for true local development (not on Vercel)
+const isLocalDev = !process.env.VERCEL || process.env.VERCEL_ENV === 'development';
+
 const handler = async (req: VercelRequest, res: VercelResponse) => {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -215,6 +218,19 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
 
         lastApiCallTime = now;
         let dailyForecast: DailyBaziForecast;
+
+        if (isLocalDev) {
+            // In local dev, return mock data with a small delay to simulate API call
+            const mockForecast: DailyBaziForecast = {
+                date: today,
+                baziPillar: "Yang Fire over Monkey",
+                forecast: "Today brings the energy of Yang Fire over Monkey. This combination suggests a day of dynamic activity and clever problem-solving. The Fire element provides warmth and enthusiasm, while the Monkey brings wit and adaptability. Focus on creative projects and social interactions today. Avoid rushing into decisions without careful consideration. Let the steady flow of Fire guide your actions today.",
+                cached: false
+            };
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            res.status(200).json(mockForecast);
+            return;
+        }
 
         try {
             // Generate new forecast
