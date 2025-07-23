@@ -7,7 +7,7 @@ const PrivacyPage: React.FC = () => {
         <>
             <Helmet>
                 <title>Privacy Policy - BaziGPT</title>
-                <meta name="description" content="Learn about how BaziGPT protects your privacy and handles your personal data. We are committed to keeping your information secure and private." />
+                <meta name="description" content="Learn how BaziGPT protects your privacy and handles your personal data. We are committed to keeping your information secure, private, and never shared." />
                 <meta name="keywords" content="privacy policy, data protection, personal data, privacy, BaziGPT privacy, Chinese astrology privacy, data security" />
 
                 {/* Open Graph */}

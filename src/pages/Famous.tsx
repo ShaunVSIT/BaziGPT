@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import FamousPeopleGrid from '../components/FamousPeopleGrid.tsx';
 import { Box, Typography, Button, CircularProgress, TextField, InputAdornment, SvgIcon } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import { Helmet } from 'react-helmet-async';
 
 // Improved, optically centered X (Twitter) icon
 function XIcon(props: any) {
@@ -111,117 +112,133 @@ const Famous: React.FC = () => {
     const filtered = search ? searchResults : people;
 
     return (
-        <Box maxWidth="lg" mx="auto" px={{ xs: 2, sm: 4 }} py={1}>
-            <Typography variant="h4" fontWeight={700} mb={1.5} textAlign="center" sx={{ mt: 2, mb: 1 }}>
-                🌟 Famous Bazi Readings 🌟
-            </Typography>
-            <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{
-                    display: 'block',
-                    textAlign: 'center',
-                    mb: 2,
-                    mx: 'auto',
-                    maxWidth: 900,
-                    fontStyle: 'italic',
-                    opacity: 0.8,
-                    lineHeight: 1.4,
-                    fontSize: { xs: '0.65rem', sm: '0.85rem' },
-                    letterSpacing: 0.1,
-                }}
-            >
-                Disclaimer: All Bazi readings and descriptions on this page are for entertainment purposes only. They are not intended as factual statements or to slander, defame, or misrepresent any individual.<br />
-                If you are a public figure and wish to have your information removed or corrected, please contact us.
-            </Typography>
-            <Box mb={3} display="flex" justifyContent="center">
-                <TextField
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder="Search for a celebrity…"
-                    variant="outlined"
-                    size="small"
-                    sx={{ width: 350, background: '#181818', borderRadius: 2 }}
-                    InputProps={{
-                        startAdornment: (
-                            <InputAdornment position="start">
-                                <SearchIcon />
-                            </InputAdornment>
-                        ),
-                        'aria-label': 'search famous people',
+        <>
+            <Helmet>
+                <title>Famous Bazi Readings - Explore Celebrity BaZi Charts | BaziGPT</title>
+                <meta name="description" content="Explore detailed BaZi readings and Chinese astrology charts for famous people and celebrities. Discover insights, categories, and search your favorite stars on BaziGPT." />
+                <meta property="og:title" content="Famous Bazi Readings - Explore Celebrity BaZi Charts | BaziGPT" />
+                <meta property="og:description" content="Explore detailed BaZi readings and Chinese astrology charts for famous people and celebrities. Discover insights, categories, and search your favorite stars on BaziGPT." />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://bazigpt.io/famous" />
+                <meta property="og:image" content="https://bazigpt.io/og-image.svg" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="Famous Bazi Readings - Explore Celebrity BaZi Charts | BaziGPT" />
+                <meta name="twitter:description" content="Explore detailed BaZi readings and Chinese astrology charts for famous people and celebrities. Discover insights, categories, and search your favorite stars on BaziGPT." />
+                <meta name="twitter:image" content="https://bazigpt.io/og-image.svg" />
+                <link rel="canonical" href="https://bazigpt.io/famous" />
+            </Helmet>
+            <Box maxWidth="lg" mx="auto" px={{ xs: 2, sm: 4 }} py={1}>
+                <Typography variant="h4" fontWeight={700} mb={1.5} textAlign="center" sx={{ mt: 2, mb: 1 }}>
+                    🌟 Famous Bazi Readings 🌟
+                </Typography>
+                <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{
+                        display: 'block',
+                        textAlign: 'center',
+                        mb: 2,
+                        mx: 'auto',
+                        maxWidth: 900,
+                        fontStyle: 'italic',
+                        opacity: 0.8,
+                        lineHeight: 1.4,
+                        fontSize: { xs: '0.65rem', sm: '0.85rem' },
+                        letterSpacing: 0.1,
                     }}
-                />
-            </Box>
-            {/* Horizontally scrollable tag bar */}
-            <Box sx={{ overflowX: 'auto', display: 'flex', pb: 1, mb: 4 }}>
-                <Button
-                    variant={!category ? 'contained' : 'outlined'}
-                    color="primary"
-                    onClick={() => setCategory('')}
-                    sx={{ fontWeight: 600, textTransform: 'none', mb: 1, flex: '0 0 auto', minWidth: 90 }}
                 >
-                    All
-                </Button>
-                {categories.map(cat => (
+                    Disclaimer: All Bazi readings and descriptions on this page are for entertainment purposes only. They are not intended as factual statements or to slander, defame, or misrepresent any individual.<br />
+                    If you are a public figure and wish to have your information removed or corrected, please contact us.
+                </Typography>
+                <Box mb={3} display="flex" justifyContent="center">
+                    <TextField
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        placeholder="Search for a celebrity…"
+                        variant="outlined"
+                        size="small"
+                        sx={{ width: 350, background: '#181818', borderRadius: 2 }}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon />
+                                </InputAdornment>
+                            ),
+                            'aria-label': 'search famous people',
+                        }}
+                    />
+                </Box>
+                {/* Horizontally scrollable tag bar */}
+                <Box sx={{ overflowX: 'auto', display: 'flex', pb: 1, mb: 4 }}>
                     <Button
-                        key={cat}
-                        variant={category === cat ? 'contained' : 'outlined'}
+                        variant={!category ? 'contained' : 'outlined'}
                         color="primary"
-                        onClick={() => setCategory(cat!)}
+                        onClick={() => setCategory('')}
                         sx={{ fontWeight: 600, textTransform: 'none', mb: 1, flex: '0 0 auto', minWidth: 90 }}
                     >
-                        {cat}
+                        All
                     </Button>
-                ))}
-            </Box>
-            {search ? (
-                searchLoading ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-                        <CircularProgress />
-                    </Box>
-                ) : filtered.length === 0 ? (
-                    <Box display="flex" flexDirection="column" alignItems="center" minHeight={200}>
-                        <Typography variant="h6" color="text.secondary" mb={2} textAlign="center">
-                            We couldn't find a match for "{search}".<br />
-                            Click the button below to let us know you'd like a reading for your favourite celeb!
-                        </Typography>
+                    {categories.map(cat => (
                         <Button
-                            variant="contained"
+                            key={cat}
+                            variant={category === cat ? 'contained' : 'outlined'}
                             color="primary"
-                            startIcon={<XIcon />}
-                            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`@bazigpt Please add a Bazi reading for "${search}"! #BaziGPT`)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            sx={{ fontWeight: 600, fontSize: 16 }}
+                            onClick={() => setCategory(cat!)}
+                            sx={{ fontWeight: 600, textTransform: 'none', mb: 1, flex: '0 0 auto', minWidth: 90 }}
                         >
-                            Request a reading for “{search}” on X
+                            {cat}
                         </Button>
-                    </Box>
-                ) : (
-                    <FamousPeopleGrid people={filtered} />
-                )
-            ) : loading ? (
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-                    <CircularProgress />
+                    ))}
                 </Box>
-            ) : (
-                <>
-                    <FamousPeopleGrid people={filtered} />
-                    {hasMore && !category && (
-                        <Box display="flex" justifyContent="center" mt={4}>
+                {search ? (
+                    searchLoading ? (
+                        <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+                            <CircularProgress />
+                        </Box>
+                    ) : filtered.length === 0 ? (
+                        <Box display="flex" flexDirection="column" alignItems="center" minHeight={200}>
+                            <Typography variant="h6" color="text.secondary" mb={2} textAlign="center">
+                                We couldn't find a match for "{search}".<br />
+                                Click the button below to let us know you'd like a reading for your favourite celeb!
+                            </Typography>
                             <Button
                                 variant="contained"
                                 color="primary"
-                                onClick={() => fetchPeople(false)}
-                                disabled={loadingMore}
+                                startIcon={<XIcon />}
+                                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`@bazigpt Please add a Bazi reading for "${search}"! #BaziGPT`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                sx={{ fontWeight: 600, fontSize: 16 }}
                             >
-                                {loadingMore ? 'Loading...' : 'Load More'}
+                                Request a reading for “{search}” on X
                             </Button>
                         </Box>
-                    )}
-                </>
-            )}
-        </Box>
+                    ) : (
+                        <FamousPeopleGrid people={filtered} />
+                    )
+                ) : loading ? (
+                    <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+                        <CircularProgress />
+                    </Box>
+                ) : (
+                    <>
+                        <FamousPeopleGrid people={filtered} />
+                        {hasMore && !category && (
+                            <Box display="flex" justifyContent="center" mt={4}>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => fetchPeople(false)}
+                                    disabled={loadingMore}
+                                >
+                                    {loadingMore ? 'Loading...' : 'Load More'}
+                                </Button>
+                            </Box>
+                        )}
+                    </>
+                )}
+            </Box>
+        </>
     );
 };
 

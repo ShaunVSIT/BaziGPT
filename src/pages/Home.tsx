@@ -35,7 +35,7 @@ const Home: React.FC = () => {
         <>
             <Helmet>
                 <title>BaziGPT - AI-Powered Bazi Readings</title>
-                <meta name="description" content="Get personalized Bazi readings and compatibility analysis powered by AI. Discover insights about your personality, relationships, and life path." />
+                <meta name="description" content="Get personalized Bazi readings and compatibility analysis powered by AI. Discover deep insights about your personality, relationships, and life path with BaziGPT." />
                 <meta property="og:title" content="BaziGPT - AI-Powered Bazi Readings" />
                 <meta property="og:description" content="Get personalized Bazi readings and compatibility analysis powered by AI." />
                 <meta property="og:type" content="website" />
