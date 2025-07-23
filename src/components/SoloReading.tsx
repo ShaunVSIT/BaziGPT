@@ -19,7 +19,6 @@ import {
     Zoom,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { getBaziReading, getFollowUpAnswer } from '../services/openai';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { track } from '@vercel/analytics/react';
@@ -156,7 +155,13 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
         setError(null);
 
         try {
-            const baziReading = await getBaziReading(birthDate, birthTime || undefined);
+            const response = await fetch('/api/bazi-reading', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ birthDate, birthTime: birthTime || undefined })
+            });
+            if (!response.ok) throw new Error('Failed to generate your reading.');
+            const baziReading = await response.json();
             setReading(baziReading);
             // Clear and reset follow-ups for this new reading
             setCachedAnswers({});
@@ -197,11 +202,17 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
         setFollowUpLoading(true);
 
         try {
-            const answer = await getFollowUpAnswer(birthDate, question);
-            setFollowUpAnswer(answer);
+            const response = await fetch('/api/bazi-followup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ birthDate, question })
+            });
+            if (!response.ok) throw new Error('Failed to generate the answer.');
+            const data = await response.json();
+            setFollowUpAnswer(data.content);
             setCachedAnswers(prev => ({
                 ...prev,
-                [question]: answer
+                [question]: data.content
             }));
             track('followup_generated', {
                 question,

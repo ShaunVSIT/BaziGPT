@@ -19,7 +19,6 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ShareIcon from '@mui/icons-material/Share';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { getCompatibilityReading } from '../services/openai';
 import { track } from '@vercel/analytics/react';
 import ReactMarkdown from 'react-markdown';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -70,12 +69,18 @@ export default function Compatibility() {
         setError(null);
 
         try {
-            const compatibilityReading = await getCompatibilityReading(
-                person1BirthDate,
-                person1BirthTime || undefined,
-                person2BirthDate,
-                person2BirthTime || undefined
-            );
+            const response = await fetch('/api/bazi-compatibility', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    person1BirthDate,
+                    person1BirthTime: person1BirthTime || undefined,
+                    person2BirthDate,
+                    person2BirthTime: person2BirthTime || undefined
+                })
+            });
+            if (!response.ok) throw new Error('Failed to generate the compatibility reading.');
+            const compatibilityReading = await response.json();
             setReading(compatibilityReading);
 
             // Track successful compatibility reading
