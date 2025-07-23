@@ -5,7 +5,7 @@
  * Tests if cache survives potential cold starts and time-based invalidation
  */
 
-const API_URL = 'https://bazigpt.xyz/api/daily-bazi';
+const API_URL = 'https://bazigpt.io/api/daily-bazi';
 
 async function testExtendedCaching() {
     console.log('🧪 Extended Caching Test - Checking Daily Persistence...\n');

@@ -7,8 +7,8 @@ async function testShareCards() {
     console.log('🧪 Testing Share Card APIs...\n');
 
     // Test URLs
-    const pngUrl = 'https://bazigpt.xyz/api/daily-share-card-png';
-    const svgUrl = 'https://bazigpt.xyz/api/daily-share-card';
+    const pngUrl = 'https://bazigpt.io/api/daily-share-card-png';
+    const svgUrl = 'https://bazigpt.io/api/daily-share-card';
 
     try {
         // Test PNG endpoint

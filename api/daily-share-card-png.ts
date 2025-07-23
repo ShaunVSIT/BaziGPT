@@ -291,7 +291,7 @@ function generateShareCardHTML(data: ShareCardData): string {
             <div class="date">${formattedDate}</div>
             <div class="pillar">${baziPillar}</div>
             <div class="forecast">${forecast}</div>
-            <div class="footer">BaziGPT.xyz</div>
+            <div class="footer">BaziGPT.io</div>
         </div>
     </body>
     </html>
@@ -303,7 +303,7 @@ async function fetchDailyForecast(): Promise<DailyBaziForecast> {
     console.log('🔄 Share card: Fetching daily forecast from API...');
 
     // Call our own daily-bazi API (use cached content)
-    const response = await fetch('https://bazigpt.xyz/api/daily-bazi');
+    const response = await fetch('https://bazigpt.io/api/daily-bazi');
 
     if (!response.ok) {
         throw new Error(`Failed to fetch daily forecast: ${response.statusText}`);

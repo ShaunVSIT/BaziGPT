@@ -65,7 +65,7 @@ const ShareCardBase: React.FC<ShareCardBaseProps> = ({ title, children, qrValue,
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
             <Typography variant="caption" sx={{ color: '#ff9800', fontWeight: 600 }}>
-                Get your own reading at bazigpt.xyz
+                Get your own reading at bazigpt.io
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <QRCodeSVG

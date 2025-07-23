@@ -5,7 +5,7 @@
  * Makes multiple rapid requests to check if caching is working properly
  */
 
-const API_URL = 'https://bazigpt.xyz/api/daily-bazi';
+const API_URL = 'https://bazigpt.io/api/daily-bazi';
 
 async function testCaching() {
     console.log('🧪 Testing Caching Behavior in Production...\n');

@@ -156,7 +156,7 @@ function generatePortraitShareCardSVG(data: ShareCardData): string {
             
             <!-- Footer -->
             <text x="${width / 2}" y="${footerY}" text-anchor="middle" font-size="${footerSize}" fill="#888888" filter="url(#shadow)">
-                BaziGPT.xyz
+                BaziGPT.io
             </text>
         </g>
     </svg>
@@ -168,7 +168,7 @@ async function fetchDailyForecast(): Promise<DailyBaziForecast> {
     console.log('🔄 Portrait SVG share card: Fetching daily forecast from API...');
 
     // Call our own daily-bazi API (use cached content)
-    const response = await fetch('https://bazigpt.xyz/api/daily-bazi');
+    const response = await fetch('https://bazigpt.io/api/daily-bazi');
 
     if (!response.ok) {
         throw new Error(`Failed to fetch daily forecast: ${response.statusText}`);
