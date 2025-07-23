@@ -29,6 +29,23 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Handle navigation requests (HTML pages)
+    if (request.mode === 'navigate') {
+        event.respondWith(
+            fetch('/index.html')
+                .then((response) => {
+                    // Optionally update cache
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put('/index.html', responseClone);
+                    });
+                    return response;
+                })
+                .catch(() => caches.match('/index.html'))
+        );
+        return;
+    }
+
     // API calls - network first, fallback to cache
     if (request.url.includes('/api/')) {
         event.respondWith(
