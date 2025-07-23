@@ -45,23 +45,26 @@ const FamousPersonPage: React.FC = () => {
     const readingText = (person as any).reading || (person as any).bazi_reading || person.gpt_summary;
 
     return (
-        <Box sx={{ maxWidth: 600, mx: 'auto', p: { xs: 2, sm: 3 } }}>
+        <Box sx={{ width: '100%', px: { xs: 0, sm: 2, md: 4 }, py: { xs: 2, sm: 4 }, maxWidth: '100vw', mx: 'auto' }}>
             <Button
                 startIcon={<ArrowBackIcon />}
                 onClick={() => navigate('/famous')}
-                sx={{ mb: 2, fontWeight: 600 }}
+                sx={{ mb: 2, fontWeight: 600, ml: { xs: 1, sm: 0 } }}
                 color="primary"
             >
                 Back to Famous People
             </Button>
             <Paper elevation={3} sx={{
-                p: { xs: 3, sm: 4 },
-                borderRadius: 3,
+                width: '100%',
+                maxWidth: '100vw',
+                p: { xs: 2, sm: 4, md: 6 },
+                borderRadius: { xs: 0, sm: 3 },
                 background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.05) 0%, rgba(255, 87, 34, 0.05) 100%)',
                 border: '1px solid rgba(255, 152, 0, 0.1)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                boxSizing: 'border-box',
             }}>
                 <Box
                     component="img"
@@ -103,18 +106,37 @@ const FamousPersonPage: React.FC = () => {
                     <span style={{ fontWeight: 600 }}>Birthday:</span> {formatBirthday(person.birth_date, person.birth_time)}
                 </Typography>
                 {readingText && (
-                    <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
+                    <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 3, width: '100%', maxWidth: 800 }}>
                         <Typography variant="h5" color="primary.main" gutterBottom>
                             Bazi Reading
                         </Typography>
                         <Box sx={{ color: 'text.primary', lineHeight: 1.6, fontSize: 18 }}>
-                            {readingText}
+                            {(readingText || '')
+                                .split(/\n\s*\n|(?<=\.)\s+(?=[A-Z])/g)
+                                .map((para: string, idx: number) => (
+                                    <Box component="p" key={idx} sx={{ mb: 2, mt: 0 }}>
+                                        {para.trim()}
+                                    </Box>
+                                ))}
                         </Box>
                     </Paper>
                 )}
-                <Button variant="contained" color="primary" sx={{ mt: 2, fontWeight: 600, fontSize: 18, py: 1.5 }} fullWidth>
+                <Button variant="contained" color="primary" sx={{ mt: 2, fontWeight: 600, fontSize: 18, py: 1.5, width: '100%', maxWidth: 400 }} fullWidth>
                     Compare to my chart
                 </Button>
+                {person.marketing_blurb && (
+                    <Button
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(person.marketing_blurb)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        variant="outlined"
+                        color="primary"
+                        sx={{ mt: 2, fontWeight: 600, fontSize: 18, py: 1.5, width: '100%', maxWidth: 400 }}
+                        fullWidth
+                    >
+                        Tweet this reading
+                    </Button>
+                )}
             </Paper>
         </Box>
     );
