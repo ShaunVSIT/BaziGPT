@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { format } from 'date-fns';
 
 const API_URL = 'https://api.openai.com/v1/chat/completions';
-const MODEL_NAME = 'gpt-4o-mini';
+const MODEL_NAME = 'gpt-3.5-turbo';
 
 async function callOpenAI(messages: any[], max_tokens: number) {
     const response = await fetch(API_URL, {
