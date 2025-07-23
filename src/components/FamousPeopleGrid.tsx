@@ -13,7 +13,6 @@ const FamousPeopleGrid: React.FC<{ people: FamousPerson[] }> = ({ people }) => {
     const isXl = useMediaQuery(theme.breakpoints.up('xl'));
     const isLg = useMediaQuery(theme.breakpoints.up('lg'));
     const isMd = useMediaQuery(theme.breakpoints.up('md'));
-    const isSm = useMediaQuery(theme.breakpoints.up('sm'));
 
     let columnCount = 1;
     if (isXl) columnCount = 4;

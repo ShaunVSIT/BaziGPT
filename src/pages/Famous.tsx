@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import FamousPeopleGrid from '../components/FamousPeopleGrid.tsx';
-import { Box, Typography, Button, Stack, CircularProgress, TextField, InputAdornment, SvgIcon } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, TextField, InputAdornment, SvgIcon } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
 // Improved, optically centered X (Twitter) icon
@@ -41,12 +41,9 @@ const Famous: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [offset, setOffset] = useState(0);
-    const [total, setTotal] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [search, setSearch] = useState('');
-    const [searching, setSearching] = useState(false);
     const [searchResults, setSearchResults] = useState<FamousPerson[]>([]);
-    const [searchTotal, setSearchTotal] = useState(0);
     const [searchLoading, setSearchLoading] = useState(false);
     const [allCategories, setAllCategories] = useState<string[]>([]);
     const searchTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -74,7 +71,6 @@ const Famous: React.FC = () => {
         const data = await res.json();
         if (reset) setPeople(data.data);
         else setPeople(prev => [...prev, ...data.data]);
-        setTotal(data.total);
         setOffset(pageOffset + PAGE_SIZE);
         setHasMore((reset ? data.data.length : people.length + data.data.length) < data.total);
         setLoading(false);
@@ -84,14 +80,10 @@ const Famous: React.FC = () => {
     // Debounced search
     useEffect(() => {
         if (!search) {
-            setSearching(false);
-            setSearchResults([]);
-            setSearchTotal(0);
             setSearchLoading(false);
             fetchPeople(true, { search: '', category });
             return;
         }
-        setSearching(true);
         setSearchLoading(true);
         if (searchTimeout.current) clearTimeout(searchTimeout.current);
         searchTimeout.current = setTimeout(async () => {
@@ -103,7 +95,6 @@ const Famous: React.FC = () => {
             const res = await fetch(`/api/famous?${params.toString()}`);
             const data = await res.json();
             setSearchResults(data.data);
-            setSearchTotal(data.total);
             setSearchLoading(false);
         }, 300);
         // eslint-disable-next-line
