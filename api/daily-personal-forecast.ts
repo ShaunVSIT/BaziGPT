@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { callOpenAI } from './openai-util';
 
 interface PersonalForecastRequest {
     birthDate: string;
@@ -88,28 +89,13 @@ Format as 2–3 bullet points using only plain text (no markdown, no asterisks, 
 Use only bullet points (•) and plain text. Do not use any markdown formatting like **bold** or __italic__. Keep it concise and practical.`;
 
     try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${OPENAI_API_KEY}`,
-            },
-            body: JSON.stringify({
-                model: 'gpt-4o-mini',
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                ],
-                temperature: 0.7,
-                max_tokens: 200,
-            }),
+        const data = await callOpenAI({
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+            ],
+            max_tokens: 200
         });
-
-        if (!response.ok) {
-            throw new Error(`OpenAI API call failed: ${response.statusText}`);
-        }
-
-        const data = await response.json();
         return data.choices[0].message.content;
     } catch (error) {
         console.error('Error generating personal forecast:', error);

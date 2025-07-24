@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { callOpenAI } from './openai-util';
 
 interface DailyBaziForecast {
     date: string;
@@ -93,28 +94,13 @@ End with a single-line affirmation or reflection like:
 'Let the steady flow of Water guide your words today.'`;
 
     try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${OPENAI_API_KEY}`,
-            },
-            body: JSON.stringify({
-                model: 'gpt-4o-mini',
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                ],
-                temperature: 0.7,
-                max_tokens: 300,
-            }),
+        const data = await callOpenAI({
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+            ],
+            max_tokens: 300
         });
-
-        if (!response.ok) {
-            throw new Error(`OpenAI API call failed: ${response.statusText}`);
-        }
-
-        const data = await response.json();
         return data.choices[0].message.content;
     } catch (error) {
         console.error('Error generating forecast:', error);
