@@ -59,6 +59,14 @@ export default function Compatibility() {
         setPerson2BirthTime(event.target.value);
     };
 
+    // Utility to format a Date object as 'YYYY-MM-DD' in local time
+    function formatDateToYMD(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     const handleSubmit = async () => {
         if (!person1BirthDate || !person2BirthDate) {
             setError('Please select birth dates for both people');
@@ -69,13 +77,15 @@ export default function Compatibility() {
         setError(null);
 
         try {
+            const p1DateStr = person1BirthDate instanceof Date ? formatDateToYMD(person1BirthDate) : person1BirthDate;
+            const p2DateStr = person2BirthDate instanceof Date ? formatDateToYMD(person2BirthDate) : person2BirthDate;
             const response = await fetch('/api/bazi-compatibility', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    person1BirthDate,
+                    person1BirthDate: p1DateStr,
                     person1BirthTime: person1BirthTime || undefined,
-                    person2BirthDate,
+                    person2BirthDate: p2DateStr,
                     person2BirthTime: person2BirthTime || undefined
                 })
             });

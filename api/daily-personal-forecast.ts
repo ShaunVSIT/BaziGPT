@@ -123,6 +123,8 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
 
     try {
         const { birthDate, birthTime }: PersonalForecastRequest = req.body;
+        const dateString = birthDate;
+        const timeString = birthTime || '';
 
         if (!birthDate) {
             res.status(400).json({ error: 'Birth date is required' });

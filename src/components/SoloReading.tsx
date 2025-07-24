@@ -81,6 +81,20 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
     const [shareDialogOpen, setShareDialogOpen] = useState(false);
     const shareCardRef = useRef<HTMLDivElement>(null);
 
+    // Utility to safely parse a date string to Date object or return null
+    function parseDateString(dateStr: string | null | undefined): Date | null {
+        if (!dateStr) return null;
+        const d = new Date(dateStr);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    // Utility to format a Date object as 'YYYY-MM-DD' in local time
+    function formatDateToYMD(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
     // On mount, restore birthDate and birthTime first, then reading and follow-ups
     React.useEffect(() => {
         const storedBirth = sessionStorage.getItem('bazi-solo-birth');
@@ -88,7 +102,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
         let birthTime = '';
         if (storedBirth) {
             const parsed = JSON.parse(storedBirth);
-            parsedDate = parsed.birthDate ? new Date(parsed.birthDate) : null;
+            parsedDate = parseDateString(parsed.birthDate);
             birthTime = parsed.birthTime || '';
             setBirthDate(parsedDate);
             setBirthTime(birthTime);
@@ -113,10 +127,11 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
             sessionStorage.setItem(SOLO_READING_KEY, JSON.stringify(reading));
         }
     }, [reading]);
-    // Store birth details in sessionStorage when they change, but never set to null except on restart
+    // When storing birth details in sessionStorage, store as 'YYYY-MM-DD' string
     React.useEffect(() => {
         if (birthDate instanceof Date && !isNaN(birthDate.getTime())) {
-            sessionStorage.setItem('bazi-solo-birth', JSON.stringify({ birthDate: birthDate.toISOString(), birthTime }));
+            const dateStr = formatDateToYMD(birthDate);
+            sessionStorage.setItem('bazi-solo-birth', JSON.stringify({ birthDate: dateStr, birthTime }));
         }
     }, [birthDate, birthTime]);
     // Store follow-ups only if birthDate is valid
@@ -155,10 +170,11 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
         setError(null);
 
         try {
+            const dateStr = birthDate instanceof Date ? formatDateToYMD(birthDate) : birthDate;
             const response = await fetch('/api/bazi-reading', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ birthDate, birthTime: birthTime || undefined })
+                body: JSON.stringify({ birthDate: dateStr, birthTime: birthTime || undefined })
             });
             if (!response.ok) throw new Error('Failed to generate your reading.');
             const baziReading = await response.json();
@@ -166,7 +182,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
             // Clear and reset follow-ups for this new reading
             setCachedAnswers({});
             // Store birth details
-            sessionStorage.setItem('bazi-solo-birth', JSON.stringify({ birthDate: birthDate.toISOString(), birthTime }));
+            sessionStorage.setItem('bazi-solo-birth', JSON.stringify({ birthDate: dateStr, birthTime }));
             // Remove old follow-ups for this birth details
             const followupsKey = getFollowupsKey(birthDate, birthTime);
             sessionStorage.removeItem(followupsKey);

@@ -9,8 +9,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     try {
         const { person1BirthDate, person1BirthTime, person2BirthDate, person2BirthTime } = req.body;
-        const person1FormattedDate = format(new Date(person1BirthDate), 'd MMM yyyy');
-        const person2FormattedDate = format(new Date(person2BirthDate), 'd MMM yyyy');
+        const person1DateString = person1BirthDate;
+        const person2DateString = person2BirthDate;
         const person1TimeContext = person1BirthTime ? `at ${person1BirthTime}` : 'at an estimated time (noon)';
         const person2TimeContext = person2BirthTime ? `at ${person2BirthTime}` : 'at an estimated time (noon)';
         const systemPrompt = 'You are an expert in Chinese Four Pillars (Bazi) astrology, specializing in relationship compatibility analysis. Provide clear, structured compatibility insights based on two birth charts. Use grounded language and avoid vague generalizations.';
@@ -20,8 +20,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         Write the reading in a personal, direct style—address the couple as "you and your partner" throughout.
 
-        You: ${person1FormattedDate} ${person1TimeContext}
-        Your Partner: ${person2FormattedDate} ${person2TimeContext}
+        You: ${person1DateString} ${person1TimeContext}
+        Your Partner: ${person2DateString} ${person2TimeContext}
 
         Please provide:
         1. A brief summary of elemental compatibility (Five Elements).
@@ -33,7 +33,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         If birth time is missing, use 12:00 PM as the default.`;
 
-        const start = Date.now();
         const data = await callOpenAI({
             messages: [
                 { role: 'system', content: systemPrompt },
@@ -42,11 +41,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             max_tokens: 1200,
             model: 'gpt-3.5-turbo'
         });
-        const durationMs = Date.now() - start;
-        console.log(`[DEBUG] OpenAI bazi-compatibility duration: ${durationMs}ms`);
 
         const reading = data.choices[0].message.content;
-        console.log('[DEBUG] Full raw compatibility reading:', reading);
 
         const paragraphs = reading.split('\n\n');
         let shareableSummary = "You and your partner show balanced compatibility with complementary strengths and areas for growth.";

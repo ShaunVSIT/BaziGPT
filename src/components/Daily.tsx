@@ -171,17 +171,17 @@ function Daily() {
         // Don't clear the forecast when collapsing - just toggle visibility
     };
 
+    // When sending to backend, ensure birthDate is a string in 'YYYY-MM-DD' format
     const handlePersonalForecastSubmit = async () => {
         if (!birthDate) {
             setPersonalError('Please enter your birth date');
             return;
         }
-
         setPersonalLoading(true);
         setPersonalError(null);
-
         try {
-            const data = await fetchPersonalForecast(birthDate, birthTime || undefined);
+            const dateStr = birthDate; // birthDate is always a string
+            const data = await fetchPersonalForecast(dateStr, birthTime || undefined);
             setPersonalForecast(data);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching your personal forecast.';

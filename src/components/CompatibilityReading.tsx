@@ -48,6 +48,14 @@ function cleanBullets(markdown: string) {
     return markdown.replace(/^(\s*•\s*)/gm, '');
 }
 
+// Utility to format a Date object as 'YYYY-MM-DD' in local time
+function formatDateToYMD(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 // Session storage keys
 const COMPAT_READING_KEY = 'bazi-compat-reading';
 const COMPAT_BIRTH_KEY = 'bazi-compat-birth';
@@ -63,6 +71,12 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
     const [compatibilityShareDialogOpen, setCompatibilityShareDialogOpen] = useState(false);
     const compatibilityShareCardRef = useRef<HTMLDivElement>(null);
 
+    // Utility to safely parse a date string to Date object or return null
+    function parseDateString(dateStr: string | null | undefined): Date | null {
+        if (!dateStr) return null;
+        const d = new Date(dateStr);
+        return isNaN(d.getTime()) ? null : d;
+    }
     // On mount, restore birth details and reading from sessionStorage
     React.useEffect(() => {
         // 1. Try to restore Compatibility session
@@ -70,16 +84,16 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
         const storedReading = sessionStorage.getItem(COMPAT_READING_KEY);
         if (storedBirth) {
             const { person1BirthDate: p1d, person1BirthTime: p1t, person2BirthDate: p2d, person2BirthTime: p2t } = JSON.parse(storedBirth);
-            if (p1d) setPerson1BirthDate(new Date(p1d));
+            if (p1d) setPerson1BirthDate(parseDateString(p1d));
             if (p1t) setPerson1BirthTime(p1t);
-            if (p2d) setPerson2BirthDate(new Date(p2d));
+            if (p2d) setPerson2BirthDate(parseDateString(p2d));
             if (p2t) setPerson2BirthTime(p2t);
         } else {
             // 2. If no Compatibility session, auto-fill person1 from Solo session
             const soloBirth = sessionStorage.getItem('bazi-solo-birth');
             if (soloBirth) {
                 const { birthDate, birthTime } = JSON.parse(soloBirth);
-                if (birthDate) setPerson1BirthDate(new Date(birthDate));
+                if (birthDate) setPerson1BirthDate(parseDateString(birthDate));
                 if (birthTime) setPerson1BirthTime(birthTime);
             }
         }
@@ -96,9 +110,9 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
     }, [compatibilityReading]);
     React.useEffect(() => {
         sessionStorage.setItem(COMPAT_BIRTH_KEY, JSON.stringify({
-            person1BirthDate: person1BirthDate instanceof Date && !isNaN(person1BirthDate.getTime()) ? person1BirthDate.toISOString() : null,
+            person1BirthDate: person1BirthDate instanceof Date && !isNaN(person1BirthDate.getTime()) ? formatDateToYMD(person1BirthDate) : person1BirthDate,
             person1BirthTime,
-            person2BirthDate: person2BirthDate instanceof Date && !isNaN(person2BirthDate.getTime()) ? person2BirthDate.toISOString() : null,
+            person2BirthDate: person2BirthDate instanceof Date && !isNaN(person2BirthDate.getTime()) ? formatDateToYMD(person2BirthDate) : person2BirthDate,
             person2BirthTime
         }));
     }, [person1BirthDate, person1BirthTime, person2BirthDate, person2BirthTime]);
@@ -137,13 +151,15 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
         setCompatibilityError(null);
 
         try {
+            const p1DateStr = person1BirthDate instanceof Date ? formatDateToYMD(person1BirthDate) : person1BirthDate;
+            const p2DateStr = person2BirthDate instanceof Date ? formatDateToYMD(person2BirthDate) : person2BirthDate;
             const response = await fetch('/api/bazi-compatibility', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    person1BirthDate,
+                    person1BirthDate: p1DateStr,
                     person1BirthTime: person1BirthTime || undefined,
-                    person2BirthDate,
+                    person2BirthDate: p2DateStr,
                     person2BirthTime: person2BirthTime || undefined
                 })
             });
