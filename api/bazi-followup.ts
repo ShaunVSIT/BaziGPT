@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { format } from 'date-fns';
-import { callOpenAI } from './openai-util';
+import { callOpenAI } from '../src/utils/openai-util.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { callOpenAI } from './openai-util';
+import { callOpenAI } from '../src/utils/openai-util.js';
 
 interface PersonalForecastRequest {
     birthDate: string;
@@ -76,17 +76,17 @@ async function generatePersonalForecast(todayPillar: string, birthDate: string, 
 
     const timeContext = birthTime ? ` — ${birthTime}` : "";
     const userPrompt = `Today's Pillar: ${todayPillar}
-Birthday: ${birthDate}${timeContext}
+    Birthday: ${birthDate}${timeContext}
 
-What is the personal Bazi forecast for this individual?
+    What is the personal Bazi forecast for this individual?
 
-Format as 2–3 bullet points using only plain text (no markdown, no asterisks, no bold formatting):
+    Format as 2–3 bullet points using only plain text (no markdown, no asterisks, no bold formatting):
 
-• What to be mindful of today
-• Emotional or strategic tone  
-• Actionable advice (e.g. avoid conflict, focus on collaboration)
+    • What to be mindful of today
+    • Emotional or strategic tone  
+    • Actionable advice (e.g. avoid conflict, focus on collaboration)
 
-Use only bullet points (•) and plain text. Do not use any markdown formatting like **bold** or __italic__. Keep it concise and practical.`;
+    Use only bullet points (•) and plain text. Do not use any markdown formatting like **bold** or __italic__. Keep it concise and practical.`;
 
     try {
         const data = await callOpenAI({

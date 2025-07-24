@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { callOpenAI } from './openai-util';
+import { callOpenAI } from '../src/utils/openai-util.js';
 
 interface DailyBaziForecast {
     date: string;
