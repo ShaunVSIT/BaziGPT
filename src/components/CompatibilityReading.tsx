@@ -32,14 +32,16 @@ interface CompatibilityReadingProps {
     onModeSwitch: (mode: 'solo' | 'compatibility') => void;
 }
 
-// Helper to extract Elemental Compatibility and Key Insights sections from the reading markdown
-function extractCompatShareSections(readingMarkdown: string) {
-    if (!readingMarkdown) return { elemental: '', keyInsights: '' };
-    const elementalMatch = readingMarkdown.match(/#+\s*Elemental Compatibility[\s\S]*?(?=\n#+\s|$)/i);
-    const keyInsightsMatch = readingMarkdown.match(/#+\s*Key Insights[\s\S]*?(?=\n#+\s|$)/i);
+// Helper to extract Elemental Compatibility, Key Insights, and Shareable Summary sections from the reading markdown
+function extractCompatShareSections(readingMarkdown: string, shareableSummary?: string) {
+    if (!readingMarkdown) return { elemental: '', keyInsights: '', summary: shareableSummary || '' };
+    const elementalMatch = readingMarkdown.match(/\*\*Elemental Compatibility\*\*:[\s\S]*?(?=\n\*\*|$)/i);
+    const keyInsightsMatch = readingMarkdown.match(/\*\*Key Insights\*\*:[\s\S]*?(?=\n\*\*|$)/i);
+    const summaryMatch = readingMarkdown.match(/\*\*Shareable Summary\*\*:[\s\S]*?(?=\n\*\*|$)/i);
     return {
         elemental: elementalMatch ? elementalMatch[0] : '',
-        keyInsights: keyInsightsMatch ? keyInsightsMatch[0] : ''
+        keyInsights: keyInsightsMatch ? keyInsightsMatch[0] : '',
+        summary: summaryMatch ? summaryMatch[0].replace(/\*\*Shareable Summary\*\*:/i, '').trim() : (shareableSummary || '')
     };
 }
 
@@ -217,7 +219,14 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
     };
 
     const renderCompatibilityShareDialog = () => {
-        const sections = compatibilityReading ? extractCompatShareSections(compatibilityReading.reading) : { elemental: '', keyInsights: '' };
+        // Use the new helper to extract sections and summary
+        const sections = compatibilityReading ? extractCompatShareSections(compatibilityReading.reading, compatibilityReading.shareableSummary) : { elemental: '', keyInsights: '', summary: '' };
+        // Fallback: If all sections are empty, show first 3-5 lines of reading
+        let fallbackText = '';
+        if (!sections.elemental && !sections.keyInsights && !sections.summary && compatibilityReading) {
+            const lines = compatibilityReading.reading.split('\n').filter(l => l.trim() !== '');
+            fallbackText = lines.slice(0, 5).join('\n');
+        }
         return (
             <Dialog
                 open={compatibilityShareDialogOpen}
@@ -254,6 +263,18 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                             {sections.keyInsights && (
                                 <Box sx={{ color: 'white', mb: 2, textAlign: 'center', fontSize: '1rem' }}>
                                     <ReactMarkdown>{cleanBullets(sections.keyInsights)}</ReactMarkdown>
+                                </Box>
+                            )}
+                            {/* Shareable Summary (fallback) */}
+                            {!sections.elemental && !sections.keyInsights && sections.summary && (
+                                <Box sx={{ color: 'white', mb: 2, textAlign: 'center', fontSize: '1.1rem', fontWeight: 500 }}>
+                                    {sections.summary}
+                                </Box>
+                            )}
+                            {/* Fallback: first 3-5 lines of reading */}
+                            {!sections.elemental && !sections.keyInsights && !sections.summary && fallbackText && (
+                                <Box sx={{ color: 'white', mb: 2, textAlign: 'center', fontSize: '1rem' }}>
+                                    <ReactMarkdown>{fallbackText}</ReactMarkdown>
                                 </Box>
                             )}
                         </ShareCardBase>
