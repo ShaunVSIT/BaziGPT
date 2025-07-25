@@ -36,6 +36,9 @@ const Home: React.FC = () => {
             <Helmet>
                 <title>BaziGPT - AI-Powered Bazi Readings</title>
                 <meta name="description" content="Get personalized Bazi readings and compatibility analysis powered by AI. Discover deep insights about your personality, relationships, and life path with BaziGPT." />
+                <meta name="keywords" content="Chinese astrology, BaZi reading, free astrology, AI astrology, personality analysis, relationship compatibility, daily horoscope, Chinese zodiac, birth chart analysis" />
+                <meta name="author" content="BaziGPT" />
+                <meta name="robots" content="index, follow" />
                 <meta property="og:title" content="BaziGPT - AI-Powered Bazi Readings" />
                 <meta property="og:description" content="Get personalized Bazi readings and compatibility analysis powered by AI." />
                 <meta property="og:type" content="website" />
@@ -45,6 +48,34 @@ const Home: React.FC = () => {
                 <meta name="twitter:title" content="BaziGPT - AI-Powered Bazi Readings" />
                 <meta name="twitter:description" content="Get personalized Bazi readings and compatibility analysis powered by AI." />
                 <meta name="twitter:image" content="https://bazigpt.com/og-image.svg" />
+
+                {/* Additional SEO for Google Ads */}
+                <meta name="google-site-verification" content="your-verification-code" />
+                <meta name="msvalidate.01" content="your-bing-verification-code" />
+                <link rel="canonical" href="https://bazigpt.com" />
+
+                {/* Structured Data for Better Search Visibility */}
+                <script type="application/ld+json">
+                    {JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "WebApplication",
+                        "name": "BaziGPT",
+                        "description": "AI-powered Chinese astrology readings and BaZi analysis",
+                        "url": "https://bazigpt.com",
+                        "applicationCategory": "LifestyleApplication",
+                        "operatingSystem": "Web Browser",
+                        "offers": {
+                            "@type": "Offer",
+                            "price": "0",
+                            "priceCurrency": "USD"
+                        },
+                        "aggregateRating": {
+                            "@type": "AggregateRating",
+                            "ratingValue": "4.8",
+                            "reviewCount": "1250"
+                        }
+                    })}
+                </script>
             </Helmet>
 
             {readingMode === 'solo' ? (

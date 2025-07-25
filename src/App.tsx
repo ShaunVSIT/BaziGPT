@@ -70,12 +70,7 @@ function App() {
           pageTitle="BaziGPT - AI-Powered Chinese Astrology & Relationship Compatibility"
           pageDescription="Get personalized Chinese Astrology readings and relationship compatibility analysis powered by AI. Discover your destiny, personality traits, and relationship compatibility based on your birth date and time."
           keywords={[
-            "Chinese astrology", "BaZi", "Four Pillars", "destiny reading", "birth chart",
-            "Chinese horoscope", "AI astrology", "free reading", "personality analysis", "life path",
-            "relationship compatibility", "love compatibility", "couple compatibility", "romantic compatibility",
-            "Chinese love astrology", "relationship reading", "couple reading", "love horoscope",
-            "relationship analysis", "compatibility test", "love match", "relationship advice",
-            "Chinese relationship astrology", "couple horoscope", "love reading", "relationship guidance"
+            "Chinese astrology", "BaZi", "destiny reading", "birth chart", "relationship compatibility", "AI astrology", "free reading"
           ]}
         />
       </ThemeProvider>
