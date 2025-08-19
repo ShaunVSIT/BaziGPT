@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Button, IconButton, Divider } from '@mui/material';
 import TelegramIcon from '@mui/icons-material/Telegram';
+import FacebookIcon from '@mui/icons-material/Facebook';
 
 // Add this custom X icon component
 const XIcon = () => (
@@ -43,6 +44,30 @@ const Footer: React.FC = () => {
                             Follow for daily insights
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                            <IconButton
+                                href="https://www.facebook.com/profile.php?id=61579213033328"
+                                target="_blank"
+                                size="large"
+                                sx={{
+                                    color: 'text.secondary',
+                                    p: { xs: 1, sm: 0.5 },
+                                    m: { xs: 0.5, sm: 0 },
+                                    minWidth: 40,
+                                    minHeight: 40,
+                                    borderRadius: '50%',
+                                    bgcolor: { xs: 'rgba(255,152,0,0.08)', sm: 'transparent' },
+                                    '&:hover': {
+                                        color: 'primary.main',
+                                        bgcolor: 'rgba(255, 152, 0, 0.15)',
+                                    },
+                                    '& svg': {
+                                        width: { xs: '28px', sm: '20px' },
+                                        height: { xs: '28px', sm: '20px' },
+                                    }
+                                }}
+                            >
+                                <FacebookIcon />
+                            </IconButton>
                             <IconButton
                                 href="https://x.com/bazigpt"
                                 target="_blank"
