@@ -137,9 +137,6 @@ const FamousPersonPage: React.FC = () => {
                             </Box>
                         </Paper>
                     )}
-                    <Button variant="contained" color="primary" sx={{ mt: 2, fontWeight: 600, fontSize: 18, py: 1.5, width: '100%', maxWidth: 400 }} fullWidth>
-                        Compare to my chart
-                    </Button>
                     {person.marketing_blurb && (
                         <Button
                             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(person.marketing_blurb)}`}
