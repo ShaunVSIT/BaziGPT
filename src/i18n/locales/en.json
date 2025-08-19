@@ -1,0 +1,197 @@
+{
+    "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "submit": "Submit",
+        "cancel": "Cancel",
+        "back": "Back",
+        "next": "Next",
+        "previous": "Previous",
+        "close": "Close",
+        "save": "Save",
+        "delete": "Delete",
+        "edit": "Edit",
+        "share": "Share",
+        "copy": "Copy",
+        "refresh": "Refresh",
+        "restart": "Restart",
+        "expand": "Expand",
+        "collapse": "Collapse"
+    },
+    "navigation": {
+        "home": "Home",
+        "daily": "Daily Bazi",
+        "famous": "Famous People",
+        "about": "About",
+        "privacy": "Privacy",
+        "terms": "Terms",
+        "personalReading": "Personal Reading",
+        "dailyForecast": "Daily Forecast",
+        "famousPeople": "Famous People"
+    },
+    "home": {
+        "title": "BaziGPT",
+        "subtitle": "AI-Powered Chinese Astrology & Relationship Compatibility",
+        "description": "Get personalized Chinese Astrology readings and relationship compatibility analysis powered by AI. Discover your destiny, personality traits, and relationship compatibility based on your birth date and time.",
+        "discoverDestiny": "Discover your destiny through AI-powered Bazi readings",
+        "disclaimer": {
+            "title": "Disclaimer",
+            "content": "This is an AI-powered entertainment tool for Chinese astrology readings. Results are for entertainment purposes only and should not be used for making life decisions. Please consult qualified professionals for serious life guidance.",
+            "accept": "I Understand"
+        }
+    },
+    "soloReading": {
+        "title": "Personal Bazi Reading",
+        "subtitle": "Discover your destiny through AI-powered Bazi readings",
+        "birthDateLabel": "Birth Date",
+        "birthTimeLabel": "Birth Time (optional)",
+        "getReading": "Get My Reading",
+        "switchToCompatibility": "Switch to Compatibility Mode",
+        "loadingReading": "Generating your reading...",
+        "errorReading": "Error generating reading. Please try again.",
+        "followUpQuestions": "Ask a follow-up question:",
+        "followUpPlaceholder": "Ask about my career, relationships, health...",
+        "askQuestion": "Ask Question",
+        "loadingFollowUp": "Generating answer...",
+        "shareReading": "Share Reading",
+        "downloadImage": "Download as Image",
+        "readingExpanded": "Reading (Expanded)",
+        "readingCollapsed": "Reading (Collapsed)",
+        "shareableSummary": "Shareable Summary",
+        "fourPillars": "Four Pillars",
+        "keyInsights": "Key Insights",
+        "coreSelf": "Core Self",
+        "followUpTitle": "Ask Follow-up Questions",
+        "followUpSubtitle": "Get more specific insights about different aspects of your life:",
+        "followUpCareer": "What about my career?",
+        "followUpHealth": "What about my health?",
+        "followUpRelationships": "What about my relationships?",
+        "followUpFinances": "What about my finances?",
+        "followUpEducation": "What about my education?",
+        "followUpTravel": "What about my travel opportunities?",
+        "birthTimeTip": "If not provided, noon (12:00) will be used as a reference point"
+    },
+    "compatibility": {
+        "title": "Relationship Compatibility",
+        "subtitle": "Discover the compatibility between two people using Chinese Bazi astrology",
+        "backToBaziGPT": "← Back to BaziGPT",
+        "person1": "Person 1",
+        "person2": "Person 2",
+        "getCompatibility": "Get Compatibility Reading",
+        "loadingCompatibility": "Analyzing compatibility...",
+        "errorCompatibility": "Error analyzing compatibility. Please try again.",
+        "switchToSolo": "Switch to Solo Reading"
+    },
+    "daily": {
+        "title": "Daily Bazi Forecast",
+        "subtitle": "Get your daily Chinese astrology forecast and insights",
+        "todayForecast": "Today's Forecast",
+        "loadingForecast": "Loading today's forecast...",
+        "errorForecast": "Error loading forecast. Please try again.",
+        "todaysEnergy": "Today's Energy",
+        "errorLoadingForecast": "Error Loading Forecast",
+        "howDoesTodayAffectMe": "How does today affect me?",
+        "enterBirthDetails": "Enter your birth details to get a personalized daily forecast based on your Bazi chart.",
+        "yourDetailsSaved": "Your details are saved for this session.",
+        "getPersonalDailyForecast": "Get Personal Daily Forecast",
+        "yourPersonalForecast": "Your Personal Forecast",
+        "newReading": "New Reading",
+        "shareForecast": "Share Forecast",
+        "birthDateLabel": "Birth Date",
+        "birthTimeLabel": "Birth Time (optional)",
+        "pleaseEnterBirthDate": "Please enter your birth date",
+        "errorFetchingPersonalForecast": "An error occurred while fetching your personal forecast.",
+        "sharePersonalForecast": "Share My Personal Forecast",
+        "sharePersonalForecastTitle": "Share Your Personal Daily Forecast",
+        "myPersonalDailyForecast": "My Personal Daily Forecast",
+        "saveForecast": "Save Forecast",
+        "wantCompleteBaziAnalysis": "Want a complete Bazi analysis?",
+        "getFullBaziReading": "Get your full birth chart reading with detailed insights",
+        "getFullBaziReadingButton": "Get Full Bazi Reading",
+        "dailyForecastComingSoon": "Daily Forecast Coming Soon",
+        "dailyForecastSetup": "The daily forecast feature is being set up. Please check back soon!"
+    },
+    "famous": {
+        "title": "Famous Bazi Readings",
+        "subtitle": "Explore the Bazi charts and life stories of famous people",
+        "searchPlaceholder": "Search famous people...",
+        "all": "All",
+        "viewChart": "View Chart",
+        "compareChart": "Compare with My Chart",
+        "disclaimer": "Disclaimer: All Bazi readings and descriptions on this page are for entertainment purposes only. They are not intended as factual statements or to slander, defame, or misrepresent any individual.",
+        "disclaimerContact": "If you are a public figure and wish to have your information removed or corrected, please contact us.",
+        "searchCelebrity": "Search for a celebrity…",
+        "noResultsFound": "We couldn't find a match for",
+        "requestReadingMessage": "Click the button below to let us know you'd like a reading for your favourite celeb!",
+        "requestReadingButton": "Request a reading for",
+        "requestReadingOnX": "on X",
+        "loadMore": "Load More",
+        "loading": "Loading...",
+        "categories": {
+            "actor": "Actor",
+            "artist": "Artist",
+            "athlete": "Athlete",
+            "business": "Business",
+            "ceo": "CEO",
+            "historical": "Historical",
+            "musician": "Musician",
+            "other": "Other",
+            "politician": "Politician",
+            "royalty": "Royalty",
+            "scientist": "Scientist",
+            "writer": "Writer"
+        }
+    },
+    "about": {
+        "title": "About BaziGPT",
+        "subtitle": "AI-Powered Chinese Astrology Platform",
+        "description": "BaziGPT is an AI-powered platform that provides personalized Chinese astrology readings and relationship compatibility analysis. Our advanced AI technology combines traditional Bazi principles with modern machine learning to deliver accurate and insightful readings.",
+        "features": {
+            "title": "Features",
+            "personalReadings": "Personal Bazi Readings",
+            "compatibilityAnalysis": "Relationship Compatibility",
+            "dailyForecasts": "Daily Forecasts",
+            "famousPeople": "Famous People Charts"
+        }
+    },
+    "footer": {
+        "copyright": "© 2024 BaziGPT. All rights reserved.",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service",
+        "about": "About",
+        "dailyForecasts": "Daily Forecasts",
+        "followForInsights": "Follow for daily insights",
+        "legal": "Legal",
+        "developer": "Developer",
+        "builtBy": "Built by Barnum (0xBarnum)"
+    },
+    "errors": {
+        "general": "Something went wrong. Please try again.",
+        "network": "Network error. Please check your connection.",
+        "validation": "Please check your input and try again.",
+        "notFound": "Page not found.",
+        "serverError": "Server error. Please try again later."
+    },
+    "seo": {
+        "home": {
+            "title": "BaziGPT - AI-Powered Chinese Astrology & Relationship Compatibility",
+            "description": "Get personalized Chinese Astrology readings and relationship compatibility analysis powered by AI. Discover your destiny, personality traits, and relationship compatibility based on your birth date and time.",
+            "keywords": "Chinese astrology, BaZi, destiny reading, birth chart, relationship compatibility, AI astrology, free reading"
+        },
+        "daily": {
+            "title": "Daily Bazi Forecast - BaziGPT",
+            "description": "Get your daily Chinese astrology forecast and insights. Discover what the stars have in store for you today with our AI-powered Bazi readings.",
+            "keywords": "daily forecast, Chinese astrology, Bazi, horoscope, daily reading"
+        },
+        "famous": {
+            "title": "Famous Bazi Readings - BaziGPT",
+            "description": "Explore the Bazi charts and life stories of famous people, celebrities, and leaders. Discover their destiny and compare with your own.",
+            "keywords": "famous people, celebrities, Bazi charts, Chinese astrology, famous readings"
+        },
+        "about": {
+            "title": "About BaziGPT - AI-Powered Chinese Astrology",
+            "description": "Learn about BaziGPT, the AI-powered Chinese astrology platform that provides personalized readings and relationship compatibility analysis.",
+            "keywords": "about BaziGPT, Chinese astrology platform, AI astrology, Bazi readings"
+        }
+    }
+}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Box, Typography, Button, IconButton, Divider } from '@mui/material';
 import TelegramIcon from '@mui/icons-material/Telegram';
 
@@ -10,6 +11,7 @@ const XIcon = () => (
 );
 
 const Footer: React.FC = () => {
+    const { t } = useTranslation();
     return (
         <Box
             sx={{
@@ -37,10 +39,10 @@ const Footer: React.FC = () => {
                         minWidth: { md: '200px' }
                     }}>
                         <Typography variant="subtitle2" color="primary.main" gutterBottom>
-                            📅 Daily Forecasts
+                            📅 {t('footer.dailyForecasts')}
                         </Typography>
                         <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                            Follow for daily insights
+                            {t('footer.followForInsights')}
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                             <IconButton
@@ -110,7 +112,7 @@ const Footer: React.FC = () => {
                         minWidth: { md: '200px' }
                     }}>
                         <Typography variant="subtitle2" color="primary.main" gutterBottom>
-                            Legal
+                            {t('footer.legal')}
                         </Typography>
                         <Box sx={{
                             display: 'flex',
@@ -143,7 +145,7 @@ const Footer: React.FC = () => {
                                     }
                                 }}
                             >
-                                Privacy
+                                {t('footer.privacy')}
                             </Button>
                             <Button
                                 component="a"
@@ -168,7 +170,7 @@ const Footer: React.FC = () => {
                                     }
                                 }}
                             >
-                                Terms
+                                {t('footer.terms')}
                             </Button>
                         </Box>
                     </Box>
@@ -190,10 +192,10 @@ const Footer: React.FC = () => {
                         minWidth: { md: '200px' }
                     }}>
                         <Typography variant="subtitle2" color="primary.main" gutterBottom>
-                            Developer
+                            {t('footer.developer')}
                         </Typography>
                         <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                            Built by Barnum (0xBarnum)
+                            {t('footer.builtBy')}
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                             <IconButton

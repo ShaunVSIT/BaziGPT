@@ -1,23 +1,25 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import { Box, Typography, Paper, Container, Button } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 // Navigation now handled by Layout component
 
 const About: React.FC = () => {
+    const { t } = useTranslation();
     return (
         <>
             <Helmet>
-                <title>About BaziGPT - AI-Powered Bazi Readings</title>
-                <meta name="description" content="Learn about BaziGPT, the AI-powered Bazi reading platform that provides personalized Chinese astrology insights." />
-                <meta property="og:title" content="About BaziGPT - AI-Powered Bazi Readings" />
-                <meta property="og:description" content="Learn about BaziGPT, the AI-powered Bazi reading platform." />
+                <title>{t('seo.about.title')}</title>
+                <meta name="description" content={t('seo.about.description')} />
+                <meta property="og:title" content={t('seo.about.title')} />
+                <meta property="og:description" content={t('seo.about.description')} />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content="https://bazigpt.com/about" />
                 <meta property="og:image" content="https://bazigpt.com/og-image.svg" />
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="About BaziGPT - AI-Powered Bazi Readings" />
-                <meta name="twitter:description" content="Learn about BaziGPT, the AI-powered Bazi reading platform." />
+                <meta name="twitter:title" content={t('seo.about.title')} />
+                <meta name="twitter:description" content={t('seo.about.description')} />
                 <meta name="twitter:image" content="https://bazigpt.com/og-image.svg" />
             </Helmet>
 
@@ -33,7 +35,7 @@ const About: React.FC = () => {
                         gap: 1
                     }}>
                         <span style={{ fontSize: '0.9em' }}>🀄</span>
-                        About BaziGPT
+                        {t('about.title')}
                         <span style={{ fontSize: '0.9em' }}>🀄</span>
                     </Typography>
 

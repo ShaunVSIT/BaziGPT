@@ -15,6 +15,7 @@ import SEOAnalytics from './components/SEOAnalytics';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import routes from './routes';
+import './i18n';
 
 const theme = createTheme({
   palette: {

@@ -17,6 +17,8 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface NavigationItem {
     path: string;
@@ -25,52 +27,40 @@ interface NavigationItem {
     description: string;
 }
 
-const navigationItems: NavigationItem[] = [
-    {
-        path: '/',
-        label: 'Home',
-        icon: '🀄',
-        description: 'Get your personalized Bazi readings'
-    },
-    {
-        path: '/daily',
-        label: 'Daily Bazi',
-        icon: '📅',
-        description: "Today's Bazi forecast for everyone"
-    },
-    {
-        path: '/famous',
-        label: 'Famous People',
-        icon: '🌟',
-        description: 'Explore Bazi charts of famous people'
-    },
-    {
-        path: '/about',
-        label: 'About',
-        icon: 'ℹ️',
-        description: 'Learn about BaziGPT'
-    }
-    // Easy to add more pages:
-    // {
-    //     path: '/compatibility',
-    //     label: 'Compatibility',
-    //     icon: '💕',
-    //     description: 'Check relationship compatibility'
-    // },
-    // {
-    //     path: '/learn',
-    //     label: 'Learn',
-    //     icon: '📚',
-    //     description: 'Learn about Bazi principles'
-    // }
-];
-
 const CompactNavigation: React.FC = () => {
+    const { t } = useTranslation();
     const location = useLocation();
     const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [mobileOpen, setMobileOpen] = useState(false);
+
+    const navigationItems: NavigationItem[] = [
+        {
+            path: '/',
+            label: t('navigation.home'),
+            icon: '🀄',
+            description: t('home.discoverDestiny')
+        },
+        {
+            path: '/daily',
+            label: t('navigation.daily'),
+            icon: '📅',
+            description: t('daily.subtitle')
+        },
+        {
+            path: '/famous',
+            label: t('navigation.famous'),
+            icon: '🌟',
+            description: t('famous.subtitle')
+        },
+        {
+            path: '/about',
+            label: t('navigation.about'),
+            icon: 'ℹ️',
+            description: t('about.subtitle')
+        }
+    ];
 
     const isActive = (path: string) => {
         if (path === '/') {
@@ -131,6 +121,10 @@ const CompactNavigation: React.FC = () => {
                     </ListItem>
                 ))}
             </List>
+            {/* Language Switcher in Mobile Drawer */}
+            <Box sx={{ p: 2, borderTop: '1px solid rgba(255, 152, 0, 0.2)' }}>
+                <LanguageSwitcher onLanguageChange={() => setMobileOpen(false)} />
+            </Box>
         </Box>
     );
 
@@ -148,7 +142,7 @@ const CompactNavigation: React.FC = () => {
                 <Toolbar sx={{ justifyContent: isMobile ? 'space-between' : 'center', minHeight: { xs: 56, sm: 56, md: 48 } }}>
                     {/* Desktop: Centered nav, no logo */}
                     {!isMobile && (
-                        <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                             {navigationItems.map((item) => (
                                 <Button
                                     key={item.path}
@@ -178,6 +172,10 @@ const CompactNavigation: React.FC = () => {
                                     {item.label}
                                 </Button>
                             ))}
+                            {/* Language Switcher for Desktop */}
+                            <Box sx={{ ml: 2 }}>
+                                <LanguageSwitcher />
+                            </Box>
                         </Box>
                     )}
 

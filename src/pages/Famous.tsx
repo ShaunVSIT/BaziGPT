@@ -3,6 +3,7 @@ import FamousPeopleGrid from '../components/FamousPeopleGrid.tsx';
 import { Box, Typography, Button, CircularProgress, TextField, InputAdornment, SvgIcon } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 
 // Improved, optically centered X (Twitter) icon
 function XIcon(props: any) {
@@ -37,6 +38,7 @@ export type FamousPerson = {
 const PAGE_SIZE = 20;
 
 const Famous: React.FC = () => {
+    const { t } = useTranslation();
     const [people, setPeople] = useState<FamousPerson[]>([]);
     const [category, setCategory] = useState<string>('');
     const [loading, setLoading] = useState(true);
@@ -114,22 +116,22 @@ const Famous: React.FC = () => {
     return (
         <>
             <Helmet>
-                <title>Famous Bazi Readings - Explore Celebrity BaZi Charts | BaziGPT</title>
-                <meta name="description" content="Explore detailed BaZi readings and Chinese astrology charts for famous people and celebrities. Discover insights, categories, and search your favorite stars on BaziGPT." />
-                <meta property="og:title" content="Famous Bazi Readings - Explore Celebrity BaZi Charts | BaziGPT" />
-                <meta property="og:description" content="Explore detailed BaZi readings and Chinese astrology charts for famous people and celebrities. Discover insights, categories, and search your favorite stars on BaziGPT." />
+                <title>{t('seo.famous.title')} | BaziGPT</title>
+                <meta name="description" content={t('seo.famous.description')} />
+                <meta property="og:title" content={`${t('seo.famous.title')} | BaziGPT`} />
+                <meta property="og:description" content={t('seo.famous.description')} />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content="https://bazigpt.io/famous" />
                 <meta property="og:image" content="https://bazigpt.io/og-image.svg" />
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="Famous Bazi Readings - Explore Celebrity BaZi Charts | BaziGPT" />
-                <meta name="twitter:description" content="Explore detailed BaZi readings and Chinese astrology charts for famous people and celebrities. Discover insights, categories, and search your favorite stars on BaziGPT." />
+                <meta name="twitter:title" content={`${t('seo.famous.title')} | BaziGPT`} />
+                <meta name="twitter:description" content={t('seo.famous.description')} />
                 <meta name="twitter:image" content="https://bazigpt.io/og-image.svg" />
                 <link rel="canonical" href="https://bazigpt.io/famous" />
             </Helmet>
             <Box maxWidth="lg" mx="auto" px={{ xs: 2, sm: 4 }} py={1}>
                 <Typography variant="h4" fontWeight={700} mb={1.5} textAlign="center" sx={{ mt: 2, mb: 1 }}>
-                    🌟 Famous Bazi Readings 🌟
+                    🌟 {t('famous.title')} 🌟
                 </Typography>
                 <Typography
                     variant="caption"
@@ -147,14 +149,14 @@ const Famous: React.FC = () => {
                         letterSpacing: 0.1,
                     }}
                 >
-                    Disclaimer: All Bazi readings and descriptions on this page are for entertainment purposes only. They are not intended as factual statements or to slander, defame, or misrepresent any individual.<br />
-                    If you are a public figure and wish to have your information removed or corrected, please contact us.
+                    {t('famous.disclaimer')}<br />
+                    {t('famous.disclaimerContact')}
                 </Typography>
                 <Box mb={3} display="flex" justifyContent="center">
                     <TextField
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        placeholder="Search for a celebrity…"
+                        placeholder={t('famous.searchCelebrity')}
                         variant="outlined"
                         size="small"
                         sx={{ width: 350, background: '#181818', borderRadius: 2 }}
@@ -176,7 +178,7 @@ const Famous: React.FC = () => {
                         onClick={() => setCategory('')}
                         sx={{ fontWeight: 600, textTransform: 'none', mb: 1, flex: '0 0 auto', minWidth: 90 }}
                     >
-                        All
+                        {t('famous.all')}
                     </Button>
                     {categories.map(cat => (
                         <Button
@@ -186,7 +188,7 @@ const Famous: React.FC = () => {
                             onClick={() => setCategory(cat!)}
                             sx={{ fontWeight: 600, textTransform: 'none', mb: 1, flex: '0 0 auto', minWidth: 90 }}
                         >
-                            {cat}
+                            {t(`famous.categories.${cat}`) || cat}
                         </Button>
                     ))}
                 </Box>
@@ -198,8 +200,8 @@ const Famous: React.FC = () => {
                     ) : filtered.length === 0 ? (
                         <Box display="flex" flexDirection="column" alignItems="center" minHeight={200}>
                             <Typography variant="h6" color="text.secondary" mb={2} textAlign="center">
-                                We couldn't find a match for "{search}".<br />
-                                Click the button below to let us know you'd like a reading for your favourite celeb!
+                                {t('famous.noResultsFound')} "{search}".<br />
+                                {t('famous.requestReadingMessage')}
                             </Typography>
                             <Button
                                 variant="contained"
@@ -210,7 +212,7 @@ const Famous: React.FC = () => {
                                 rel="noopener noreferrer"
                                 sx={{ fontWeight: 600, fontSize: 16 }}
                             >
-                                Request a reading for “{search}” on X
+                                {t('famous.requestReadingButton')} "{search}" {t('famous.requestReadingOnX')}
                             </Button>
                         </Box>
                     ) : (
@@ -231,7 +233,7 @@ const Famous: React.FC = () => {
                                     onClick={() => fetchPeople(false)}
                                     disabled={loadingMore}
                                 >
-                                    {loadingMore ? 'Loading...' : 'Load More'}
+                                    {loadingMore ? t('famous.loading') : t('famous.loadMore')}
                                 </Button>
                             </Box>
                         )}

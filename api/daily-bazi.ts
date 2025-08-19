@@ -1,31 +1,137 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { callOpenAI } from '../src/utils/openai-util.js';
+import fs from 'fs';
+import path from 'path';
+
+// Language-specific prompts for daily forecast
+const getLanguageSpecificPrompts = (baziPillar: string, language: string) => {
+    const prompts = {
+        en: {
+            systemPrompt: "You are a precise expert in Chinese Four Pillars (Bazi) astrology. Your job is to write a daily Bazi forecast based on the Day Stem and Branch, using clear and insightful language grounded in classical metaphysics.",
+            userPrompt: `Today's Bazi pillar is: ${baziPillar}
+
+First, translate the pillar to English in this exact format (ONLY the pillar, no prefix): "Yang Fire (丙) over Monkey (戌)" (include Chinese characters)
+Then write a concise daily Bazi forecast (4–6 sentences) for a general audience. Include:
+- The energy of the day based on the Heavenly Stem and Earthly Branch
+- How this day's energy may interact with common chart patterns
+- Practical guidance or actions to take or avoid
+- Optional: auspicious or inauspicious themes
+
+End with a single-line affirmation or reflection like:
+'Let the steady flow of Water guide your words today.'`
+        },
+        th: {
+            systemPrompt: "คุณเป็นผู้เชี่ยวชาญที่แม่นยำในโหราศาสตร์จีนสี่เสา (Bazi) งานของคุณคือเขียนพยากรณ์ Bazi ประจำวันตามเสาและกิ่งของวัน โดยใช้ภาษาที่ชัดเจนและมีข้อมูลเชิงลึกที่อิงจากอภิปรัชญาแบบคลาสสิก",
+            userPrompt: `เสา Bazi ของวันนี้คือ: ${baziPillar}
+
+ก่อนอื่น ให้แปลเสาเป็นภาษาไทยในรูปแบบนี้ (เฉพาะเสาเท่านั้น ไม่มีคำนำ): "หยางไฟ (丙) เหนือ ลิง (戌)" (รวมอักษรจีน)
+จากนั้นเขียนพยากรณ์ Bazi ประจำวันที่กระชับ (4-6 ประโยค) สำหรับผู้ชมทั่วไป รวม:
+- พลังงานของวันตามเสาสวรรค์และกิ่งโลก
+- พลังงานของวันนี้อาจมีปฏิสัมพันธ์กับรูปแบบแผนภูมิทั่วไปอย่างไร
+- คำแนะนำหรือการกระทำที่ควรทำหรือหลีกเลี่ยง
+- ตัวเลือก: ธีมที่มงคลหรือไม่มงคล
+
+จบด้วยการยืนยันหรือการสะท้อนหนึ่งบรรทัด เช่น:
+'ให้กระแสของน้ำที่มั่นคงนำทางคำพูดของคุณในวันนี้'`
+        },
+        zh: {
+            systemPrompt: "您是中国四柱（八字）占星术的精确专家。您的工作是根据日干和日支编写每日八字预测，使用清晰而有洞察力的语言，基于古典形而上学。",
+            userPrompt: `今天的八字柱是: ${baziPillar}
+
+首先，将柱子翻译成中文，格式如下（仅柱子，无前缀）："阳火 (丙) 在 猴 (戌)" (包含中文字符)
+然后为普通观众写一份简洁的每日八字预测（4-6句话）。包括：
+- 基于天干地支的当日能量
+- 这种日能量如何与常见图表模式相互作用
+- 实用指导或应采取或避免的行动
+- 可选：吉祥或不吉祥的主题
+
+以单行肯定或反思结束，例如：
+'让水的稳定流动引导你今天的话语。'`
+        }
+    };
+
+    return prompts[language as keyof typeof prompts] || prompts.en;
+};
 
 interface DailyBaziForecast {
     date: string;
     baziPillar: string;
     forecast: string;
-    cached: boolean;
 }
 
-// Cache using a more robust approach for serverless environments
-let globalCache: Map<string, DailyBaziForecast> | null = null;
-let isGenerating = false;
-let lastApiCallTime = 0;
-const MIN_API_CALL_INTERVAL = 60000; // 1 minute minimum between API calls
 
-function getCache(): Map<string, DailyBaziForecast> {
-    if (!globalCache) {
-        globalCache = new Map<string, DailyBaziForecast>();
-    }
-    return globalCache;
-}
 
 // Get today's date in YYYY-MM-DD format (UTC)
 function getTodayDate(): string {
     const today = new Date();
     return today.toISOString().split('T')[0];
 }
+
+// File-based cache for development (vercel dev resets in-memory state)
+const DEV_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_FILE = path.join(process.cwd(), '.vercel', 'cache', 'daily-bazi-cache.json');
+
+function getDevCache(key: string): any | null {
+    try {
+        if (!fs.existsSync(CACHE_FILE)) {
+            return null;
+        }
+
+        const cacheData = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
+        const cached = cacheData[key];
+
+        if (cached && Date.now() - cached.timestamp < DEV_CACHE_TTL) {
+            return cached.data;
+        }
+
+        return null;
+    } catch (error) {
+        return null;
+    }
+}
+
+function setDevCache(key: string, data: any): void {
+    try {
+        // Ensure cache directory exists
+        const cacheDir = path.dirname(CACHE_FILE);
+        if (!fs.existsSync(cacheDir)) {
+            fs.mkdirSync(cacheDir, { recursive: true });
+        }
+
+        // Read existing cache or create new
+        let cacheData = {};
+        if (fs.existsSync(CACHE_FILE)) {
+            cacheData = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
+        }
+
+        // Set new cache entry
+        cacheData[key] = {
+            data,
+            timestamp: Date.now()
+        };
+
+        // Write back to file
+        fs.writeFileSync(CACHE_FILE, JSON.stringify(cacheData, null, 2));
+    } catch (error) {
+        // Silent fail in production
+    }
+}
+
+function clearDevCache(key: string): void {
+    try {
+        if (!fs.existsSync(CACHE_FILE)) {
+            return;
+        }
+
+        const cacheData = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
+        delete cacheData[key];
+        fs.writeFileSync(CACHE_FILE, JSON.stringify(cacheData, null, 2));
+    } catch (error) {
+        // Silent fail in production
+    }
+}
+
+
 
 // Generate Bazi pillar for a given date
 function getBaziPillarForDate(date: Date): string {
@@ -67,31 +173,17 @@ function getBaziPillarForDate(date: Date): string {
     return `${element} over ${branchWithChar}`;
 }
 
-// Check if forecast is from today
-function isForecastFromToday(forecast: DailyBaziForecast): boolean {
-    return forecast.date === getTodayDate();
-}
 
-// Generate daily forecast using OpenAI
-async function generateDailyForecast(baziPillar: string): Promise<string> {
+
+// Generate daily forecast using OpenAI with language-specific prompts
+async function generateDailyForecast(baziPillar: string, language: string = 'en'): Promise<{ forecast: string, translatedPillar: string }> {
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
     if (!OPENAI_API_KEY) {
         throw new Error('OpenAI API key not configured');
     }
 
-    const systemPrompt = "You are a precise expert in Chinese Four Pillars (Bazi) astrology. Your job is to write a daily Bazi forecast based on the Day Stem and Branch, using clear and insightful language grounded in classical metaphysics.";
-
-    const userPrompt = `Today's Bazi pillar is: ${baziPillar}
-
-Write a concise daily Bazi forecast (4–6 sentences) for a general audience. Include:
-- The energy of the day based on the Heavenly Stem and Earthly Branch
-- How this day's energy may interact with common chart patterns
-- Practical guidance or actions to take or avoid
-- Optional: auspicious or inauspicious themes
-
-End with a single-line affirmation or reflection like:
-'Let the steady flow of Water guide your words today.'`;
+    const { systemPrompt, userPrompt } = getLanguageSpecificPrompts(baziPillar, language);
 
     try {
         const data = await callOpenAI({
@@ -99,17 +191,38 @@ End with a single-line affirmation or reflection like:
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userPrompt }
             ],
-            max_tokens: 300
+            max_tokens: 400
         });
-        return data.choices[0].message.content;
+
+        const response = data.choices[0].message.content;
+
+        // Parse the response to extract pillar and forecast
+        const lines = response.split('\n');
+        let translatedPillar = lines[0] || baziPillar; // First line is the pillar
+
+        // Clean up any prefix if AI still includes it
+        const prefixPatterns = [
+            /^Today's Bazi pillar is:\s*/i,
+            /^เสา Bazi ของวันนี้คือ:\s*/i,
+            /^今天的八字柱是:\s*/i,
+            /^Today's pillar is:\s*/i,
+            /^Pillar:\s*/i
+        ];
+
+        for (const pattern of prefixPatterns) {
+            translatedPillar = translatedPillar.replace(pattern, '');
+        }
+
+        const forecast = lines.slice(1).join('\n').trim(); // Rest is the forecast
+
+        return { forecast, translatedPillar };
     } catch (error) {
         console.error('Error generating forecast:', error);
         throw new Error('Failed to generate daily forecast');
     }
 }
 
-// Use mock data only for true local development (not on Vercel)
-const isLocalDev = !process.env.VERCEL;
+
 
 const handler = async (req: VercelRequest, res: VercelResponse) => {
     // Set CORS headers
@@ -117,8 +230,19 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    // Set CDN cache header for 24 hours
-    res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate');
+    // Set CDN cache header to expire at midnight UTC
+    const today = getTodayDate();
+    const tomorrow = new Date();
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+    tomorrow.setUTCHours(0, 0, 0, 0);
+    const secondsUntilMidnight = Math.floor((tomorrow.getTime() - Date.now()) / 1000);
+
+    const cacheKey = `daily-bazi-${req.query.lang || 'en'}-${req.query.date || today}`;
+    res.setHeader('Cache-Control', `s-maxage=${secondsUntilMidnight}, stale-while-revalidate, public`);
+    res.setHeader('Vercel-CDN-Cache-Control', `s-maxage=${secondsUntilMidnight}, stale-while-revalidate`);
+    res.setHeader('Vercel-Cache-Tag', cacheKey);
+
+
 
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
@@ -133,12 +257,13 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
     }
 
     try {
-        // Check for force refresh parameter
+        // Check for force refresh parameter and language
         const forceRefresh = req.query.force === 'true';
         const testDate = req.query.date as string;
+        const language = req.query.lang as string || 'en';
 
         const today = testDate || getTodayDate();
-        const cacheKey = `daily-bazi-${today}`;
+        const cacheKey = `daily-bazi-${today}-${language}`;
 
         if (forceRefresh) {
             console.log(`[${new Date().toISOString()}] Force refresh requested - bypassing cache`);
@@ -148,106 +273,35 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
             console.log(`[${new Date().toISOString()}] Test date requested: ${testDate}`);
         }
 
-        // Check if we have a cached forecast from today
-        const cache = getCache();
-        const cachedForecast = cache.get(cacheKey);
+        // Check dev cache first (only works in vercel dev)
+        const isDev = process.env.NODE_ENV === 'development' || !process.env.VERCEL;
 
-        if (cachedForecast && isForecastFromToday(cachedForecast) && !forceRefresh) {
-            // Return cached forecast
-            console.log(`[${new Date().toISOString()}] Returning cached forecast for ${today}`);
-            res.status(200).json({
-                ...cachedForecast,
-                cached: true
-            });
-            return;
+        // Handle cache invalidation
+        const invalidateCache = req.query.invalidate === 'true';
+        if (invalidateCache && isDev) {
+            clearDevCache(cacheKey);
         }
 
-        // Prevent multiple simultaneous API calls
-        if (isGenerating) {
-            // Wait for the current generation to complete
-            let attempts = 0;
-            while (isGenerating && attempts < 50) { // Wait up to 5 seconds
-                await new Promise(resolve => setTimeout(resolve, 100));
-                attempts++;
-
-                // Check if cache was populated while waiting
-                const updatedCache = cache.get(cacheKey);
-                if (updatedCache && isForecastFromToday(updatedCache)) {
-                    res.status(200).json({
-                        ...updatedCache,
-                        cached: true
-                    });
-                    return;
-                }
+        if (isDev) {
+            const cachedResponse = getDevCache(cacheKey);
+            if (cachedResponse && !forceRefresh) {
+                return res.status(200).json(cachedResponse);
             }
         }
 
-        // Set generating flag to prevent race conditions
-        isGenerating = true;
+        // Generate new forecast with language-specific prompt
+        const englishPillar = getBaziPillarForDate(new Date());
+        const { forecast, translatedPillar } = await generateDailyForecast(englishPillar, language);
 
-        // Rate limiting: prevent too frequent API calls
-        const now = Date.now();
-        if (now - lastApiCallTime < MIN_API_CALL_INTERVAL) {
-            console.log(`[${new Date().toISOString()}] Rate limiting: too soon since last API call`);
-            // Return fallback instead of calling API
-            const fallbackForecast: DailyBaziForecast = {
-                date: today,
-                baziPillar: "Yang Fire over Monkey",
-                forecast: "Today brings the energy of Yang Fire over Monkey. This combination suggests a day of dynamic activity and clever problem-solving. The Fire element provides warmth and enthusiasm, while the Monkey brings wit and adaptability. Focus on creative projects and social interactions today. Avoid rushing into decisions without careful consideration. Let the steady flow of Fire guide your actions today.",
-                cached: false
-            };
-            cache.set(cacheKey, fallbackForecast);
-            isGenerating = false;
-            res.status(200).json(fallbackForecast);
-            return;
-        }
+        const dailyForecast: DailyBaziForecast = {
+            date: today,
+            baziPillar: translatedPillar,
+            forecast
+        };
 
-        lastApiCallTime = now;
-        let dailyForecast: DailyBaziForecast;
-
-        if (isLocalDev) {
-            // In local dev, return mock data with a small delay to simulate API call
-            const mockForecast: DailyBaziForecast = {
-                date: today,
-                baziPillar: "Yang Fire over Monkey",
-                forecast: "Today brings the energy of Yang Fire over Monkey. This combination suggests a day of dynamic activity and clever problem-solving. The Fire element provides warmth and enthusiasm, while the Monkey brings wit and adaptability. Focus on creative projects and social interactions today. Avoid rushing into decisions without careful consideration. Let the steady flow of Fire guide your actions today.",
-                cached: false
-            };
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            res.status(200).json(mockForecast);
-            return;
-        }
-
-        try {
-            // Generate new forecast
-            const baziPillar = getBaziPillarForDate(new Date());
-            const forecast = await generateDailyForecast(baziPillar);
-
-            dailyForecast = {
-                date: today,
-                baziPillar,
-                forecast,
-                cached: false
-            };
-
-            // Cache the forecast
-            cache.set(cacheKey, dailyForecast);
-            console.log(`[${new Date().toISOString()}] Generated and cached new forecast for ${today}`);
-        } finally {
-            // Always reset the generating flag
-            isGenerating = false;
-        }
-
-        // Clean up old cache entries (keep only last 7 days)
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
-
-        for (const [key] of cache.entries()) {
-            const keyDate = key.replace('daily-bazi-', '');
-            if (keyDate < sevenDaysAgoStr) {
-                cache.delete(key);
-            }
+        // Cache in dev
+        if (isDev) {
+            setDevCache(cacheKey, dailyForecast);
         }
 
         res.status(200).json(dailyForecast);
@@ -259,7 +313,6 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
             date: getTodayDate(),
             baziPillar: "Yang Fire over Monkey",
             forecast: "Today brings the energy of Yang Fire over Monkey. This combination suggests a day of dynamic activity and clever problem-solving. The Fire element provides warmth and enthusiasm, while the Monkey brings wit and adaptability. Focus on creative projects and social interactions today. Avoid rushing into decisions without careful consideration. Let the steady flow of Fire guide your actions today.",
-            cached: false,
             error: "Generated fallback forecast due to API error"
         });
     }
