@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 // Navigation now handled by Layout component
 import {
     Box,
@@ -63,6 +64,7 @@ const COMPAT_READING_KEY = 'bazi-compat-reading';
 const COMPAT_BIRTH_KEY = 'bazi-compat-birth';
 
 const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitch }) => {
+    const { t, i18n } = useTranslation();
     const [person1BirthDate, setPerson1BirthDate] = useState<Date | null>(null);
     const [person1BirthTime, setPerson1BirthTime] = useState<string>('');
     const [person2BirthDate, setPerson2BirthDate] = useState<Date | null>(null);
@@ -162,7 +164,8 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                     person1BirthDate: p1DateStr,
                     person1BirthTime: person1BirthTime || undefined,
                     person2BirthDate: p2DateStr,
-                    person2BirthTime: person2BirthTime || undefined
+                    person2BirthTime: person2BirthTime || undefined,
+                    language: i18n.language
                 })
             });
             if (!response.ok) throw new Error('Failed to generate the compatibility reading.');
@@ -332,7 +335,7 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                     <span style={{ fontSize: '0.9em' }}>🀄</span>
                 </Typography>
                 <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-                    Discover your compatibility through AI-powered Bazi readings
+                    {t('compatibility.subtitle')}
                 </Typography>
                 {/* Navigation removed - now handled by Layout component */}
             </Box>
@@ -374,7 +377,7 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                             transition: 'all 0.2s ease-in-out'
                         }}
                     >
-                        Solo Reading
+                        {t('soloReading.title')}
                     </Button>
                     <Button
                         onClick={() => onModeSwitch('compatibility')}
@@ -395,7 +398,7 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                             transition: 'all 0.2s ease-in-out'
                         }}
                     >
-                        Compatibility
+                        {t('compatibility.title')}
                     </Button>
                 </Box>
 
@@ -403,16 +406,16 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                 {!compatibilityReading ? (
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, textAlign: 'center' }}>
                         <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
-                            Enter birth information for you and your partner
+                            {t('compatibility.subtitle')}
                         </Typography>
                         <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, width: '100%' }}>
                             {/* You */}
                             <Box>
                                 <Typography variant="h6" gutterBottom sx={{ color: '#ff9800' }}>
-                                    You
+                                    {t('compatibility.person1')}
                                 </Typography>
                                 <DatePicker
-                                    label="Birth Date"
+                                    label={t('soloReading.birthDateLabel')}
                                     value={person1BirthDate || null}
                                     onChange={handlePerson1DateChange}
                                     format="dd-MM-yyyy"
@@ -425,7 +428,7 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                                 />
                                 <TextField
                                     fullWidth
-                                    label="Birth Time (Optional)"
+                                    label={t('soloReading.birthTimeLabel')}
                                     type="time"
                                     value={person1BirthTime}
                                     onChange={handlePerson1TimeChange}
@@ -442,16 +445,16 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                                         px: { xs: 2, sm: 0 }
                                     }}
                                 >
-                                    If not provided, noon (12:00) will be used as a reference point
+                                    {t('soloReading.birthTimeTip')}
                                 </Typography>
                             </Box>
                             {/* Your Partner */}
                             <Box>
                                 <Typography variant="h6" gutterBottom sx={{ color: '#ff9800' }}>
-                                    Your Partner
+                                    {t('compatibility.person2')}
                                 </Typography>
                                 <DatePicker
-                                    label="Birth Date"
+                                    label={t('soloReading.birthDateLabel')}
                                     value={person2BirthDate || null}
                                     onChange={handlePerson2DateChange}
                                     format="dd-MM-yyyy"
@@ -464,7 +467,7 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                                 />
                                 <TextField
                                     fullWidth
-                                    label="Birth Time (Optional)"
+                                    label={t('soloReading.birthTimeLabel')}
                                     type="time"
                                     value={person2BirthTime}
                                     onChange={handlePerson2TimeChange}
@@ -481,7 +484,7 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                                         px: { xs: 2, sm: 0 }
                                     }}
                                 >
-                                    If not provided, noon (12:00) will be used as a reference point
+                                    {t('soloReading.birthTimeTip')}
                                 </Typography>
                             </Box>
                         </Box>
@@ -497,15 +500,15 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                             {compatibilityLoading ? (
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
-                                    Generating Compatibility Reading...
+                                    {t('compatibility.loadingCompatibility')}
                                 </Box>
                             ) : (
-                                'Generate Compatibility Reading'
+                                t('compatibility.getCompatibility')
                             )}
                         </Button>
                         {compatibilityError && (
                             <Alert severity="error" sx={{ mt: 1, width: '100%' }}>
-                                {compatibilityError}
+                                {t('compatibility.errorCompatibility')}
                             </Alert>
                         )}
                     </Box>
@@ -513,7 +516,7 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                     <Box sx={{ mt: 4 }}>
                         <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
                             <Typography variant="h5" color="primary.main" gutterBottom>
-                                Your Compatibility Reading
+                                {t('compatibility.title')}
                             </Typography>
                             <Box sx={{
                                 '& h1, & h2, & h3, & h4, & h5, & h6': {

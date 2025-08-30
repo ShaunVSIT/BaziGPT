@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 // Navigation now handled by Layout component
 import {
     Container,
@@ -33,11 +34,13 @@ function formatPersonalForecast(text: string) {
 }
 
 function Daily() {
+    const { t, i18n } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [forecast, setForecast] = useState<DailyBaziForecast | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [shareDialogOpen, setShareDialogOpen] = useState(false);
     const shareCardRef = useRef<HTMLDivElement>(null);
+    const isFetchingRef = useRef(false);
 
     // Personal forecast state with persistence
     const [showPersonalForecast, setShowPersonalForecast] = useState(false);
@@ -71,24 +74,41 @@ function Daily() {
     const today = new Date();
     const formattedDate = format(today, 'MMMM d, yyyy');
 
+
+
     const fetchDailyForecastData = async () => {
+        if (isFetchingRef.current) {
+            return;
+        }
+
+        isFetchingRef.current = true;
         setLoading(true);
         setError(null);
 
         try {
-            const data = await fetchDailyForecast();
+            const data = await fetchDailyForecast(i18n.language);
             setForecast(data);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching the daily forecast.';
             setError(errorMessage);
         } finally {
             setLoading(false);
+            isFetchingRef.current = false;
         }
     };
 
     useEffect(() => {
         fetchDailyForecastData();
-    }, []);
+    }, [i18n.language]); // Re-fetch when language changes
+
+    // Clear personal forecast when language changes (if we have birth data)
+    useEffect(() => {
+        if (personalForecast && birthDate) {
+            setPersonalForecast(null);
+            // Also clear from sessionStorage to prevent restoration on remount
+            sessionStorage.removeItem(PERSONAL_FORECAST_KEY);
+        }
+    }, [i18n.language]); // Only trigger on language change
 
     // Save birth details to localStorage when they change
     useEffect(() => {
@@ -174,17 +194,17 @@ function Daily() {
     // When sending to backend, ensure birthDate is a string in 'YYYY-MM-DD' format
     const handlePersonalForecastSubmit = async () => {
         if (!birthDate) {
-            setPersonalError('Please enter your birth date');
+            setPersonalError(t('daily.pleaseEnterBirthDate'));
             return;
         }
         setPersonalLoading(true);
         setPersonalError(null);
         try {
             const dateStr = birthDate; // birthDate is always a string
-            const data = await fetchPersonalForecast(dateStr, birthTime || undefined);
+            const data = await fetchPersonalForecast(dateStr, birthTime || undefined, i18n.language);
             setPersonalForecast(data);
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching your personal forecast.';
+            const errorMessage = err instanceof Error ? err.message : t('daily.errorFetchingPersonalForecast');
             setPersonalError(errorMessage);
         } finally {
             setPersonalLoading(false);
@@ -196,24 +216,24 @@ function Daily() {
     return (
         <>
             <Helmet>
-                <title>Daily Bazi Forecast - {formattedDate} | BaziGPT</title>
+                <title>{t('seo.daily.title')} - {formattedDate} | BaziGPT</title>
                 <meta
                     name="description"
-                    content="Get your daily Bazi forecast for today. Discover the energy of the day and practical guidance based on Chinese Four Pillars astrology."
+                    content={t('seo.daily.description')}
                 />
-                <meta name="keywords" content="daily bazi forecast, Chinese astrology, Four Pillars, daily horoscope, bazi reading, Chinese zodiac, daily energy, bazi analysis" />
+                <meta name="keywords" content={t('seo.daily.keywords')} />
 
                 {/* Open Graph */}
-                <meta property="og:title" content={`Daily Bazi Forecast - ${formattedDate} | BaziGPT`} />
-                <meta property="og:description" content="Get your daily Bazi forecast for today. Discover the energy of the day and practical guidance based on Chinese Four Pillars astrology." />
+                <meta property="og:title" content={`${t('seo.daily.title')} - ${formattedDate} | BaziGPT`} />
+                <meta property="og:description" content={t('seo.daily.description')} />
                 <meta property="og:url" content="https://bazigpt.io/daily" />
                 <meta property="og:type" content="website" />
                 <meta property="og:image" content="https://bazigpt.io/og-image.svg" />
 
                 {/* Twitter */}
                 <meta property="twitter:card" content="summary_large_image" />
-                <meta property="twitter:title" content={`Daily Bazi Forecast - ${formattedDate} | BaziGPT`} />
-                <meta property="twitter:description" content="Get your daily Bazi forecast for today. Discover the energy of the day and practical guidance based on Chinese Four Pillars astrology." />
+                <meta property="twitter:title" content={`${t('seo.daily.title')} - ${formattedDate} | BaziGPT`} />
+                <meta property="twitter:description" content={t('seo.daily.description')} />
                 <meta property="twitter:image" content="https://bazigpt.io/og-image.svg" />
 
                 {/* Canonical */}
@@ -224,8 +244,8 @@ function Daily() {
                     {JSON.stringify({
                         "@context": "https://schema.org",
                         "@type": "WebPage",
-                        "name": "Daily Bazi Forecast",
-                        "description": "Get your daily Bazi forecast for today. Discover the energy of the day and practical guidance based on Chinese Four Pillars astrology.",
+                        "name": t('seo.daily.title'),
+                        "description": t('seo.daily.description'),
                         "url": "https://bazigpt.io/daily",
                         "datePublished": formattedDate,
                         "dateModified": formattedDate,
@@ -238,12 +258,9 @@ function Daily() {
             </Helmet>
 
             <SEOAnalytics
-                pageTitle={`Daily Bazi Forecast - ${formattedDate} | BaziGPT`}
-                pageDescription="Get your daily Bazi forecast for today. Discover the energy of the day and practical guidance based on Chinese Four Pillars astrology."
-                keywords={[
-                    "daily bazi forecast", "Chinese astrology", "Four Pillars", "daily horoscope",
-                    "bazi reading", "Chinese zodiac", "daily energy", "bazi analysis"
-                ]}
+                pageTitle={`${t('seo.daily.title')} - ${formattedDate} | BaziGPT`}
+                pageDescription={t('seo.daily.description')}
+                keywords={t('seo.daily.keywords').split(', ')}
             />
 
             <Container maxWidth="md" sx={{ py: 4 }}>
@@ -267,7 +284,7 @@ function Daily() {
                         }}
                     >
                         <span style={{ fontSize: '0.9em' }}>🀄</span>
-                        Daily Bazi Forecast
+                        {t('daily.title')}
                         <span style={{ fontSize: '0.9em' }}>🀄</span>
                     </Typography>
                     <Typography
@@ -307,7 +324,7 @@ function Daily() {
                     ) : error ? (
                         <Box>
                             <Typography variant="h6" color="error" gutterBottom>
-                                Error Loading Forecast
+                                {t('daily.errorLoadingForecast')}
                             </Typography>
                             <Typography variant="body1" color="error">
                                 {error}
@@ -326,7 +343,7 @@ function Daily() {
                                             mb: 2
                                         }}
                                     >
-                                        Today's Energy
+                                        {t('daily.todaysEnergy')}
                                     </Typography>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                                         <Chip
@@ -393,7 +410,7 @@ function Daily() {
                                     }}
                                     endIcon={showPersonalForecast ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                                 >
-                                    How does today affect me?
+                                    {t('daily.howDoesTodayAffectMe')}
                                 </Button>
 
                                 <Collapse in={showPersonalForecast}>
@@ -401,17 +418,17 @@ function Daily() {
                                         {!personalForecast ? (
                                             <>
                                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                                    Enter your birth details to get a personalized daily forecast based on your Bazi chart.
+                                                    {t('daily.enterBirthDetails')}
                                                     {birthDate && (
                                                         <span style={{ color: '#ff9800', fontWeight: 500 }}>
-                                                            {' '}Your details are saved for this session.
+                                                            {' '}{t('daily.yourDetailsSaved')}
                                                         </span>
                                                     )}
                                                 </Typography>
 
                                                 <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 3 }}>
                                                     <TextField
-                                                        label="Birth Date"
+                                                        label={t('daily.birthDateLabel')}
                                                         type="date"
                                                         value={birthDate}
                                                         onChange={(e) => setBirthDate(e.target.value)}
@@ -426,7 +443,7 @@ function Daily() {
                                                         }}
                                                     />
                                                     <TextField
-                                                        label="Birth Time (optional)"
+                                                        label={t('daily.birthTimeLabel')}
                                                         type="time"
                                                         value={birthTime}
                                                         onChange={(e) => setBirthTime(e.target.value)}
@@ -469,7 +486,7 @@ function Daily() {
                                                     {personalLoading ? (
                                                         <CircularProgress size={20} color="inherit" />
                                                     ) : (
-                                                        'Get Personal Daily Forecast'
+                                                        t('daily.getPersonalDailyForecast')
                                                     )}
                                                 </Button>
                                             </>
@@ -478,7 +495,7 @@ function Daily() {
                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
                                                     <Box>
                                                         <Typography variant="h6" color="primary.main" gutterBottom>
-                                                            Your Personal Forecast
+                                                            {t('daily.yourPersonalForecast')}
                                                         </Typography>
                                                         <Typography variant="body2" color="text.secondary">
                                                             Birth: {new Date(birthDate).toLocaleDateString()}
@@ -501,7 +518,7 @@ function Daily() {
                                                             }
                                                         }}
                                                     >
-                                                        New Reading
+                                                        {t('daily.newReading')}
                                                     </Button>
                                                 </Box>
                                                 <Chip
@@ -551,7 +568,7 @@ function Daily() {
                                             }
                                         }}
                                     >
-                                        Share My Personal Forecast
+                                        {t('daily.sharePersonalForecast')}
                                     </Button>
                                 </Box>
                             )}
@@ -579,14 +596,14 @@ function Daily() {
                                         }
                                     }}
                                 >
-                                    Want a complete Bazi analysis?
+                                    {t('daily.wantCompleteBaziAnalysis')}
                                 </Typography>
                                 <Typography
                                     variant="body2"
                                     color="text.secondary"
                                     sx={{ mb: 1, fontSize: '0.9rem' }}
                                 >
-                                    Get your full birth chart reading with detailed insights
+                                    {t('daily.getFullBaziReading')}
                                 </Typography>
                                 <Button
                                     variant="contained"
@@ -605,17 +622,17 @@ function Daily() {
                                         }
                                     }}
                                 >
-                                    Get Full Bazi Reading
+                                    {t('daily.getFullBaziReadingButton')}
                                 </Button>
                             </Box>
                         </>
                     ) : (
                         <Box>
                             <Typography variant="h6" color="primary.main" gutterBottom>
-                                Daily Forecast Coming Soon
+                                {t('daily.dailyForecastComingSoon')}
                             </Typography>
                             <Typography variant="body1">
-                                The daily forecast feature is being set up. Please check back soon!
+                                {t('daily.dailyForecastSetup')}
                             </Typography>
                         </Box>
                     )}
@@ -640,12 +657,12 @@ function Daily() {
                     }}
                 >
                     <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
-                        Share Your Personal Daily Forecast
+                        {t('daily.sharePersonalForecastTitle')}
                     </DialogTitle>
                     <DialogContent>
                         <Box sx={{ textAlign: 'center', mb: 3 }}>
                             <ShareCardBase
-                                title="My Personal Daily Forecast"
+                                title={t('daily.myPersonalDailyForecast')}
                                 qrValue={window.location.href}
                             >
                                 <Typography variant="h6" sx={{ color: '#ff9800', mb: 2, fontWeight: 'bold' }}>
@@ -681,7 +698,7 @@ function Daily() {
                                 }
                             }}
                         >
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             onClick={handleShareDownload}
@@ -696,7 +713,7 @@ function Daily() {
                                 }
                             }}
                         >
-                            Save Forecast
+                            {t('daily.saveForecast')}
                         </Button>
                     </DialogActions>
                 </Dialog>

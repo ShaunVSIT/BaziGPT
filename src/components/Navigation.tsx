@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface NavigationItem {
     path: string;
@@ -9,30 +10,30 @@ interface NavigationItem {
     description: string;
 }
 
-const navigationItems: NavigationItem[] = [
+const getNavigationItems = (t: any): NavigationItem[] => [
     {
         path: '/',
-        label: 'Personal Reading',
+        label: t('navigation.personalReading'),
         icon: '🀄',
-        description: 'Get your personalized Bazi reading'
+        description: t('home.discoverDestiny')
     },
     {
         path: '/daily',
-        label: 'Daily Forecast',
+        label: t('navigation.dailyForecast'),
         icon: '📅',
-        description: 'Today\'s Bazi forecast for everyone'
+        description: t('daily.subtitle')
     },
     {
         path: '/famous',
-        label: 'Famous People',
+        label: t('navigation.famousPeople'),
         icon: '🌟',
-        description: 'Explore Bazi charts of famous people'
+        description: t('famous.subtitle')
     },
     {
         path: '/about',
-        label: 'About',
+        label: t('navigation.about'),
         icon: 'ℹ️',
-        description: 'Learn about BaziGPT'
+        description: t('about.subtitle')
     }
     // Easy to add more pages in the future:
     // {
@@ -58,8 +59,10 @@ const Navigation: React.FC<NavigationProps> = ({
     variant = 'horizontal',
     showDescriptions = false
 }) => {
+    const { t } = useTranslation();
     const location = useLocation();
     const currentPath = location.pathname;
+    const navigationItems = getNavigationItems(t);
 
     const isActive = (path: string) => {
         if (path === '/') {

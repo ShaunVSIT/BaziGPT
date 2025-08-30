@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 // Navigation now handled by Layout component
 import {
     Box,
@@ -67,6 +68,7 @@ const SOLO_READING_KEY = 'bazi-solo-reading';
 const SOLO_FOLLOWUPS_KEY = 'bazi-solo-followups';
 
 const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
+    const { t, i18n } = useTranslation();
     const [birthDate, setBirthDate] = useState<Date | null>(null);
     const [birthTime, setBirthTime] = useState<string>('');
     const [reading, setReading] = useState<BaziReading | null>(null);
@@ -146,6 +148,18 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
         }
     }, [cachedAnswers, birthDate, birthTime]);
 
+    // Clear reading when language changes (if we have birth data)
+    React.useEffect(() => {
+        if (reading && birthDate && birthTime !== undefined) {
+            setReading(null);
+            setCachedAnswers({});
+            // Also clear from sessionStorage to prevent restoration on remount
+            sessionStorage.removeItem(SOLO_READING_KEY);
+            const followupsKey = getFollowupsKey(birthDate, birthTime);
+            sessionStorage.removeItem(followupsKey);
+        }
+    }, [i18n.language]); // Only trigger on language change
+
     const handleDateChange = (newValue: any) => {
         if (newValue instanceof Date && !isNaN(newValue.getTime())) {
             setBirthDate(newValue);
@@ -174,7 +188,11 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
             const response = await fetch('/api/bazi-reading', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ birthDate: dateStr, birthTime: birthTime || undefined })
+                body: JSON.stringify({
+                    birthDate: dateStr,
+                    birthTime: birthTime || undefined,
+                    language: i18n.language
+                })
             });
             if (!response.ok) throw new Error('Failed to generate your reading.');
             const baziReading = await response.json();
@@ -221,7 +239,11 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
             const response = await fetch('/api/bazi-followup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ birthDate, question })
+                body: JSON.stringify({
+                    birthDate,
+                    question,
+                    language: i18n.language
+                })
             });
             if (!response.ok) throw new Error('Failed to generate the answer.');
             const data = await response.json();
@@ -307,7 +329,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                 }
             }}
         >
-            Share My Reading
+            {t('soloReading.shareReading')}
         </Button>
     );
 
@@ -341,15 +363,15 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                 }}
             >
                 <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
-                    Share Your Bazi Reading
+                    {t('soloReading.shareReading')}
                 </DialogTitle>
                 <DialogContent>
                     <Box sx={{ textAlign: 'center', mb: 3 }}>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            Share your personalized Bazi reading with friends and family
+                            {t('soloReading.shareReading')}
                         </Typography>
                         <ShareCardBase
-                            title="Your Bazi Reading"
+                            title={t('soloReading.title')}
                             qrValue={window.location.href}
                         >
                             {/* Four Pillars */}
@@ -385,7 +407,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                             }
                         }}
                     >
-                        Download Image
+                        {t('soloReading.downloadImage')}
                     </Button>
                     <Button
                         onClick={() => setShareDialogOpen(false)}
@@ -398,7 +420,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                             }
                         }}
                     >
-                        Close
+                        {t('common.close')}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -437,7 +459,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                     <span style={{ fontSize: '0.9em' }}>🀄</span>
                 </Typography>
                 <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-                    Discover your destiny through AI-powered Bazi readings
+                    {t('soloReading.subtitle')}
                 </Typography>
                 {/* Navigation removed - now handled by Layout component */}
             </Box>
@@ -480,7 +502,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                             transition: 'all 0.2s ease-in-out'
                         }}
                     >
-                        Solo Reading
+                        {t('soloReading.title')}
                     </Button>
                     <Button
                         onClick={() => onModeSwitch('compatibility')}
@@ -500,7 +522,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                             transition: 'all 0.2s ease-in-out'
                         }}
                     >
-                        Compatibility
+                        {t('compatibility.title')}
                     </Button>
                 </Box>
 
@@ -508,11 +530,11 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                 {!reading ? (
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, textAlign: 'center' }}>
                         <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
-                            Enter your birth information
+                            {t('soloReading.birthDateLabel')}
                         </Typography>
                         <Box sx={{ width: '100%', maxWidth: 400 }}>
                             <DatePicker
-                                label="Birth Date"
+                                label={t('soloReading.birthDateLabel')}
                                 value={birthDate}
                                 onChange={handleDateChange}
                                 format="dd-MM-yyyy"
@@ -525,7 +547,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                             />
                             <TextField
                                 fullWidth
-                                label="Birth Time (Optional)"
+                                label={t('soloReading.birthTimeLabel')}
                                 type="time"
                                 value={birthTime}
                                 onChange={handleTimeChange}
@@ -542,7 +564,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                                     px: { xs: 2, sm: 0 }
                                 }}
                             >
-                                If not provided, noon (12:00) will be used as a reference point
+                                {t('soloReading.birthTimeTip')}
                             </Typography>
                         </Box>
                         <Button
@@ -557,15 +579,15 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                             {loading ? (
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
-                                    Generating Reading...
+                                    {t('soloReading.loadingReading')}
                                 </Box>
                             ) : (
-                                'Generate My Reading'
+                                t('soloReading.getReading')
                             )}
                         </Button>
                         {error && (
                             <Alert severity="error" sx={{ mt: 1, width: '100%' }}>
-                                {error}
+                                {t('soloReading.errorReading')}
                             </Alert>
                         )}
                     </Box>
@@ -574,7 +596,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                         <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                                 <Typography variant="h5" color="primary.main" gutterBottom>
-                                    Your Bazi Reading
+                                    {t('soloReading.title')}
                                 </Typography>
                                 <IconButton
                                     onClick={() => setIsMainReadingExpanded(!isMainReadingExpanded)}
@@ -623,20 +645,20 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                         {/* Follow-up Questions */}
                         <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
                             <Typography variant="h6" color="primary.main" gutterBottom>
-                                Ask Follow-up Questions
+                                {t('soloReading.followUpTitle')}
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                                Get more specific insights about different aspects of your life:
+                                {t('soloReading.followUpSubtitle')}
                             </Typography>
 
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
                                 {[
-                                    'What about my career?',
-                                    'What about my health?',
-                                    'What about my relationships?',
-                                    'What about my finances?',
-                                    'What about my education?',
-                                    'What about my travel opportunities?'
+                                    t('soloReading.followUpCareer'),
+                                    t('soloReading.followUpHealth'),
+                                    t('soloReading.followUpRelationships'),
+                                    t('soloReading.followUpFinances'),
+                                    t('soloReading.followUpEducation'),
+                                    t('soloReading.followUpTravel')
                                 ].map((question) => (
                                     <Button
                                         key={question}

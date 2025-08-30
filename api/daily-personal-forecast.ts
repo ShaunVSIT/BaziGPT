@@ -4,6 +4,7 @@ import { callOpenAI } from '../src/utils/openai-util.js';
 interface PersonalForecastRequest {
     birthDate: string;
     birthTime?: string;
+    language?: string;
 }
 
 interface PersonalForecastResponse {
@@ -64,29 +65,70 @@ function getBaziPillarForDate(date: Date): string {
     return `${element} over ${branchWithChar}`;
 }
 
-// Generate personal forecast using OpenAI
-async function generatePersonalForecast(todayPillar: string, birthDate: string, birthTime?: string): Promise<string> {
+// Language-specific prompts for personal forecast
+const getPersonalForecastPrompts = (todayPillar: string, birthDate: string, birthTime: string | undefined, language: string) => {
+    const timeContext = birthTime ? ` — ${birthTime}` : "";
+
+    const prompts = {
+        en: {
+            systemPrompt: "You are an expert Bazi practitioner. Compare a person's chart to today's pillar and generate a brief personal daily forecast.",
+            userPrompt: `Today's Pillar: ${todayPillar}
+Birthday: ${birthDate}${timeContext}
+
+What is the personal Bazi forecast for this individual?
+
+Format as 2–3 bullet points using only plain text (no markdown, no asterisks, no bold formatting):
+
+• What to be mindful of today
+• Emotional or strategic tone  
+• Actionable advice (e.g. avoid conflict, focus on collaboration)
+
+Use only bullet points (•) and plain text. Do not use any markdown formatting like **bold** or __italic__. Keep it concise and practical.`
+        },
+        th: {
+            systemPrompt: "คุณเป็นผู้เชี่ยวชาญด้าน Bazi เปรียบเทียบแผนภูมิของบุคคลกับเสาของวันนี้และสร้างพยากรณ์ส่วนตัวประจำวันสั้นๆ",
+            userPrompt: `เสาของวันนี้: ${todayPillar}
+วันเกิด: ${birthDate}${timeContext}
+
+พยากรณ์ Bazi ส่วนตัวสำหรับบุคคลนี้คืออะไร?
+
+จัดรูปแบบเป็น 2-3 จุดโดยใช้ข้อความธรรมดาเท่านั้น (ไม่มี markdown, ไม่มีเครื่องหมายดอกจัน, ไม่มีการจัดรูปแบบตัวหนา):
+
+• สิ่งที่ควรระมัดระวังในวันนี้
+• โทนอารมณ์หรือกลยุทธ์
+• คำแนะนำที่ปฏิบัติได้ (เช่น หลีกเลี่ยงความขัดแย้ง มุ่งเน้นการร่วมมือ)
+
+ใช้เฉพาะจุดหัวข้อ (•) และข้อความธรรมดา อย่าใช้การจัดรูปแบบ markdown เช่น **ตัวหนา** หรือ __ตัวเอียง__ ให้กระชับและเป็นประโยชน์`
+        },
+        zh: {
+            systemPrompt: "您是八字专家。将个人的命盘与今日柱子进行比较，生成简短的个人每日预测。",
+            userPrompt: `今日柱子: ${todayPillar}
+生日: ${birthDate}${timeContext}
+
+这个人的个人八字预测是什么？
+
+格式为2-3个要点，仅使用纯文本（无markdown，无星号，无粗体格式）：
+
+• 今天需要注意什么
+• 情绪或策略基调
+• 可行的建议（例如避免冲突，专注合作）
+
+仅使用项目符号（•）和纯文本。不要使用任何markdown格式，如**粗体**或__斜体__。保持简洁实用。`
+        }
+    };
+
+    return prompts[language as keyof typeof prompts] || prompts.en;
+};
+
+// Generate personal forecast using OpenAI with language support
+async function generatePersonalForecast(todayPillar: string, birthDate: string, birthTime?: string, language: string = 'en'): Promise<string> {
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
     if (!OPENAI_API_KEY) {
         throw new Error('OpenAI API key not configured');
     }
 
-    const systemPrompt = "You are an expert Bazi practitioner. Compare a person's chart to today's pillar and generate a brief personal daily forecast.";
-
-    const timeContext = birthTime ? ` — ${birthTime}` : "";
-    const userPrompt = `Today's Pillar: ${todayPillar}
-    Birthday: ${birthDate}${timeContext}
-
-    What is the personal Bazi forecast for this individual?
-
-    Format as 2–3 bullet points using only plain text (no markdown, no asterisks, no bold formatting):
-
-    • What to be mindful of today
-    • Emotional or strategic tone  
-    • Actionable advice (e.g. avoid conflict, focus on collaboration)
-
-    Use only bullet points (•) and plain text. Do not use any markdown formatting like **bold** or __italic__. Keep it concise and practical.`;
+    const { systemPrompt, userPrompt } = getPersonalForecastPrompts(todayPillar, birthDate, birthTime, language);
 
     try {
         const data = await callOpenAI({
@@ -122,7 +164,7 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
     }
 
     try {
-        const { birthDate, birthTime }: PersonalForecastRequest = req.body;
+        const { birthDate, birthTime, language = 'en' }: PersonalForecastRequest = req.body;
         const dateString = birthDate;
         const timeString = birthTime || '';
 
@@ -132,7 +174,7 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
         }
 
         const today = getTodayDate();
-        const cacheKey = `personal-${birthDate}-${birthTime || 'noon'}-${today}`;
+        const cacheKey = `personal-${birthDate}-${birthTime || 'noon'}-${today}-${language}`;
 
         // Check if we have a cached forecast from today
         const cache = getPersonalCache();
@@ -174,8 +216,8 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
             // Generate today's pillar
             const todayPillar = getBaziPillarForDate(new Date());
 
-            // Generate personal forecast
-            const personalForecast = await generatePersonalForecast(todayPillar, birthDate, birthTime);
+            // Generate personal forecast with language support
+            const personalForecast = await generatePersonalForecast(todayPillar, birthDate, birthTime, language);
 
             const forecastResponse: PersonalForecastResponse = {
                 todayPillar,
