@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import FamousPeopleGrid from '../components/FamousPeopleGrid.tsx';
-import { Box, Typography, Button, CircularProgress, TextField, InputAdornment, SvgIcon } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, TextField, InputAdornment, SvgIcon, Paper, Fade } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +36,78 @@ export type FamousPerson = {
 };
 
 const PAGE_SIZE = 20;
+
+// Themed loading component matching the site's design
+const ThemedLoader: React.FC<{ message?: string; subtitle?: string }> = ({
+    message = "Loading Famous People",
+    subtitle = "Discovering legendary personalities..."
+}) => (
+    <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: 300,
+        py: 4
+    }}>
+        <Fade in={true} timeout={300}>
+            <Paper elevation={3} sx={{
+                p: { xs: 4, sm: 6 },
+                borderRadius: 3,
+                background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.05) 0%, rgba(255, 87, 34, 0.05) 100%)',
+                border: '1px solid rgba(255, 152, 0, 0.1)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                maxWidth: 400
+            }}>
+                <Box sx={{
+                    position: 'relative',
+                    mb: 3,
+                    '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: 80,
+                        height: 80,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(45deg, rgba(255, 152, 0, 0.1) 30%, rgba(255, 87, 34, 0.1) 90%)',
+                        '@keyframes pulse': {
+                            '0%, 100%': {
+                                opacity: 0.4,
+                                transform: 'translate(-50%, -50%) scale(1)',
+                            },
+                            '50%': {
+                                opacity: 0.8,
+                                transform: 'translate(-50%, -50%) scale(1.1)',
+                            }
+                        },
+                        animation: 'pulse 2s ease-in-out infinite'
+                    }
+                }}>
+                    <CircularProgress
+                        size={60}
+                        thickness={4}
+                        sx={{
+                            color: '#ff9800',
+                            '& .MuiCircularProgress-circle': {
+                                strokeLinecap: 'round',
+                            }
+                        }}
+                    />
+                </Box>
+                <Typography variant="h6" color="primary.main" gutterBottom sx={{ fontWeight: 600 }}>
+                    {message}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ opacity: 0.8 }}>
+                    {subtitle}
+                </Typography>
+            </Paper>
+        </Fade>
+    </Box>
+);
 
 const Famous: React.FC = () => {
     const { t } = useTranslation();
@@ -196,9 +268,10 @@ const Famous: React.FC = () => {
                 </Box>
                 {search ? (
                     searchLoading ? (
-                        <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-                            <CircularProgress />
-                        </Box>
+                        <ThemedLoader
+                            message="Searching Famous People"
+                            subtitle="Finding matching personalities..."
+                        />
                     ) : filtered.length === 0 ? (
                         <Box display="flex" flexDirection="column" alignItems="center" minHeight={200}>
                             <Typography variant="h6" color="text.secondary" mb={2} textAlign="center">
@@ -221,9 +294,7 @@ const Famous: React.FC = () => {
                         <FamousPeopleGrid people={filtered} />
                     )
                 ) : loading ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-                        <CircularProgress />
-                    </Box>
+                    <ThemedLoader />
                 ) : (
                     <>
                         <FamousPeopleGrid people={filtered} />

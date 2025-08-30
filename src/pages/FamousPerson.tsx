@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FamousPerson } from './Famous';
-import { Box, Typography, Paper, Button } from '@mui/material';
+import { Box, Typography, Paper, Button, CircularProgress, Fade } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Helmet } from 'react-helmet-async';
 
@@ -39,7 +39,77 @@ const FamousPersonPage: React.FC = () => {
             });
     }, [slug]);
 
-    if (loading) return <Box p={6}><Typography>Loading…</Typography></Box>;
+    if (loading) return (
+        <Box sx={{
+            width: '100%',
+            px: { xs: 0, sm: 2, md: 4 },
+            py: { xs: 2, sm: 4 },
+            maxWidth: '100vw',
+            mx: 'auto',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '60vh'
+        }}>
+            <Fade in={loading} timeout={300}>
+                <Paper elevation={3} sx={{
+                    p: { xs: 4, sm: 6 },
+                    borderRadius: 3,
+                    background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.05) 0%, rgba(255, 87, 34, 0.05) 100%)',
+                    border: '1px solid rgba(255, 152, 0, 0.1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    maxWidth: 400
+                }}>
+                    <Box sx={{
+                        position: 'relative',
+                        mb: 3,
+                        '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 80,
+                            height: 80,
+                            borderRadius: '50%',
+                            background: 'linear-gradient(45deg, rgba(255, 152, 0, 0.1) 30%, rgba(255, 87, 34, 0.1) 90%)',
+                            '@keyframes pulse': {
+                                '0%, 100%': {
+                                    opacity: 0.4,
+                                    transform: 'translate(-50%, -50%) scale(1)',
+                                },
+                                '50%': {
+                                    opacity: 0.8,
+                                    transform: 'translate(-50%, -50%) scale(1.1)',
+                                }
+                            },
+                            animation: 'pulse 2s ease-in-out infinite'
+                        }
+                    }}>
+                        <CircularProgress
+                            size={60}
+                            thickness={4}
+                            sx={{
+                                color: '#ff9800',
+                                '& .MuiCircularProgress-circle': {
+                                    strokeLinecap: 'round',
+                                }
+                            }}
+                        />
+                    </Box>
+                    <Typography variant="h6" color="primary.main" gutterBottom sx={{ fontWeight: 600 }}>
+                        Loading Bazi Reading
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ opacity: 0.8 }}>
+                        Analyzing the stars and elements...
+                    </Typography>
+                </Paper>
+            </Fade>
+        </Box>
+    );
     if (!person) return <Box p={6}><Typography>Not found.</Typography></Box>;
 
     // Prefer 'reading' or 'bazi_reading' field for reading, fallback to gpt_summary
@@ -139,7 +209,7 @@ const FamousPersonPage: React.FC = () => {
                     )}
                     {person.marketing_blurb && (
                         <Button
-                            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(person.marketing_blurb)}`}
+                            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${person.marketing_blurb}\n\nReading by @bazigpt\nbazigpt.io`)}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             variant="outlined"
