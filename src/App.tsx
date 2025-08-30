@@ -14,6 +14,8 @@ import DevelopmentAnalytics from './components/DevelopmentAnalytics';
 import SEOAnalytics from './components/SEOAnalytics';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
+import LanguageWelcomeModal from './components/LanguageWelcomeModal';
+import LanguageToast from './components/LanguageToast';
 import routes from './routes';
 import './i18n';
 
@@ -63,6 +65,8 @@ function App() {
                 </Routes>
               </Suspense>
             </Layout>
+            <LanguageWelcomeModal />
+            <LanguageToast />
           </Router>
         </LocalizationProvider>
         <SpeedInsights />

@@ -18,6 +18,9 @@
         "expand": "Expand",
         "collapse": "Collapse"
     },
+    "onboarding": {
+        "disclaimerSubtitle": "Please read and accept our terms to continue"
+    },
     "navigation": {
         "home": "Home",
         "daily": "Daily Bazi",
@@ -152,7 +155,31 @@
             "compatibilityAnalysis": "Relationship Compatibility",
             "dailyForecasts": "Daily Forecasts",
             "famousPeople": "Famous People Charts"
-        }
+        },
+        "whatIsBaziGPT": "What is BaziGPT?",
+        "whatIsBaziGPTDescription": "BaziGPT is an AI-powered platform that provides personalized Bazi (八字) readings based on traditional Chinese astrology principles. Our advanced AI system combines ancient wisdom with modern technology to deliver insightful and accurate readings.",
+        "ourMission": "Our Mission",
+        "ourMissionDescription": "We believe that everyone deserves access to personalized insights that can help guide their life decisions. By combining traditional Bazi principles with cutting-edge AI technology, we make this ancient wisdom accessible to everyone.",
+        "howItWorks": "How It Works",
+        "howItWorksDescription": "Simply enter your birth date and time, and our AI system will analyze your Bazi chart to provide personalized insights about your personality, career, relationships, and life path. You can also get daily forecasts and compatibility readings.",
+        "typesOfReadings": "Types of Readings We Offer",
+        "soloReading": "Solo Reading",
+        "soloReadingDescription": "Get a personalized Bazi reading based on your birth date and time. Discover insights about your personality, strengths, challenges, and life path using traditional Chinese astrology principles, powered by AI.",
+        "trySoloReading": "Try Solo Reading",
+        "compatibilityReading": "Compatibility Reading",
+        "compatibilityReadingDescription": "Compare your Bazi chart with a partner, friend, or family member. Explore relationship dynamics, compatibility, and areas of harmony or challenge, all interpreted through the lens of Bazi astrology and AI.",
+        "tryCompatibilityReading": "Try Compatibility Reading",
+        "dailyForecast": "Daily Forecast",
+        "dailyForecastDescription": "Receive daily Bazi forecasts that blend ancient wisdom with AI insights. Understand the cosmic energies influencing your day and get practical tips for making the most of each day's opportunities.",
+        "viewDailyForecast": "View Daily Forecast",
+        "whatIsBazi": "What is Bazi (八字)?",
+        "whatIsBaziDescription": "Bazi, also known as the Four Pillars of Destiny (四柱命理), is a traditional Chinese astrological system that analyzes your birth date and time to reveal insights about your personality, destiny, and life path.",
+        "fourPillars": "The Four Pillars",
+        "fourPillarsDescription": "Your Bazi chart consists of four pillars representing the year, month, day, and hour of your birth. Each pillar contains two characters: a Heavenly Stem (天干) and an Earthly Branch (地支). These elements interact to create a unique combination that defines your character and life journey.",
+        "fiveElements": "The Five Elements",
+        "fiveElementsDescription": "Bazi is based on the Five Elements (五行): Wood, Fire, Earth, Metal, and Water. Each element represents different aspects of your personality and life. The balance and interaction of these elements in your chart reveal your strengths, weaknesses, and potential life paths.",
+        "modernApplications": "Modern Applications",
+        "modernApplicationsDescription": "While Bazi has ancient roots, its principles remain relevant today. Understanding your Bazi can help you make better decisions about career choices, relationships, timing for important events, and personal development. It's a tool for self-awareness and life guidance, not fortune-telling."
     },
     "footer": {
         "copyright": "© 2024 BaziGPT. All rights reserved.",

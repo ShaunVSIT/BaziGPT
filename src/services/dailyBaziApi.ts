@@ -46,7 +46,7 @@ export async function fetchDailyForecast(language: string = 'en'): Promise<Daily
     }
 }
 
-export async function fetchPersonalForecast(birthDate: string, birthTime?: string): Promise<PersonalForecastResponse> {
+export async function fetchPersonalForecast(birthDate: string, birthTime?: string, language: string = 'en'): Promise<PersonalForecastResponse> {
     // Call the actual API
     try {
         const response = await fetch('/api/daily-personal-forecast', {
@@ -56,7 +56,8 @@ export async function fetchPersonalForecast(birthDate: string, birthTime?: strin
             },
             body: JSON.stringify({
                 birthDate,
-                birthTime
+                birthTime,
+                language
             }),
         });
 

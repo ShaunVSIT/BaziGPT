@@ -18,6 +18,9 @@
         "expand": "展开",
         "collapse": "收起"
     },
+    "onboarding": {
+        "disclaimerSubtitle": "请阅读并接受我们的条款以继续"
+    },
     "navigation": {
         "home": "首页",
         "daily": "每日八字",
@@ -152,7 +155,31 @@
             "compatibilityAnalysis": "关系兼容性分析",
             "dailyForecasts": "每日预测",
             "famousPeople": "名人图表"
-        }
+        },
+        "whatIsBaziGPT": "什么是BaziGPT？",
+        "whatIsBaziGPTDescription": "BaziGPT是一个AI驱动的平台，基于传统中国占星术原理提供个性化的八字解读。我们的先进AI系统结合古代智慧与现代技术，提供有洞察力和准确的解读。",
+        "ourMission": "我们的使命",
+        "ourMissionDescription": "我们相信每个人都应该获得个性化洞察，帮助指导他们的人生决策。通过结合传统八字原理与尖端AI技术，我们让这种古老智慧为每个人所用。",
+        "howItWorks": "工作原理",
+        "howItWorksDescription": "只需输入您的出生日期和时间，我们的AI系统将分析您的八字图表，提供关于您的个性、事业、关系和人生道路的个性化洞察。您还可以获得每日预测和兼容性解读。",
+        "typesOfReadings": "我们提供的解读类型",
+        "soloReading": "个人解读",
+        "soloReadingDescription": "根据您的出生日期和时间获得个性化八字解读。使用AI驱动的传统中国占星术原理，发现关于您的个性、优势、挑战和人生道路的洞察。",
+        "trySoloReading": "尝试个人解读",
+        "compatibilityReading": "兼容性解读",
+        "compatibilityReadingDescription": "将您的八字图表与伴侣、朋友或家庭成员进行比较。探索关系动态、兼容性以及和谐或挑战的领域，全部通过八字占星术和AI的视角进行解释。",
+        "tryCompatibilityReading": "尝试兼容性解读",
+        "dailyForecast": "每日预测",
+        "dailyForecastDescription": "接收融合古代智慧与AI洞察的每日八字预测。了解影响您一天的宇宙能量，获得充分利用每天机会的实用建议。",
+        "viewDailyForecast": "查看每日预测",
+        "whatIsBazi": "什么是八字？",
+        "whatIsBaziDescription": "八字，也称为四柱命理，是一种传统的中国占星术系统，通过分析您的出生日期和时间来揭示关于您的个性、命运和人生道路的洞察。",
+        "fourPillars": "四柱",
+        "fourPillarsDescription": "您的八字图表由代表您出生年、月、日、时的四柱组成。每柱包含两个字符：天干和地支。这些元素相互作用，创造出定义您性格和人生旅程的独特组合。",
+        "fiveElements": "五行",
+        "fiveElementsDescription": "八字基于五行：木、火、土、金、水。每个元素代表您个性和生活的不同方面。这些元素在您图表中的平衡和相互作用揭示了您的优势、弱点和潜在人生道路。",
+        "modernApplications": "现代应用",
+        "modernApplicationsDescription": "虽然八字有着古老的根源，但其原理在今天仍然相关。了解您的八字可以帮助您在职业选择、关系、重要事件时机和个人发展方面做出更好的决策。这是自我认知和人生指导的工具，而不是算命。"
     },
     "footer": {
         "copyright": "© 2024 BaziGPT。保留所有权利。",

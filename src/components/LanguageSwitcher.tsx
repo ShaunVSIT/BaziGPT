@@ -51,6 +51,13 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ onLanguageChange })
     const handleLanguageChange = (languageCode: string) => {
         i18n.changeLanguage(languageCode);
         track('language_changed', { language: languageCode });
+
+        // Show a brief confirmation that preference was saved
+        const event = new CustomEvent('language-preference-saved', {
+            detail: { language: languageCode }
+        });
+        window.dispatchEvent(event);
+
         handleClose();
         onLanguageChange?.(); // Call the callback if provided
     };

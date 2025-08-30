@@ -201,7 +201,7 @@ function Daily() {
         setPersonalError(null);
         try {
             const dateStr = birthDate; // birthDate is always a string
-            const data = await fetchPersonalForecast(dateStr, birthTime || undefined);
+            const data = await fetchPersonalForecast(dateStr, birthTime || undefined, i18n.language);
             setPersonalForecast(data);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : t('daily.errorFetchingPersonalForecast');

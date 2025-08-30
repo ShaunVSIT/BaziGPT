@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typography } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
-import { track } from '@vercel/analytics/react';
 import SoloReading from '../components/SoloReading';
 import CompatibilityReading from '../components/CompatibilityReading';
 
 const Home: React.FC = () => {
     const { t } = useTranslation();
     const [readingMode, setReadingMode] = useState<'solo' | 'compatibility'>('solo');
-    const [disclaimerOpen, setDisclaimerOpen] = useState(() => {
-        const hasSeen = localStorage.getItem('bazigpt_disclaimer_seen');
-        return !hasSeen;
-    });
 
     // Switch to compatibility mode if ?mode=compatibility is present
     useEffect(() => {
@@ -27,11 +20,7 @@ const Home: React.FC = () => {
         setReadingMode(newMode);
     };
 
-    const handleCloseDisclaimer = () => {
-        track('disclaimer_accepted');
-        setDisclaimerOpen(false);
-        localStorage.setItem('bazigpt_disclaimer_seen', 'true');
-    };
+
 
     return (
         <>
@@ -85,50 +74,6 @@ const Home: React.FC = () => {
             ) : (
                 <CompatibilityReading onModeSwitch={handleModeSwitch} />
             )}
-
-            {/* Disclaimer Dialog */}
-            <Dialog
-                open={disclaimerOpen}
-                onClose={handleCloseDisclaimer}
-                maxWidth="sm"
-                fullWidth
-                PaperProps={{
-                    sx: {
-                        bgcolor: '#1e1e1e',
-                        color: 'white',
-                        borderRadius: 3,
-                    }
-                }}
-            >
-                <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-                        <InfoIcon sx={{ color: '#ff9800', mr: 1 }} />
-                        <Typography variant="h6">{t('home.disclaimer.title')}</Typography>
-                    </Box>
-                </DialogTitle>
-                <DialogContent>
-                    <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.6, textAlign: 'justify' }}>
-                        {t('home.disclaimer.content')}
-                    </Typography>
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
-                    <Button
-                        onClick={handleCloseDisclaimer}
-                        variant="contained"
-                        sx={{
-                            background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
-                            color: 'white',
-                            px: 4,
-                            py: 1.5,
-                            '&:hover': {
-                                background: 'linear-gradient(45deg, #ff9800 60%, #ff5722 90%)',
-                            }
-                        }}
-                    >
-                        {t('home.disclaimer.accept')}
-                    </Button>
-                </DialogActions>
-            </Dialog>
         </>
     );
 };

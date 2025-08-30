@@ -109,6 +109,8 @@ const Famous: React.FC = () => {
         // eslint-disable-next-line
     }, [category]);
 
+
+
     // Filter by category (now always from backend)
     const categories = allCategories;
     const filtered = search ? searchResults : people;
