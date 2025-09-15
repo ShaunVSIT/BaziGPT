@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import {
     Container,
     Box,
@@ -20,7 +20,8 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ShareIcon from '@mui/icons-material/Share';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { track } from '@vercel/analytics/react';
-import ReactMarkdown from 'react-markdown';
+// Lazy load heavy components
+const ReactMarkdown = React.lazy(() => import('react-markdown'));
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 interface CompatibilityReading {
@@ -301,16 +302,18 @@ export default function Compatibility() {
                         </Box>
 
                         <Box sx={{ mb: 3 }}>
-                            <ReactMarkdown
-                                components={{
-                                    h1: ({ node, ...props }) => <h1 style={{ color: '#ff9800', fontWeight: 700, marginTop: 16, marginBottom: 8, fontSize: '1.5rem' }} {...props} />,
-                                    h2: ({ node, ...props }) => <h2 style={{ color: '#ff9800', fontWeight: 700, marginTop: 12, marginBottom: 8, fontSize: '1.2rem' }} {...props} />,
-                                    p: ({ node, ...props }) => <p style={{ lineHeight: 1.6, marginBottom: 8, fontSize: '1rem', color: '#fff' }} {...props} />,
-                                    li: ({ node, ...props }) => <li style={{ marginBottom: 4 }}>{props.children}</li>
-                                }}
-                            >
-                                {reading.reading}
-                            </ReactMarkdown>
+                            <Suspense fallback={<CircularProgress size={20} />}>
+                                <ReactMarkdown
+                                    components={{
+                                        h1: ({ node, ...props }) => <h1 style={{ color: '#ff9800', fontWeight: 700, marginTop: 16, marginBottom: 8, fontSize: '1.5rem' }} {...props} />,
+                                        h2: ({ node, ...props }) => <h2 style={{ color: '#ff9800', fontWeight: 700, marginTop: 12, marginBottom: 8, fontSize: '1.2rem' }} {...props} />,
+                                        p: ({ node, ...props }) => <p style={{ lineHeight: 1.6, marginBottom: 8, fontSize: '1rem', color: '#fff' }} {...props} />,
+                                        li: ({ node, ...props }) => <li style={{ marginBottom: 4 }}>{props.children}</li>
+                                    }}
+                                >
+                                    {reading.reading}
+                                </ReactMarkdown>
+                            </Suspense>
                         </Box>
 
                         <Box sx={{ textAlign: 'center', mt: 3 }}>

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 // Navigation now handled by Layout component
 import {
@@ -20,9 +20,9 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { track } from '@vercel/analytics/react';
 import ShareIcon from '@mui/icons-material/Share';
-import html2canvas from 'html2canvas';
-import ReactMarkdown from 'react-markdown';
-import ShareCardBase from './ShareCardBase';
+// Lazy load heavy components
+const ReactMarkdown = React.lazy(() => import('react-markdown'));
+const ShareCardBase = React.lazy(() => import('./ShareCardBase'));
 
 interface CompatibilityReadingData {
     reading: string;
@@ -203,6 +203,8 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
         if (!compatibilityShareCardRef.current) return;
 
         try {
+            // Dynamically import html2canvas to reduce initial bundle size
+            const html2canvas = (await import('html2canvas')).default;
             const canvas = await html2canvas(compatibilityShareCardRef.current, {
                 backgroundColor: '#121212',
                 scale: 2,
@@ -252,35 +254,43 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                             Share your compatibility reading with friends and family
                         </Typography>
-                        <ShareCardBase
-                            title="Our Compatibility Reading"
-                            qrValue={window.location.href}
-                        >
-                            {/* Elemental Compatibility */}
-                            {sections.elemental && (
-                                <Box sx={{ color: 'white', mb: 2, textAlign: 'center', fontSize: '1rem' }}>
-                                    <ReactMarkdown>{cleanBullets(sections.elemental)}</ReactMarkdown>
-                                </Box>
-                            )}
-                            {/* Key Insights */}
-                            {sections.keyInsights && (
-                                <Box sx={{ color: 'white', mb: 2, textAlign: 'center', fontSize: '1rem' }}>
-                                    <ReactMarkdown>{cleanBullets(sections.keyInsights)}</ReactMarkdown>
-                                </Box>
-                            )}
-                            {/* Shareable Summary (fallback) */}
-                            {!sections.elemental && !sections.keyInsights && sections.summary && (
-                                <Box sx={{ color: 'white', mb: 2, textAlign: 'center', fontSize: '1.1rem', fontWeight: 500 }}>
-                                    {sections.summary}
-                                </Box>
-                            )}
-                            {/* Fallback: first 3-5 lines of reading */}
-                            {!sections.elemental && !sections.keyInsights && !sections.summary && fallbackText && (
-                                <Box sx={{ color: 'white', mb: 2, textAlign: 'center', fontSize: '1rem' }}>
-                                    <ReactMarkdown>{fallbackText}</ReactMarkdown>
-                                </Box>
-                            )}
-                        </ShareCardBase>
+                        <Suspense fallback={<CircularProgress />}>
+                            <ShareCardBase
+                                title="Our Compatibility Reading"
+                                qrValue={window.location.href}
+                            >
+                                {/* Elemental Compatibility */}
+                                {sections.elemental && (
+                                    <Box sx={{ color: 'white', mb: 2, textAlign: 'center', fontSize: '1rem' }}>
+                                        <Suspense fallback={<CircularProgress size={20} />}>
+                                            <ReactMarkdown>{cleanBullets(sections.elemental)}</ReactMarkdown>
+                                        </Suspense>
+                                    </Box>
+                                )}
+                                {/* Key Insights */}
+                                {sections.keyInsights && (
+                                    <Box sx={{ color: 'white', mb: 2, textAlign: 'center', fontSize: '1rem' }}>
+                                        <Suspense fallback={<CircularProgress size={20} />}>
+                                            <ReactMarkdown>{cleanBullets(sections.keyInsights)}</ReactMarkdown>
+                                        </Suspense>
+                                    </Box>
+                                )}
+                                {/* Shareable Summary (fallback) */}
+                                {!sections.elemental && !sections.keyInsights && sections.summary && (
+                                    <Box sx={{ color: 'white', mb: 2, textAlign: 'center', fontSize: '1.1rem', fontWeight: 500 }}>
+                                        {sections.summary}
+                                    </Box>
+                                )}
+                                {/* Fallback: first 3-5 lines of reading */}
+                                {!sections.elemental && !sections.keyInsights && !sections.summary && fallbackText && (
+                                    <Box sx={{ color: 'white', mb: 2, textAlign: 'center', fontSize: '1rem' }}>
+                                        <Suspense fallback={<CircularProgress size={20} />}>
+                                            <ReactMarkdown>{fallbackText}</ReactMarkdown>
+                                        </Suspense>
+                                    </Box>
+                                )}
+                            </ShareCardBase>
+                        </Suspense>
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
@@ -539,7 +549,9 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                                 color: 'text.primary',
                                 lineHeight: 1.6
                             }}>
-                                <ReactMarkdown>{compatibilityReading.reading}</ReactMarkdown>
+                                <Suspense fallback={<CircularProgress size={20} />}>
+                                    <ReactMarkdown>{compatibilityReading.reading}</ReactMarkdown>
+                                </Suspense>
                             </Box>
                         </Paper>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 // Navigation now handled by Layout component
@@ -23,10 +23,10 @@ import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { fetchDailyForecast, fetchPersonalForecast, type DailyBaziForecast, type PersonalForecastResponse } from '../services/dailyBaziApi';
-import html2canvas from 'html2canvas';
 import SEOAnalytics from './SEOAnalytics';
-import ReactMarkdown from 'react-markdown';
-import ShareCardBase from './ShareCardBase';
+// Lazy load heavy components
+const ReactMarkdown = React.lazy(() => import('react-markdown'));
+const ShareCardBase = React.lazy(() => import('./ShareCardBase'));
 
 function formatPersonalForecast(text: string) {
     // Ensure each bullet starts on a new line
@@ -171,6 +171,8 @@ function Daily() {
         if (!shareCardRef.current) return;
 
         try {
+            // Dynamically import html2canvas to reduce initial bundle size
+            const html2canvas = (await import('html2canvas')).default;
             const canvas = await html2canvas(shareCardRef.current, {
                 backgroundColor: '#1a1a1a',
                 scale: 2,
@@ -382,7 +384,9 @@ function Daily() {
                                         fontWeight: 600
                                     }
                                 }}>
-                                    <ReactMarkdown>{forecast.forecast}</ReactMarkdown>
+                                    <Suspense fallback={<CircularProgress size={20} />}>
+                                        <ReactMarkdown>{forecast.forecast}</ReactMarkdown>
+                                    </Suspense>
                                 </Box>
                             )}
 
@@ -661,29 +665,33 @@ function Daily() {
                     </DialogTitle>
                     <DialogContent>
                         <Box sx={{ textAlign: 'center', mb: 3 }}>
-                            <ShareCardBase
-                                title={t('daily.myPersonalDailyForecast')}
-                                qrValue={window.location.href}
-                            >
-                                <Typography variant="h6" sx={{ color: '#ff9800', mb: 2, fontWeight: 'bold' }}>
-                                    {formattedDate}
-                                </Typography>
-                                {personalForecast.todayPillar && (
-                                    <Chip
-                                        label={personalForecast.todayPillar}
-                                        color="primary"
-                                        variant="outlined"
-                                        sx={{
-                                            borderColor: 'primary.main',
-                                            color: 'primary.main',
-                                            mb: 2
-                                        }}
-                                    />
-                                )}
-                                <Typography variant="body1" sx={{ color: 'white', mb: 2, lineHeight: 1.6, textAlign: 'center' }}>
-                                    <ReactMarkdown>{formatPersonalForecast(personalForecast.personalForecast)}</ReactMarkdown>
-                                </Typography>
-                            </ShareCardBase>
+                            <Suspense fallback={<CircularProgress />}>
+                                <ShareCardBase
+                                    title={t('daily.myPersonalDailyForecast')}
+                                    qrValue={window.location.href}
+                                >
+                                    <Typography variant="h6" sx={{ color: '#ff9800', mb: 2, fontWeight: 'bold' }}>
+                                        {formattedDate}
+                                    </Typography>
+                                    {personalForecast.todayPillar && (
+                                        <Chip
+                                            label={personalForecast.todayPillar}
+                                            color="primary"
+                                            variant="outlined"
+                                            sx={{
+                                                borderColor: 'primary.main',
+                                                color: 'primary.main',
+                                                mb: 2
+                                            }}
+                                        />
+                                    )}
+                                    <Typography variant="body1" sx={{ color: 'white', mb: 2, lineHeight: 1.6, textAlign: 'center' }}>
+                                        <Suspense fallback={<CircularProgress size={20} />}>
+                                            <ReactMarkdown>{formatPersonalForecast(personalForecast.personalForecast)}</ReactMarkdown>
+                                        </Suspense>
+                                    </Typography>
+                                </ShareCardBase>
+                            </Suspense>
                         </Box>
                     </DialogContent>
                     <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
