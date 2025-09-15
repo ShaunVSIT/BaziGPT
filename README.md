@@ -32,11 +32,9 @@ Visit [BaziGPT.com](https://bazigpt.com) to try it out!
 - **AI Integration**: OpenAI GPT-4 API
 - **Deployment**: Vercel
 - **Analytics**: Vercel Analytics & Speed Insights
-- **PWA**: Service Worker for offline capabilities
 
 ## 📱 PWA Features
 
-- **Offline Support**: Works without internet connection
 - **Installable**: Add to home screen on mobile devices
 - **Fast Loading**: Optimized for performance
 - **Responsive**: Perfect experience on all screen sizes
