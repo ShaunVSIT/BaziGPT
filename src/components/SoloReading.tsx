@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, Suspense } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 // Navigation now handled by Layout component
@@ -24,9 +24,9 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { track } from '@vercel/analytics/react';
 import ShareIcon from '@mui/icons-material/Share';
-import html2canvas from 'html2canvas';
-import ReactMarkdown from 'react-markdown';
-import ShareCardBase from './ShareCardBase';
+// Lazy load heavy components
+const ReactMarkdown = React.lazy(() => import('react-markdown'));
+const ShareCardBase = React.lazy(() => import('./ShareCardBase'));
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 interface BaziReading {
@@ -44,12 +44,15 @@ function extractShareCardSections(readingMarkdown: string) {
     // Four Pillars: match any heading level, allow whitespace, tolerate extra newlines
     const fourPillarsMatch = readingMarkdown.match(/#+\s*Four Pillars[\s\S]*?(?:\n- .+)+/i);
     let fourPillars = fourPillarsMatch ? fourPillarsMatch[0] : '';
+
     // Key Insights: match the whole section, including all sub-sections, until the next top-level heading
     const keyInsightsMatch = readingMarkdown.match(/#+\s*Key Insights[\s\S]*?(?=\n#+\s|$)/i);
     let keyInsights = keyInsightsMatch ? keyInsightsMatch[0] : '';
+
     // Core Self: match any heading level, allow whitespace, tolerate extra newlines
     const coreSelfMatch = readingMarkdown.match(/#+\s*Core Self[\s\S]*?(?=\n#+\s|$)/i);
     let coreSelf = coreSelfMatch ? coreSelfMatch[0] : '';
+
     // Fallback: if not found, use first 5 lines of reading
     if (!fourPillars) fourPillars = readingMarkdown.split('\n').slice(0, 6).join('\n');
     if (!keyInsights) keyInsights = coreSelf;
@@ -290,6 +293,8 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
         if (!shareCardRef.current) return;
 
         try {
+            // Dynamically import html2canvas to reduce initial bundle size
+            const html2canvas = (await import('html2canvas')).default;
             const canvas = await html2canvas(shareCardRef.current, {
                 backgroundColor: '#121212',
                 scale: 2,
@@ -370,27 +375,33 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                             {t('soloReading.shareReading')}
                         </Typography>
-                        <ShareCardBase
-                            title={t('soloReading.title')}
-                            qrValue={window.location.href}
-                        >
-                            {/* Four Pillars */}
-                            {sections.fourPillars && (
-                                <Box sx={{ color: 'white', mb: 2, textAlign: 'left', fontSize: '1rem' }}>
-                                    <ReactMarkdown components={markdownComponents}>{sections.fourPillars}</ReactMarkdown>
-                                </Box>
-                            )}
-                            {/* Key Insights (includes Core Self, etc.) */}
-                            {sections.keyInsights && (
-                                <Box sx={{ color: 'white', mb: 2, textAlign: 'left', fontSize: '1rem' }}>
-                                    <ReactMarkdown components={markdownComponents}>{sections.keyInsights}</ReactMarkdown>
-                                </Box>
-                            )}
-                            {/* Shareable Summary */}
-                            <Typography variant="body1" sx={{ color: '#ff9800', mb: 2, lineHeight: 1.6, textAlign: 'left', fontWeight: 600 }}>
-                                {getShareableSummary()}
-                            </Typography>
-                        </ShareCardBase>
+                        <Suspense fallback={<CircularProgress />}>
+                            <ShareCardBase
+                                title={t('soloReading.title')}
+                                qrValue={window.location.href}
+                            >
+                                {/* Four Pillars */}
+                                {sections.fourPillars && (
+                                    <Box sx={{ color: 'white', mb: 2, textAlign: 'left', fontSize: '1rem' }}>
+                                        <Suspense fallback={<CircularProgress size={20} />}>
+                                            <ReactMarkdown components={markdownComponents}>{sections.fourPillars}</ReactMarkdown>
+                                        </Suspense>
+                                    </Box>
+                                )}
+                                {/* Key Insights (includes Core Self, etc.) */}
+                                {sections.keyInsights && (
+                                    <Box sx={{ color: 'white', mb: 2, textAlign: 'left', fontSize: '1rem' }}>
+                                        <Suspense fallback={<CircularProgress size={20} />}>
+                                            <ReactMarkdown components={markdownComponents}>{sections.keyInsights}</ReactMarkdown>
+                                        </Suspense>
+                                    </Box>
+                                )}
+                                {/* Shareable Summary */}
+                                <Typography variant="body1" sx={{ color: '#ff9800', mb: 2, lineHeight: 1.6, textAlign: 'left', fontWeight: 600 }}>
+                                    {getShareableSummary()}
+                                </Typography>
+                            </ShareCardBase>
+                        </Suspense>
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
@@ -628,7 +639,9 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                                     color: 'text.primary',
                                     lineHeight: 1.6
                                 }}>
-                                    <ReactMarkdown>{reading.reading}</ReactMarkdown>
+                                    <Suspense fallback={<CircularProgress size={20} />}>
+                                        <ReactMarkdown>{reading.reading}</ReactMarkdown>
+                                    </Suspense>
                                 </Box>
                             </Collapse>
                         </Paper>
@@ -715,7 +728,9 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                                             color: 'text.primary',
                                             lineHeight: 1.6
                                         }}>
-                                            <ReactMarkdown>{followUpAnswer}</ReactMarkdown>
+                                            <Suspense fallback={<CircularProgress size={20} />}>
+                                                <ReactMarkdown>{followUpAnswer}</ReactMarkdown>
+                                            </Suspense>
                                         </Box>
                                     </Paper>
                                 )}
