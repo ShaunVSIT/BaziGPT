@@ -415,9 +415,6 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
                 {/* Main Form or Reading Display */}
                 {!compatibilityReading ? (
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, textAlign: 'center' }}>
-                        <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
-                            {t('compatibility.subtitle')}
-                        </Typography>
                         <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, width: '100%' }}>
                             {/* You */}
                             <Box>

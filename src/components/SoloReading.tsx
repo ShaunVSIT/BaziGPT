@@ -540,9 +540,6 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                 {/* Main Form or Reading Display */}
                 {!reading ? (
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, textAlign: 'center' }}>
-                        <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
-                            {t('soloReading.birthDateLabel')}
-                        </Typography>
                         <Box sx={{ width: '100%', maxWidth: 400 }}>
                             <DatePicker
                                 label={t('soloReading.birthDateLabel')}
