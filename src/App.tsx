@@ -77,6 +77,7 @@ function App() {
           keywords={[
             "Chinese astrology", "BaZi", "destiny reading", "birth chart", "relationship compatibility", "AI astrology", "free reading"
           ]}
+          canonicalUrl="https://www.bazigpt.io/"
         />
       </ThemeProvider>
     </ErrorBoundary>
