@@ -238,8 +238,9 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
     const secondsUntilMidnight = Math.floor((tomorrow.getTime() - Date.now()) / 1000);
 
     const cacheKey = `daily-bazi-${req.query.lang || 'en'}-${req.query.date || today}`;
-    res.setHeader('Cache-Control', `s-maxage=${secondsUntilMidnight}, stale-while-revalidate, public`);
-    res.setHeader('Vercel-CDN-Cache-Control', `s-maxage=${secondsUntilMidnight}, stale-while-revalidate`);
+    res.setHeader('Vercel-CDN-Cache-Control', `max-age=${secondsUntilMidnight}, stale-while-revalidate=300`);
+    res.setHeader('Cache-Control', `public, max-age=0, s-maxage=${secondsUntilMidnight}, stale-while-revalidate=300`);
+    res.setHeader('CDN-Cache-Control', `max-age=${secondsUntilMidnight}, stale-while-revalidate=300`);
     res.setHeader('Vercel-Cache-Tag', cacheKey);
 
 
