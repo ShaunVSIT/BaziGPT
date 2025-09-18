@@ -1,0 +1,66 @@
+name: Warm Daily Bazi Cache
+
+on:
+  schedule:
+    - cron: '*/10 * * * *' # every 10 minutes (UTC)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: warm-daily-bazi-cache
+  cancel-in-progress: false
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        lang: [en, th, zh]
+    steps:
+      - name: Warm daily-bazi cache (${{ matrix.lang }})
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://bazigpt.io/api/daily-bazi?lang=${{ matrix.lang }}"
+          echo "Requesting: $URL"
+          # small jitter to avoid synchronized bursts
+          sleep $((RANDOM % 30))
+
+          headers_file=$(mktemp)
+          body_file=$(mktemp)
+
+          # Perform GET, capture headers and status; retry transient failures
+          http_code=$(curl -sS \
+            --retry 3 \
+            --retry-delay 2 \
+            --retry-all-errors \
+            -D "$headers_file" \
+            -o "$body_file" \
+            -H "User-Agent: gh-actions-warm-cache/1.0" \
+            -w "%{http_code}" \
+            "$URL")
+
+          echo "HTTP $http_code"
+          echo "--- Response Headers ---"
+          cat "$headers_file"
+
+          # Basic success check
+          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 400 ]; then
+            echo "Request failed with HTTP $http_code"
+            echo "--- Body (truncated) ---"
+            head -c 2000 "$body_file" || true
+            exit 1
+          fi
+
+          # Surface key cache headers for visibility
+          echo "--- Cache Signals ---"
+          grep -iE '^(x-vercel-cache|age|cache-control|vercel-cdn-cache-control|cdn-cache-control):' "$headers_file" || true
+
+          # Clean up temp files
+          rm -f "$headers_file" "$body_file"
+
+
