@@ -25,7 +25,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          URL="https://bazigpt.io/api/daily-bazi?lang=${{ matrix.lang }}"
+          URL="https://www.bazigpt.io/api/daily-bazi?lang=${{ matrix.lang }}"
           echo "Requesting: $URL"
           # small jitter to avoid synchronized bursts
           sleep $((RANDOM % 30))
