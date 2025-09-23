@@ -1,8 +1,8 @@
 name: Warm Daily Bazi Cache
 
 on:
-  schedule:
-    - cron: '*/10 * * * *' # every 10 minutes (UTC)
+  # schedule:
+    # - cron: '*/10 * * * *' # every 10 minutes (UTC)
   workflow_dispatch: {}
 
 permissions:
