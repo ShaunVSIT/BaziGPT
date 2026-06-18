@@ -25,8 +25,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           // Separate vendor chunks for better caching
-          'mui-core': ['@mui/material', '@mui/system', '@emotion/react', '@emotion/styled'],
-          'mui-icons': ['@mui/icons-material'],
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'utils': ['date-fns', 'react-i18next', 'i18next'],
           // Heavy components in separate chunks
@@ -51,14 +49,6 @@ export default defineConfig({
   },
   // Optimize dependencies
   optimizeDeps: {
-    include: [
-      '@mui/material',
-      '@mui/icons-material',
-      '@emotion/react',
-      '@emotion/styled',
-      'react',
-      'react-dom',
-      'react-router-dom'
-    ]
+    include: ['react', 'react-dom', 'react-router-dom']
   }
 })
