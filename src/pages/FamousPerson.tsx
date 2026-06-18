@@ -1,229 +1,271 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { FamousPerson } from '@/types/famous';
-import { Box, Typography, Paper, Button, CircularProgress, Fade } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { Helmet } from 'react-helmet-async';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { ArrowLeft, Loader2, Globe, Sparkles } from "lucide-react";
+import { FamousPerson } from "@/types/famous";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { zodiacFromYear } from "@/lib/zodiac";
 
-const fallbackImg = '/default-portrait.png';
+const fallbackImg = "/default-portrait.png";
 
 function formatBirthday(dateStr?: string, timeStr?: string) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return dateStr;
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    let formatted = date.toLocaleDateString(undefined, options);
-    if (timeStr) formatted += ` at ${timeStr}`;
-    return formatted;
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  let formatted = date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  if (timeStr) formatted += ` at ${timeStr}`;
+  return formatted;
+}
+
+const XIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+const InstagramIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+    <path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85C2.38 3.92 3.9 2.38 7.15 2.23 8.42 2.17 8.8 2.16 12 2.16zm0 3.68a6.16 6.16 0 100 12.32 6.16 6.16 0 000-12.32zm0 10.16a4 4 0 110-8 4 4 0 010 8zm6.4-10.4a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z" />
+  </svg>
+);
+const TikTokIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64c.3 0 .59.05.86.13V9.4a6.33 6.33 0 00-1-.08A6.34 6.34 0 005 20.1a6.34 6.34 0 0010.86-4.43V8.69a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1.04-.12z" />
+  </svg>
+);
+
+interface SocialLink {
+  href: string;
+  label: string;
+  icon: React.FC<{ className?: string }>;
 }
 
 const FamousPersonPage: React.FC = () => {
-    const { slug } = useParams<{ slug: string }>();
-    const navigate = useNavigate();
-    const [person, setPerson] = useState<FamousPerson | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [imgError, setImgError] = useState(false);
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const [person, setPerson] = useState<FamousPerson | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
-    useEffect(() => {
-        if (!slug) return;
-        fetch(`/api/famous/${slug}`)
-            .then(res => res.json())
-            .then(data => {
-                setPerson(data);
-                setLoading(false);
-                if (data?.name) {
-                    document.title = `Bazi Chart of ${data.name} - BaziGPT`;
-                    const meta = document.querySelector('meta[name="description"]');
-                    if (meta) meta.setAttribute('content', data.bio || '');
-                }
-            });
-    }, [slug]);
+  useEffect(() => {
+    if (!slug) return;
+    setLoading(true);
+    fetch(`/api/famous/${slug}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("not found");
+        return res.json();
+      })
+      .then((data) => {
+        if (!data || !data.name) setNotFound(true);
+        else setPerson(data);
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [slug]);
 
-    if (loading) return (
-        <Box sx={{
-            width: '100%',
-            px: { xs: 0, sm: 2, md: 4 },
-            py: { xs: 2, sm: 4 },
-            maxWidth: '100vw',
-            mx: 'auto',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '60vh'
-        }}>
-            <Fade in={loading} timeout={300}>
-                <Paper elevation={3} sx={{
-                    p: { xs: 4, sm: 6 },
-                    borderRadius: 3,
-                    background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.05) 0%, rgba(255, 87, 34, 0.05) 100%)',
-                    border: '1px solid rgba(255, 152, 0, 0.1)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    maxWidth: 400
-                }}>
-                    <Box sx={{
-                        position: 'relative',
-                        mb: 3,
-                        '&::before': {
-                            content: '""',
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: 80,
-                            height: 80,
-                            borderRadius: '50%',
-                            background: 'linear-gradient(45deg, rgba(255, 152, 0, 0.1) 30%, rgba(255, 87, 34, 0.1) 90%)',
-                            '@keyframes pulse': {
-                                '0%, 100%': {
-                                    opacity: 0.4,
-                                    transform: 'translate(-50%, -50%) scale(1)',
-                                },
-                                '50%': {
-                                    opacity: 0.8,
-                                    transform: 'translate(-50%, -50%) scale(1.1)',
-                                }
-                            },
-                            animation: 'pulse 2s ease-in-out infinite'
-                        }
-                    }}>
-                        <CircularProgress
-                            size={60}
-                            thickness={4}
-                            sx={{
-                                color: '#ff9800',
-                                '& .MuiCircularProgress-circle': {
-                                    strokeLinecap: 'round',
-                                }
-                            }}
-                        />
-                    </Box>
-                    <Typography variant="h6" color="primary.main" gutterBottom sx={{ fontWeight: 600 }}>
-                        Loading Bazi Reading
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ opacity: 0.8 }}>
-                        Analyzing the stars and elements...
-                    </Typography>
-                </Paper>
-            </Fade>
-        </Box>
-    );
-    if (!person) return <Box p={6}><Typography>Not found.</Typography></Box>;
-
-    // Prefer 'reading' or 'bazi_reading' field for reading, fallback to gpt_summary
-    const readingText = (person as any).reading || (person as any).bazi_reading || person.gpt_summary;
-
+  if (loading) {
     return (
-        <>
-            <Helmet>
-                <title>{person?.name ? `Bazi Chart of ${person.name} - BaziGPT` : 'Famous Person Bazi Chart - BaziGPT'}</title>
-                <meta name="description" content={person?.bio ? person.bio.slice(0, 160) : 'Explore the BaZi chart and Chinese astrology reading for this famous person on BaziGPT.'} />
-                <meta property="og:title" content={person?.name ? `Bazi Chart of ${person.name} - BaziGPT` : 'Famous Person Bazi Chart - BaziGPT'} />
-                <meta property="og:description" content={person?.bio ? person.bio.slice(0, 160) : 'Explore the BaZi chart and Chinese astrology reading for this famous person on BaziGPT.'} />
-                <meta property="og:type" content="profile" />
-                <meta property="og:url" content={`https://bazigpt.io/famous/${person?.slug || ''}`} />
-                <meta property="og:image" content={person?.image_url ? person.image_url : 'https://bazigpt.io/default-portrait.png'} />
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content={person?.name ? `Bazi Chart of ${person.name} - BaziGPT` : 'Famous Person Bazi Chart - BaziGPT'} />
-                <meta name="twitter:description" content={person?.bio ? person.bio.slice(0, 160) : 'Explore the BaZi chart and Chinese astrology reading for this famous person on BaziGPT.'} />
-                <meta name="twitter:image" content={person?.image_url ? person.image_url : 'https://bazigpt.io/default-portrait.png'} />
-                <link rel="canonical" href={`https://bazigpt.io/famous/${person?.slug || ''}`} />
-            </Helmet>
-            <Box sx={{ width: '100%', px: { xs: 0, sm: 2, md: 4 }, py: { xs: 2, sm: 4 }, maxWidth: '100vw', mx: 'auto' }}>
-                <Button
-                    startIcon={<ArrowBackIcon />}
-                    onClick={() => navigate('/famous')}
-                    sx={{ mb: 2, fontWeight: 600, ml: { xs: 1, sm: 0 } }}
-                    color="primary"
-                >
-                    Back to Famous People
-                </Button>
-                <Paper elevation={3} sx={{
-                    width: '100%',
-                    maxWidth: '100vw',
-                    p: { xs: 2, sm: 4, md: 6 },
-                    borderRadius: { xs: 0, sm: 3 },
-                    background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.05) 0%, rgba(255, 87, 34, 0.05) 100%)',
-                    border: '1px solid rgba(255, 152, 0, 0.1)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    boxSizing: 'border-box',
-                }}>
-                    <Box
-                        component="img"
-                        src={imgError ? fallbackImg : person.image_url || fallbackImg}
-                        alt={person.name}
-                        sx={{
-                            width: 180,
-                            height: 180,
-                            objectFit: 'cover',
-                            borderRadius: 2,
-                            mb: 3,
-                            background: '#232323',
-                            border: '2px solid #222',
-                        }}
-                        onError={() => setImgError(true)}
-                    />
-                    <Typography variant="h3" fontWeight={700} mb={1.5} align="center" color="primary.main">
-                        {person.name}
-                    </Typography>
-                    {person.category && (
-                        <Box mb={2}>
-                            <Typography variant="subtitle2" sx={{
-                                display: 'inline-block',
-                                bgcolor: '#ff9800',
-                                color: '#232323',
-                                px: 2,
-                                py: 0.5,
-                                borderRadius: 2,
-                                fontWeight: 700,
-                                textTransform: 'capitalize',
-                                fontSize: 16
-                            }}>{person.category}</Typography>
-                        </Box>
-                    )}
-                    <Typography variant="body1" color="text.secondary" align="center" mb={2}>
-                        {person.bio}
-                    </Typography>
-                    <Typography variant="subtitle1" color="text.secondary" mb={3}>
-                        <span style={{ fontWeight: 600 }}>Birthday:</span> {formatBirthday(person.birth_date, person.birth_time)}
-                    </Typography>
-                    {readingText && (
-                        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 3, width: '100%', maxWidth: 800 }}>
-                            <Typography variant="h5" color="primary.main" gutterBottom>
-                                Bazi Reading
-                            </Typography>
-                            <Box sx={{ color: 'text.primary', lineHeight: 1.6, fontSize: 18 }}>
-                                {(readingText || '')
-                                    .split(/\n\s*\n|(?<=\.)\s+(?=[A-Z])/g)
-                                    .map((para: string, idx: number) => (
-                                        <Box component="p" key={idx} sx={{ mb: 2, mt: 0 }}>
-                                            {para.trim()}
-                                        </Box>
-                                    ))}
-                            </Box>
-                        </Paper>
-                    )}
-                    {person.marketing_blurb && (
-                        <Button
-                            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${person.marketing_blurb}\n\nReading by @bazigpt\nbazigpt.io`)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            variant="outlined"
-                            color="primary"
-                            sx={{ mt: 2, fontWeight: 600, fontSize: 18, py: 1.5, width: '100%', maxWidth: 400 }}
-                            fullWidth
-                        >
-                            Tweet this reading
-                        </Button>
-                    )}
-                </Paper>
-            </Box>
-        </>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="flex flex-col items-center rounded-2xl border border-primary/10 bg-gradient-to-br from-primary/5 to-secondary/5 p-10 text-center">
+          <Loader2 className="mb-4 size-12 animate-spin text-primary" />
+          <p className="font-display text-lg font-semibold text-primary">
+            Reading the Stars
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Analyzing the elements…
+          </p>
+        </div>
+      </div>
     );
+  }
+
+  if (notFound || !person) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center">
+        <p className="font-display text-2xl text-foreground">Chart not found.</p>
+        <Button variant="outline" onClick={() => navigate("/famous")} className="gap-2">
+          <ArrowLeft className="size-4" />
+          Back to Famous People
+        </Button>
+      </div>
+    );
+  }
+
+  const img = imgError ? fallbackImg : person.image_url || fallbackImg;
+  const year = person.birth_date ? new Date(person.birth_date).getFullYear() : NaN;
+  const animal = !Number.isNaN(year) ? zodiacFromYear(year) : null;
+  const readingText =
+    (person as any).reading || (person as any).bazi_reading || person.gpt_summary;
+
+  const socials: SocialLink[] = [];
+  if (person.twitter_handle)
+    socials.push({ href: `https://x.com/${person.twitter_handle.replace(/^@/, "")}`, label: "X", icon: XIcon });
+  if (person.instagram_handle)
+    socials.push({ href: `https://instagram.com/${person.instagram_handle.replace(/^@/, "")}`, label: "Instagram", icon: InstagramIcon });
+  if (person.tiktok_handle)
+    socials.push({ href: `https://tiktok.com/@${person.tiktok_handle.replace(/^@/, "")}`, label: "TikTok", icon: TikTokIcon });
+  if (person.website)
+    socials.push({ href: person.website, label: "Website", icon: Globe });
+
+  return (
+    <>
+      <Helmet>
+        <title>{`Bazi Chart of ${person.name} - BaziGPT`}</title>
+        <meta name="description" content={person.bio ? person.bio.slice(0, 160) : "Explore the BaZi chart and Chinese astrology reading for this famous person on BaziGPT."} />
+        <meta property="og:title" content={`Bazi Chart of ${person.name} - BaziGPT`} />
+        <meta property="og:description" content={person.bio ? person.bio.slice(0, 160) : "Explore the BaZi chart and Chinese astrology reading for this famous person on BaziGPT."} />
+        <meta property="og:type" content="profile" />
+        <meta property="og:url" content={`https://www.bazigpt.io/famous/${person.slug || ""}`} />
+        <meta property="og:image" content={person.image_url || "https://www.bazigpt.io/default-portrait.png"} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`Bazi Chart of ${person.name} - BaziGPT`} />
+        <meta name="twitter:image" content={person.image_url || "https://www.bazigpt.io/default-portrait.png"} />
+        <link rel="canonical" href={`https://www.bazigpt.io/famous/${person.slug || ""}`} />
+      </Helmet>
+
+      <div className="mx-auto max-w-3xl">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/famous")}
+          className="mb-4 gap-2 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" />
+          Back to Famous People
+        </Button>
+
+        {/* Photo-driven hero */}
+        <section className="relative -mx-4 overflow-hidden rounded-3xl border border-border/60 sm:mx-0">
+          {/* Blurred backdrop of their own photo */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 scale-125 bg-cover bg-center opacity-40 blur-2xl"
+            style={{ backgroundImage: `url(${img})` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-obsidian/40 via-obsidian/70 to-obsidian" />
+
+          <div className="relative flex flex-col items-center px-6 py-10 text-center">
+            {/* Portrait */}
+            <div className="animate-rise relative mb-5">
+              <div className="absolute -inset-3 rounded-full bg-primary/25 blur-2xl" />
+              <img
+                src={img}
+                alt={person.name}
+                onError={() => setImgError(true)}
+                className="relative size-44 rounded-2xl border-2 border-primary/50 object-cover object-top shadow-2xl sm:size-52"
+              />
+            </div>
+
+            <h1
+              className="animate-rise font-display text-4xl font-bold leading-tight sm:text-5xl"
+              style={{ animationDelay: "0.05s" }}
+            >
+              <span className="text-gold-gradient">{person.name}</span>
+            </h1>
+
+            <div
+              className="animate-rise mt-3 flex flex-wrap items-center justify-center gap-2"
+              style={{ animationDelay: "0.1s" }}
+            >
+              {person.category && (
+                <Badge className="bg-primary/90 capitalize text-primary-foreground">
+                  {person.category}
+                </Badge>
+              )}
+              {animal && (
+                <Badge variant="outline" className="border-primary/40 text-primary">
+                  {animal.emoji} Year of the {animal.en}
+                </Badge>
+              )}
+            </div>
+
+            {person.birth_date && (
+              <p
+                className="animate-rise mt-3 text-sm text-muted-foreground"
+                style={{ animationDelay: "0.15s" }}
+              >
+                <span className="font-semibold text-foreground/80">Born:</span>{" "}
+                {formatBirthday(person.birth_date, person.birth_time)}
+              </p>
+            )}
+
+            {socials.length > 0 && (
+              <div
+                className="animate-rise mt-4 flex gap-2"
+                style={{ animationDelay: "0.2s" }}
+              >
+                {socials.map(({ href, label, icon: Icon }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    className="flex size-10 items-center justify-center rounded-full border border-primary/20 bg-background/40 text-muted-foreground backdrop-blur-sm transition-colors hover:border-primary/50 hover:text-primary"
+                  >
+                    <Icon className="size-4" />
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {person.bio && (
+          <p className="mt-6 text-center text-base leading-relaxed text-muted-foreground">
+            {person.bio}
+          </p>
+        )}
+
+        {/* Reading */}
+        {readingText && (
+          <Card className="mt-6 border-border/60 bg-card/70">
+            <CardContent className="p-6 sm:p-8">
+              <h2 className="mb-3 flex items-center gap-2 font-display text-2xl font-semibold text-primary">
+                <Sparkles className="size-5" />
+                BaZi Reading
+              </h2>
+              <div className="space-y-3 leading-relaxed text-foreground/90">
+                {String(readingText)
+                  .split(/\n\s*\n|(?<=\.)\s+(?=[A-Z])/g)
+                  .map((para, idx) => (
+                    <p key={idx}>{para.trim()}</p>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="mt-6 flex flex-col items-center gap-3">
+          {person.marketing_blurb && (
+            <Button asChild variant="outline" className="w-full max-w-sm gap-2 font-semibold">
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                  `${person.marketing_blurb}\n\nReading by @bazigpt\nbazigpt.io`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <XIcon className="size-4" />
+                Tweet this reading
+              </a>
+            </Button>
+          )}
+          <Button asChild className="w-full max-w-sm gap-2 font-semibold">
+            <a href="/">
+              <Sparkles className="size-4" />
+              Get your own reading
+            </a>
+          </Button>
+        </div>
+      </div>
+    </>
+  );
 };
 
-export default FamousPersonPage; 
+export default FamousPersonPage;

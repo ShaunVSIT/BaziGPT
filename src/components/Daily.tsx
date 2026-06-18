@@ -1,733 +1,417 @@
-import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { useTranslation } from 'react-i18next';
-// Navigation now handled by Layout component
+import { useState, useEffect, useRef } from "react";
+import { Helmet } from "react-helmet-async";
+import { useTranslation } from "react-i18next";
+import { format } from "date-fns";
+import { ChevronDown, ChevronUp, Share2, Loader2 } from "lucide-react";
 import {
-    Container,
-    Box,
-    Typography,
-    Paper,
-    CircularProgress,
-    Button,
-    Chip,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
-    Collapse,
-    Alert,
-} from '@mui/material';
-import { format } from 'date-fns';
-import ShareIcon from '@mui/icons-material/Share';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { fetchDailyForecast, fetchPersonalForecast, type DailyBaziForecast, type PersonalForecastResponse } from '../services/dailyBaziApi';
-import SEOAnalytics from './SEOAnalytics';
-// Lazy load heavy components
-const ReactMarkdown = React.lazy(() => import('react-markdown'));
-const ShareCardBase = React.lazy(() => import('./ShareCardBase'));
+  fetchDailyForecast,
+  fetchPersonalForecast,
+  type DailyBaziForecast,
+  type PersonalForecastResponse,
+} from "../services/dailyBaziApi";
+import SEOAnalytics from "./SEOAnalytics";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { PageHero } from "./brand/PageHero";
+import { ReadingMarkdown } from "./reading/ReadingMarkdown";
+import { ShareMarkdown } from "./reading/ShareMarkdown";
+import { ShareDialog } from "./reading/ShareDialog";
+import ShareCardBase from "./ShareCardBase";
 
 function formatPersonalForecast(text: string) {
-    // Ensure each bullet starts on a new line
-    return text.replace(/\s*•\s*/g, '\n• ');
+  return text.replace(/\s*•\s*/g, "\n• ");
 }
+
+const PERSONAL_FORECAST_KEY = "bazi-personal-forecast-session";
 
 function Daily() {
-    const { t, i18n } = useTranslation();
-    const [loading, setLoading] = useState(true);
-    const [forecast, setForecast] = useState<DailyBaziForecast | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [shareDialogOpen, setShareDialogOpen] = useState(false);
-    const shareCardRef = useRef<HTMLDivElement>(null);
-    const isFetchingRef = useRef(false);
+  const { t, i18n } = useTranslation();
+  const [loading, setLoading] = useState(true);
+  const [forecast, setForecast] = useState<DailyBaziForecast | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement>(null);
+  const isFetchingRef = useRef(false);
 
-    // Personal forecast state with persistence
-    const [showPersonalForecast, setShowPersonalForecast] = useState(false);
-    // Initialize as empty string
-    const [birthDate, setBirthDate] = useState('');
-    const [birthTime, setBirthTime] = useState('');
-    // Session storage key for personal forecast
-    const PERSONAL_FORECAST_KEY = 'bazi-personal-forecast-session';
-    const [personalForecast, setPersonalForecast] = useState<PersonalForecastResponse | null>(() => {
-        // Prefer sessionStorage, then localStorage
-        const today = new Date().toISOString().split('T')[0];
-        const sessionSaved = sessionStorage.getItem(PERSONAL_FORECAST_KEY);
-        if (sessionSaved) {
-            try {
-                const parsed = JSON.parse(sessionSaved);
-                if (parsed.date === today) return parsed;
-            } catch { }
-        }
-        const localSaved = localStorage.getItem('bazi-personal-forecast');
-        if (localSaved) {
-            try {
-                const parsed = JSON.parse(localSaved);
-                if (parsed.date === today) return parsed;
-            } catch { }
-        }
-        return null;
-    });
-    const [personalLoading, setPersonalLoading] = useState(false);
-    const [personalError, setPersonalError] = useState<string | null>(null);
+  const [showPersonalForecast, setShowPersonalForecast] = useState(false);
+  const [birthDate, setBirthDate] = useState("");
+  const [birthTime, setBirthTime] = useState("");
+  const [personalForecast, setPersonalForecast] = useState<PersonalForecastResponse | null>(() => {
+    const today = new Date().toISOString().split("T")[0];
+    const sessionSaved = sessionStorage.getItem(PERSONAL_FORECAST_KEY);
+    if (sessionSaved) {
+      try {
+        const parsed = JSON.parse(sessionSaved);
+        if (parsed.date === today) return parsed;
+      } catch {}
+    }
+    const localSaved = localStorage.getItem("bazi-personal-forecast");
+    if (localSaved) {
+      try {
+        const parsed = JSON.parse(localSaved);
+        if (parsed.date === today) return parsed;
+      } catch {}
+    }
+    return null;
+  });
+  const [personalLoading, setPersonalLoading] = useState(false);
+  const [personalError, setPersonalError] = useState<string | null>(null);
 
-    const today = new Date();
-    const formattedDate = format(today, 'MMMM d, yyyy');
+  const today = new Date();
+  const formattedDate = format(today, "MMMM d, yyyy");
 
+  const fetchDailyForecastData = async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchDailyForecast(i18n.language);
+      setForecast(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred while fetching the daily forecast.");
+    } finally {
+      setLoading(false);
+      isFetchingRef.current = false;
+    }
+  };
 
+  useEffect(() => {
+    fetchDailyForecastData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.language]);
 
-    const fetchDailyForecastData = async () => {
-        if (isFetchingRef.current) {
-            return;
-        }
+  useEffect(() => {
+    if (personalForecast && birthDate) {
+      setPersonalForecast(null);
+      sessionStorage.removeItem(PERSONAL_FORECAST_KEY);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.language]);
 
-        isFetchingRef.current = true;
-        setLoading(true);
-        setError(null);
+  useEffect(() => {
+    if (birthDate) localStorage.setItem("bazi-birth-date", birthDate);
+  }, [birthDate]);
 
-        try {
-            const data = await fetchDailyForecast(i18n.language);
-            setForecast(data);
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching the daily forecast.';
-            setError(errorMessage);
-        } finally {
-            setLoading(false);
-            isFetchingRef.current = false;
-        }
-    };
+  useEffect(() => {
+    if (birthTime) localStorage.setItem("bazi-birth-time", birthTime);
+    else localStorage.removeItem("bazi-birth-time");
+  }, [birthTime]);
 
-    useEffect(() => {
-        fetchDailyForecastData();
-    }, [i18n.language]); // Re-fetch when language changes
+  useEffect(() => {
+    if (personalForecast) {
+      const withDate = { ...personalForecast, date: new Date().toISOString().split("T")[0] };
+      sessionStorage.setItem(PERSONAL_FORECAST_KEY, JSON.stringify(withDate));
+      localStorage.setItem("bazi-personal-forecast", JSON.stringify(withDate));
+    } else {
+      sessionStorage.removeItem(PERSONAL_FORECAST_KEY);
+    }
+  }, [personalForecast]);
 
-    // Clear personal forecast when language changes (if we have birth data)
-    useEffect(() => {
-        if (personalForecast && birthDate) {
-            setPersonalForecast(null);
-            // Also clear from sessionStorage to prevent restoration on remount
-            sessionStorage.removeItem(PERSONAL_FORECAST_KEY);
-        }
-    }, [i18n.language]); // Only trigger on language change
+  useEffect(() => {
+    if (personalForecast && birthDate) setShowPersonalForecast(true);
+  }, [personalForecast, birthDate]);
 
-    // Save birth details to localStorage when they change
-    useEffect(() => {
-        if (birthDate) {
-            localStorage.setItem('bazi-birth-date', birthDate);
-        }
-    }, [birthDate]);
+  useEffect(() => {
+    let filled = false;
+    const soloBirth = sessionStorage.getItem("bazi-solo-birth");
+    if (soloBirth) {
+      const { birthDate: soloDate, birthTime: soloTime } = JSON.parse(soloBirth);
+      if (soloDate) {
+        setBirthDate(soloDate.split("T")[0]);
+        filled = true;
+      }
+      if (soloTime) setBirthTime(soloTime);
+    }
+    if (!filled) {
+      const localDate = localStorage.getItem("bazi-birth-date");
+      if (localDate) setBirthDate(localDate);
+      const localTime = localStorage.getItem("bazi-birth-time");
+      if (localTime) setBirthTime(localTime);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    useEffect(() => {
-        if (birthTime) {
-            localStorage.setItem('bazi-birth-time', birthTime);
-        } else {
-            localStorage.removeItem('bazi-birth-time');
-        }
-    }, [birthTime]);
+  const handleShareDownload = async () => {
+    if (!shareCardRef.current) return;
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(shareCardRef.current, {
+        backgroundColor: "#0b0b0f",
+        scale: 2,
+        useCORS: true,
+      });
+      const link = document.createElement("a");
+      link.download = `daily-bazi-forecast-${formattedDate}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+    } catch (err) {
+      console.error("Error generating share image:", err);
+    }
+  };
 
-    // Save personal forecast to sessionStorage and localStorage when it changes
-    useEffect(() => {
-        if (personalForecast) {
-            const forecastWithDate = {
-                ...personalForecast,
-                date: new Date().toISOString().split('T')[0]
-            };
-            sessionStorage.setItem(PERSONAL_FORECAST_KEY, JSON.stringify(forecastWithDate));
-            localStorage.setItem('bazi-personal-forecast', JSON.stringify(forecastWithDate));
-        } else {
-            sessionStorage.removeItem(PERSONAL_FORECAST_KEY);
-        }
-    }, [personalForecast]);
+  const handlePersonalForecastSubmit = async () => {
+    if (!birthDate) {
+      setPersonalError(t("daily.pleaseEnterBirthDate"));
+      return;
+    }
+    setPersonalLoading(true);
+    setPersonalError(null);
+    try {
+      const data = await fetchPersonalForecast(birthDate, birthTime || undefined, i18n.language);
+      setPersonalForecast(data);
+    } catch (err) {
+      setPersonalError(err instanceof Error ? err.message : t("daily.errorFetchingPersonalForecast"));
+    } finally {
+      setPersonalLoading(false);
+    }
+  };
 
-    // Auto-show personal forecast section if we have saved data from today
-    useEffect(() => {
-        if (personalForecast && birthDate) {
-            setShowPersonalForecast(true);
-        }
-    }, [personalForecast, birthDate]);
+  return (
+    <>
+      <Helmet>
+        <title>{t("seo.daily.title")} - {formattedDate} | BaziGPT</title>
+        <meta name="description" content={t("seo.daily.description")} />
+        <meta name="keywords" content={t("seo.daily.keywords")} />
+        <meta property="og:title" content={`${t("seo.daily.title")} - ${formattedDate} | BaziGPT`} />
+        <meta property="og:description" content={t("seo.daily.description")} />
+        <meta property="og:url" content="https://www.bazigpt.io/daily" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://www.bazigpt.io/og-image.png" />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:title" content={`${t("seo.daily.title")} - ${formattedDate} | BaziGPT`} />
+        <meta property="twitter:description" content={t("seo.daily.description")} />
+        <meta property="twitter:image" content="https://www.bazigpt.io/og-image.png" />
+        <link rel="canonical" href="https://www.bazigpt.io/daily" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: t("seo.daily.title"),
+            description: t("seo.daily.description"),
+            url: "https://www.bazigpt.io/daily",
+            datePublished: formattedDate,
+            dateModified: formattedDate,
+            publisher: { "@type": "Organization", name: "BaziGPT" },
+          })}
+        </script>
+      </Helmet>
 
-    useEffect(() => {
-        // On mount, prefer solo sessionStorage, then localStorage
-        let filled = false;
-        const soloBirth = sessionStorage.getItem('bazi-solo-birth');
-        if (soloBirth) {
-            const { birthDate: soloDate, birthTime: soloTime } = JSON.parse(soloBirth);
-            if (soloDate) {
-                setBirthDate(soloDate.split('T')[0]);
-                filled = true;
-            }
-            if (soloTime) setBirthTime(soloTime);
-        }
-        if (!filled) {
-            const localDate = localStorage.getItem('bazi-birth-date');
-            if (localDate) setBirthDate(localDate);
-            const localTime = localStorage.getItem('bazi-birth-time');
-            if (localTime) setBirthTime(localTime);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+      <SEOAnalytics
+        pageTitle={`${t("seo.daily.title")} - ${formattedDate} | BaziGPT`}
+        pageDescription={t("seo.daily.description")}
+        keywords={t("seo.daily.keywords").split(", ")}
+      />
 
-    const handleShareDownload = async () => {
-        if (!shareCardRef.current) return;
+      <div className="mx-auto max-w-2xl">
+        <PageHero
+          size="compact"
+          eyebrow="Today's Cosmic Energy"
+          title={t("daily.title")}
+          subtitle={formattedDate}
+        />
 
-        try {
-            // Dynamically import html2canvas to reduce initial bundle size
-            const html2canvas = (await import('html2canvas')).default;
-            const canvas = await html2canvas(shareCardRef.current, {
-                backgroundColor: '#1a1a1a',
-                scale: 2,
-                useCORS: true,
-            });
+        <div className="rounded-2xl border border-primary/20 bg-primary/[0.07] p-5 sm:p-7">
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="size-12 animate-spin text-primary" />
+            </div>
+          ) : error ? (
+            <div>
+              <h2 className="font-display text-xl font-semibold text-destructive">
+                {t("daily.errorLoadingForecast")}
+              </h2>
+              <p className="mt-1 text-destructive">{error}</p>
+            </div>
+          ) : forecast ? (
+            <>
+              <h2 className="mb-3 text-base font-semibold text-primary sm:text-lg">
+                {t("daily.todaysEnergy")}
+              </h2>
+              <Badge
+                variant="outline"
+                className="mb-3 border-primary text-primary"
+              >
+                {forecast.baziPillar}
+              </Badge>
 
-            const link = document.createElement('a');
-            link.download = `daily-bazi-forecast-${formattedDate}.png`;
-            link.href = canvas.toDataURL();
-            link.click();
-        } catch (error) {
-            console.error('Error generating share image:', error);
-        }
-    };
+              <ReadingMarkdown className="mb-3 text-sm sm:text-base">
+                {forecast.forecast}
+              </ReadingMarkdown>
 
-    const handlePersonalForecastToggle = () => {
-        setShowPersonalForecast(!showPersonalForecast);
-        // Don't clear the forecast when collapsing - just toggle visibility
-    };
-
-    // When sending to backend, ensure birthDate is a string in 'YYYY-MM-DD' format
-    const handlePersonalForecastSubmit = async () => {
-        if (!birthDate) {
-            setPersonalError(t('daily.pleaseEnterBirthDate'));
-            return;
-        }
-        setPersonalLoading(true);
-        setPersonalError(null);
-        try {
-            const dateStr = birthDate; // birthDate is always a string
-            const data = await fetchPersonalForecast(dateStr, birthTime || undefined, i18n.language);
-            setPersonalForecast(data);
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : t('daily.errorFetchingPersonalForecast');
-            setPersonalError(errorMessage);
-        } finally {
-            setPersonalLoading(false);
-        }
-    };
-
-
-
-    return (
-        <>
-            <Helmet>
-                <title>{t('seo.daily.title')} - {formattedDate} | BaziGPT</title>
-                <meta
-                    name="description"
-                    content={t('seo.daily.description')}
-                />
-                <meta name="keywords" content={t('seo.daily.keywords')} />
-
-                {/* Open Graph */}
-                <meta property="og:title" content={`${t('seo.daily.title')} - ${formattedDate} | BaziGPT`} />
-                <meta property="og:description" content={t('seo.daily.description')} />
-                <meta property="og:url" content="https://bazigpt.io/daily" />
-                <meta property="og:type" content="website" />
-                <meta property="og:image" content="https://bazigpt.io/og-image.svg" />
-
-                {/* Twitter */}
-                <meta property="twitter:card" content="summary_large_image" />
-                <meta property="twitter:title" content={`${t('seo.daily.title')} - ${formattedDate} | BaziGPT`} />
-                <meta property="twitter:description" content={t('seo.daily.description')} />
-                <meta property="twitter:image" content="https://bazigpt.io/og-image.svg" />
-
-                {/* Canonical */}
-                <link rel="canonical" href="https://bazigpt.io/daily" />
-
-                {/* Structured Data */}
-                <script type="application/ld+json">
-                    {JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "WebPage",
-                        "name": t('seo.daily.title'),
-                        "description": t('seo.daily.description'),
-                        "url": "https://bazigpt.io/daily",
-                        "datePublished": formattedDate,
-                        "dateModified": formattedDate,
-                        "publisher": {
-                            "@type": "Organization",
-                            "name": "BaziGPT"
-                        }
-                    })}
-                </script>
-            </Helmet>
-
-            <SEOAnalytics
-                pageTitle={`${t('seo.daily.title')} - ${formattedDate} | BaziGPT`}
-                pageDescription={t('seo.daily.description')}
-                keywords={t('seo.daily.keywords').split(', ')}
-            />
-
-            <Container maxWidth="md" sx={{ py: 4 }}>
-                <Box sx={{ my: 2 }}>
-                    <Typography
-                        variant="h2"
-                        component="h1"
-                        gutterBottom
-                        align="center"
-                        sx={{
-                            mb: 3,
-                            fontSize: {
-                                xs: '2rem',
-                                sm: '2.5rem',
-                                md: '3rem'
-                            },
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: { xs: '0.5rem', sm: '1rem' }
-                        }}
-                    >
-                        <span style={{ fontSize: '0.9em' }}>🀄</span>
-                        {t('daily.title')}
-                        <span style={{ fontSize: '0.9em' }}>🀄</span>
-                    </Typography>
-                    <Typography
-                        variant="h5"
-                        component="h2"
-                        gutterBottom
-                        align="center"
-                        sx={{
-                            mb: 3,
-                            fontSize: {
-                                xs: '1.2rem',
-                                sm: '1.5rem'
-                            },
-                            color: 'text.secondary'
-                        }}
-                    >
-                        {formattedDate}
-                    </Typography>
-                    {/* Navigation removed - now handled by Layout component */}
-                </Box>
-
-                <Paper
-                    elevation={0}
-                    sx={{
-                        p: { xs: 3, sm: 4 },
-                        mb: 3,
-                        bgcolor: 'rgba(255, 152, 0, 0.1)',
-                        borderRadius: 2,
-                        border: '1px solid rgba(255, 152, 0, 0.2)',
-                        transition: 'all 0.3s ease'
-                    }}
+              {/* Personal forecast */}
+              <div className="mt-4 border-t border-primary/20 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPersonalForecast((v) => !v)}
+                  className="w-full justify-between border-primary py-5 text-primary hover:bg-primary/10 hover:text-primary"
                 >
-                    {loading ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
-                            <CircularProgress size={60} color="primary" />
-                        </Box>
-                    ) : error ? (
-                        <Box>
-                            <Typography variant="h6" color="error" gutterBottom>
-                                {t('daily.errorLoadingForecast')}
-                            </Typography>
-                            <Typography variant="body1" color="error">
-                                {error}
-                            </Typography>
-                        </Box>
-                    ) : forecast ? (
-                        <>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-                                <Box>
-                                    <Typography
-                                        variant="h6"
-                                        sx={{
-                                            color: 'primary.main',
-                                            fontWeight: 600,
-                                            fontSize: { xs: '1rem', sm: '1.1rem' },
-                                            mb: 2
-                                        }}
-                                    >
-                                        {t('daily.todaysEnergy')}
-                                    </Typography>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                                        <Chip
-                                            label={forecast.baziPillar}
-                                            color="primary"
-                                            variant="outlined"
-                                            sx={{
-                                                borderColor: 'primary.main',
-                                                color: 'primary.main',
-                                                '&:hover': {
-                                                    bgcolor: 'rgba(255, 152, 0, 0.1)',
-                                                }
-                                            }}
-                                        />
+                  {t("daily.howDoesTodayAffectMe")}
+                  {showPersonalForecast ? (
+                    <ChevronUp className="size-5" />
+                  ) : (
+                    <ChevronDown className="size-5" />
+                  )}
+                </Button>
 
-                                    </Box>
-                                </Box>
-                                {/* Remove the IconButton for the standard daily forecast share (do not render it) */}
-                            </Box>
-
-                            <Typography
-                                variant="body1"
-                                align="left"
-                                sx={{ display: 'none' }}
-                            >
-                                {/* Old plain rendering hidden for now */}
-                            </Typography>
-                            {forecast && (
-                                <Box sx={{
-                                    fontSize: { xs: '0.9rem', sm: '1rem' },
-                                    color: 'text.primary',
-                                    lineHeight: 1.6,
-                                    mb: 3,
-                                    '& .highlight': {
-                                        color: 'primary.main',
-                                        fontWeight: 600
-                                    }
-                                }}>
-                                    <Suspense fallback={<CircularProgress size={20} />}>
-                                        <ReactMarkdown>{forecast.forecast}</ReactMarkdown>
-                                    </Suspense>
-                                </Box>
-                            )}
-
-                            {/* Personal Forecast Section */}
-                            <Box sx={{
-                                mt: { xs: 2, sm: 4 },
-                                pt: { xs: 2, sm: 3 },
-                                borderTop: '1px solid rgba(255,152,0,0.2)',
-                            }}>
-                                <Button
-                                    onClick={handlePersonalForecastToggle}
-                                    variant="outlined"
-                                    color="primary"
-                                    fullWidth
-                                    sx={{
-                                        mb: 2,
-                                        borderRadius: 2,
-                                        py: 1.5,
-                                        borderColor: 'primary.main',
-                                        color: 'primary.main',
-                                        '&:hover': {
-                                            bgcolor: 'rgba(255, 152, 0, 0.1)',
-                                            borderColor: 'primary.main',
-                                        }
-                                    }}
-                                    endIcon={showPersonalForecast ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                                >
-                                    {t('daily.howDoesTodayAffectMe')}
-                                </Button>
-
-                                <Collapse in={showPersonalForecast}>
-                                    <Box sx={{ mt: 2 }}>
-                                        {!personalForecast ? (
-                                            <>
-                                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                                    {t('daily.enterBirthDetails')}
-                                                    {birthDate && (
-                                                        <span style={{ color: '#ff9800', fontWeight: 500 }}>
-                                                            {' '}{t('daily.yourDetailsSaved')}
-                                                        </span>
-                                                    )}
-                                                </Typography>
-
-                                                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 3 }}>
-                                                    <TextField
-                                                        label={t('daily.birthDateLabel')}
-                                                        type="date"
-                                                        value={birthDate}
-                                                        onChange={(e) => setBirthDate(e.target.value)}
-                                                        fullWidth
-                                                        InputLabelProps={{ shrink: true }}
-                                                        sx={{
-                                                            '& .MuiOutlinedInput-root': {
-                                                                '&:hover fieldset': {
-                                                                    borderColor: 'primary.main',
-                                                                },
-                                                            },
-                                                        }}
-                                                    />
-                                                    <TextField
-                                                        label={t('daily.birthTimeLabel')}
-                                                        type="time"
-                                                        value={birthTime}
-                                                        onChange={(e) => setBirthTime(e.target.value)}
-                                                        fullWidth
-                                                        InputLabelProps={{ shrink: true }}
-                                                        sx={{
-                                                            '& .MuiOutlinedInput-root': {
-                                                                '&:hover fieldset': {
-                                                                    borderColor: 'primary.main',
-                                                                },
-                                                            },
-                                                        }}
-                                                    />
-                                                </Box>
-
-                                                {personalError && (
-                                                    <Alert severity="error" sx={{ mb: 2 }}>
-                                                        {personalError}
-                                                    </Alert>
-                                                )}
-
-                                                <Button
-                                                    onClick={handlePersonalForecastSubmit}
-                                                    variant="contained"
-                                                    color="primary"
-                                                    disabled={personalLoading}
-                                                    fullWidth
-                                                    sx={{
-                                                        borderRadius: 2,
-                                                        py: 1.5,
-                                                        background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
-                                                        '&:hover': {
-                                                            background: 'linear-gradient(45deg, #ff5722 30%, #ff9800 90%)',
-                                                        },
-                                                        '&:disabled': {
-                                                            background: 'rgba(255, 152, 0, 0.3)',
-                                                        }
-                                                    }}
-                                                >
-                                                    {personalLoading ? (
-                                                        <CircularProgress size={20} color="inherit" />
-                                                    ) : (
-                                                        t('daily.getPersonalDailyForecast')
-                                                    )}
-                                                </Button>
-                                            </>
-                                        ) : (
-                                            <Box sx={{ p: 3, bgcolor: 'rgba(255, 152, 0, 0.05)', borderRadius: 2, border: '1px solid rgba(255, 152, 0, 0.2)' }}>
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-                                                    <Box>
-                                                        <Typography variant="h6" color="primary.main" gutterBottom>
-                                                            {t('daily.yourPersonalForecast')}
-                                                        </Typography>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            Birth: {new Date(birthDate).toLocaleDateString()}
-                                                            {birthTime && ` at ${birthTime}`}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Button
-                                                        onClick={() => {
-                                                            setPersonalForecast(null);
-                                                            setPersonalError(null);
-                                                        }}
-                                                        variant="outlined"
-                                                        size="small"
-                                                        sx={{
-                                                            borderColor: 'text.secondary',
-                                                            color: 'text.secondary',
-                                                            '&:hover': {
-                                                                borderColor: 'primary.main',
-                                                                color: 'primary.main',
-                                                            }
-                                                        }}
-                                                    >
-                                                        {t('daily.newReading')}
-                                                    </Button>
-                                                </Box>
-                                                <Chip
-                                                    label={personalForecast.todayPillar}
-                                                    color="primary"
-                                                    variant="outlined"
-                                                    sx={{ mb: 2, borderColor: 'primary.main', color: 'primary.main' }}
-                                                />
-                                                <Typography
-                                                    variant="body1"
-                                                    sx={{
-                                                        fontSize: { xs: '0.9rem', sm: '1rem' },
-                                                        color: 'text.primary',
-                                                        lineHeight: 1.6,
-                                                        whiteSpace: 'pre-line',
-                                                        '& .highlight': {
-                                                            color: 'primary.main',
-                                                            fontWeight: 600
-                                                        }
-                                                    }}
-                                                >
-                                                    {personalForecast.personalForecast}
-                                                </Typography>
-                                            </Box>
-                                        )}
-                                    </Box>
-                                </Collapse>
-                            </Box>
-
-                            {personalForecast && (
-                                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-                                    <Button
-                                        variant="contained"
-                                        startIcon={<ShareIcon />}
-                                        onClick={() => setShareDialogOpen(true)}
-                                        sx={{
-                                            py: 1.5,
-                                            px: 4,
-                                            fontSize: '1.1rem',
-                                            width: { xs: '100%', sm: 'auto' },
-                                            background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
-                                            boxShadow: '0 3px 5px 2px rgba(255, 152, 0, .3)',
-                                            '&:hover': {
-                                                background: 'linear-gradient(45deg, #ff9800 60%, #ff5722 90%)',
-                                                transform: 'translateY(-2px)',
-                                                transition: 'transform 0.2s'
-                                            }
-                                        }}
-                                    >
-                                        {t('daily.sharePersonalForecast')}
-                                    </Button>
-                                </Box>
-                            )}
-
-                            <Box sx={{
-                                mt: { xs: 2, sm: 4 },
-                                pt: { xs: 2, sm: 3 },
-                                borderTop: '1px solid rgba(255,152,0,0.2)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 2,
-                                textAlign: 'center'
-                            }}>
-                                <Typography
-                                    sx={{
-                                        fontSize: { xs: '0.9rem', sm: '1.2rem' },
-                                        fontWeight: 500,
-                                        color: 'text.secondary',
-                                        '& .highlight': {
-                                            color: '#ff9800',
-                                            fontWeight: 600,
-                                            display: 'inline'
-                                        }
-                                    }}
-                                >
-                                    {t('daily.wantCompleteBaziAnalysis')}
-                                </Typography>
-                                <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    sx={{ mb: 1, fontSize: '0.9rem' }}
-                                >
-                                    {t('daily.getFullBaziReading')}
-                                </Typography>
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    href="/"
-                                    sx={{
-                                        minWidth: 200,
-                                        fontWeight: 400,
-                                        fontSize: '1.1rem',
-                                        borderRadius: 2,
-                                        px: 3,
-                                        py: 1.5,
-                                        background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
-                                        '&:hover': {
-                                            background: 'linear-gradient(45deg, #ff5722 30%, #ff9800 90%)',
-                                        }
-                                    }}
-                                >
-                                    {t('daily.getFullBaziReadingButton')}
-                                </Button>
-                            </Box>
-                        </>
+                {showPersonalForecast && (
+                  <div className="mt-3">
+                    {!personalForecast ? (
+                      <>
+                        <p className="mb-3 text-sm text-muted-foreground">
+                          {t("daily.enterBirthDetails")}
+                          {birthDate && (
+                            <span className="font-medium text-primary">
+                              {" "}
+                              {t("daily.yourDetailsSaved")}
+                            </span>
+                          )}
+                        </p>
+                        <div className="mb-3 flex flex-col gap-3 sm:flex-row">
+                          <div className="flex-1 space-y-1.5">
+                            <Label htmlFor="daily-date">{t("daily.birthDateLabel")}</Label>
+                            <Input
+                              id="daily-date"
+                              type="date"
+                              value={birthDate}
+                              max={new Date().toISOString().split("T")[0]}
+                              onChange={(e) => setBirthDate(e.target.value)}
+                            />
+                          </div>
+                          <div className="flex-1 space-y-1.5">
+                            <Label htmlFor="daily-time">{t("daily.birthTimeLabel")}</Label>
+                            <Input
+                              id="daily-time"
+                              type="time"
+                              value={birthTime}
+                              onChange={(e) => setBirthTime(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        {personalError && (
+                          <p className="mb-3 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                            {personalError}
+                          </p>
+                        )}
+                        <Button
+                          onClick={handlePersonalForecastSubmit}
+                          disabled={personalLoading}
+                          className="w-full py-5 font-semibold"
+                        >
+                          {personalLoading && <Loader2 className="mr-1 size-4 animate-spin" />}
+                          {t("daily.getPersonalDailyForecast")}
+                        </Button>
+                      </>
                     ) : (
-                        <Box>
-                            <Typography variant="h6" color="primary.main" gutterBottom>
-                                {t('daily.dailyForecastComingSoon')}
-                            </Typography>
-                            <Typography variant="body1">
-                                {t('daily.dailyForecastSetup')}
-                            </Typography>
-                        </Box>
+                      <div className="rounded-xl border border-primary/20 bg-primary/[0.05] p-4">
+                        <div className="mb-3 flex items-start justify-between gap-3">
+                          <div>
+                            <h3 className="font-display text-lg font-semibold text-primary">
+                              {t("daily.yourPersonalForecast")}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Birth: {new Date(birthDate).toLocaleDateString()}
+                              {birthTime && ` at ${birthTime}`}
+                            </p>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setPersonalForecast(null);
+                              setPersonalError(null);
+                            }}
+                          >
+                            {t("daily.newReading")}
+                          </Button>
+                        </div>
+                        <Badge variant="outline" className="mb-2 border-primary text-primary">
+                          {personalForecast.todayPillar}
+                        </Badge>
+                        <p className="whitespace-pre-line leading-relaxed text-foreground/90">
+                          {personalForecast.personalForecast}
+                        </p>
+                      </div>
                     )}
-                </Paper>
+                  </div>
+                )}
+              </div>
 
+              {personalForecast && (
+                <div className="mt-5 flex justify-center">
+                  <Button
+                    onClick={() => setShareDialogOpen(true)}
+                    className="gap-2 px-6 py-5 text-base font-semibold"
+                  >
+                    <Share2 className="size-5" />
+                    {t("daily.sharePersonalForecast")}
+                  </Button>
+                </div>
+              )}
 
-            </Container>
+              {/* Full reading CTA */}
+              <div className="mt-5 flex flex-col items-center gap-2 border-t border-primary/20 pt-5 text-center">
+                <p className="font-medium text-muted-foreground sm:text-lg">
+                  {t("daily.wantCompleteBaziAnalysis")}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t("daily.getFullBaziReading")}
+                </p>
+                <Button asChild className="mt-1 min-w-50 py-5 text-base font-semibold">
+                  <a href="/">{t("daily.getFullBaziReadingButton")}</a>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div>
+              <h2 className="font-display text-xl font-semibold text-primary">
+                {t("daily.dailyForecastComingSoon")}
+              </h2>
+              <p className="mt-1">{t("daily.dailyForecastSetup")}</p>
+            </div>
+          )}
+        </div>
+      </div>
 
-            {/* Share Dialog */}
-            {shareDialogOpen && personalForecast && (
-                <Dialog
-                    open={shareDialogOpen}
-                    onClose={() => setShareDialogOpen(false)}
-                    maxWidth="sm"
-                    fullWidth
-                    PaperProps={{
-                        sx: {
-                            bgcolor: '#1e1e1e',
-                            color: 'white',
-                            borderRadius: 3,
-                        }
-                    }}
+      {personalForecast && (
+        <ShareDialog
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+          title={t("daily.sharePersonalForecastTitle")}
+          downloadLabel={t("daily.saveForecast")}
+          onDownload={handleShareDownload}
+        >
+          <div ref={shareCardRef}>
+            <ShareCardBase title={t("daily.myPersonalDailyForecast")} qrValue={window.location.href}>
+              <p style={{ color: "#c9a227", fontWeight: 700, fontSize: 18, marginBottom: 12 }}>
+                {formattedDate}
+              </p>
+              {personalForecast.todayPillar && (
+                <div
+                  style={{
+                    display: "inline-block",
+                    border: "1px solid #c9a227",
+                    color: "#c9a227",
+                    borderRadius: 999,
+                    padding: "2px 12px",
+                    fontSize: 13,
+                    marginBottom: 12,
+                  }}
                 >
-                    <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
-                        {t('daily.sharePersonalForecastTitle')}
-                    </DialogTitle>
-                    <DialogContent>
-                        <Box sx={{ textAlign: 'center', mb: 3 }}>
-                            <Suspense fallback={<CircularProgress />}>
-                                <ShareCardBase
-                                    title={t('daily.myPersonalDailyForecast')}
-                                    qrValue={window.location.href}
-                                >
-                                    <Typography variant="h6" sx={{ color: '#ff9800', mb: 2, fontWeight: 'bold' }}>
-                                        {formattedDate}
-                                    </Typography>
-                                    {personalForecast.todayPillar && (
-                                        <Chip
-                                            label={personalForecast.todayPillar}
-                                            color="primary"
-                                            variant="outlined"
-                                            sx={{
-                                                borderColor: 'primary.main',
-                                                color: 'primary.main',
-                                                mb: 2
-                                            }}
-                                        />
-                                    )}
-                                    <Typography variant="body1" sx={{ color: 'white', mb: 2, lineHeight: 1.6, textAlign: 'center' }}>
-                                        <Suspense fallback={<CircularProgress size={20} />}>
-                                            <ReactMarkdown>{formatPersonalForecast(personalForecast.personalForecast)}</ReactMarkdown>
-                                        </Suspense>
-                                    </Typography>
-                                </ShareCardBase>
-                            </Suspense>
-                        </Box>
-                    </DialogContent>
-                    <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
-                        <Button
-                            onClick={() => setShareDialogOpen(false)}
-                            variant="outlined"
-                            sx={{
-                                borderColor: 'rgba(255, 152, 0, 0.3)',
-                                color: '#ff9800',
-                                '&:hover': {
-                                    borderColor: '#ff9800',
-                                }
-                            }}
-                        >
-                            {t('common.cancel')}
-                        </Button>
-                        <Button
-                            onClick={handleShareDownload}
-                            variant="contained"
-                            sx={{
-                                background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
-                                color: 'white',
-                                px: 4,
-                                py: 1.5,
-                                '&:hover': {
-                                    background: 'linear-gradient(45deg, #ff9800 60%, #ff5722 90%)',
-                                }
-                            }}
-                        >
-                            {t('daily.saveForecast')}
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-            )}
-        </>
-    );
+                  {personalForecast.todayPillar}
+                </div>
+              )}
+              <ShareMarkdown>
+                {formatPersonalForecast(personalForecast.personalForecast)}
+              </ShareMarkdown>
+            </ShareCardBase>
+          </div>
+        </ShareDialog>
+      )}
+    </>
+  );
 }
 
-export default Daily; 
+export default Daily;

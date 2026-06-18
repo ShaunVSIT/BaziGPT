@@ -16,17 +16,17 @@ const DailyPage: React.FC = () => {
                 <meta property="og:title" content={t('seo.daily.title')} />
                 <meta property="og:description" content={t('seo.daily.description')} />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content="https://bazigpt.com/daily" />
-                <meta property="og:image" content="https://bazigpt.com/og-image.svg" />
+                <meta property="og:url" content="https://www.bazigpt.io/daily" />
+                <meta property="og:image" content="https://www.bazigpt.io/og-image.png" />
 
                 {/* Twitter Card */}
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content={t('seo.daily.title')} />
                 <meta name="twitter:description" content={t('seo.daily.description')} />
-                <meta name="twitter:image" content="https://bazigpt.com/og-image.svg" />
+                <meta name="twitter:image" content="https://www.bazigpt.io/og-image.png" />
 
                 {/* Canonical URL */}
-                <link rel="canonical" href="https://bazigpt.com/daily" />
+                <link rel="canonical" href="https://www.bazigpt.io/daily" />
             </Helmet>
             <Daily />
         </>

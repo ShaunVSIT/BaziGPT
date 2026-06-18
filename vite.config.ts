@@ -27,7 +27,6 @@ export default defineConfig({
           // Separate vendor chunks for better caching
           'mui-core': ['@mui/material', '@mui/system', '@emotion/react', '@emotion/styled'],
           'mui-icons': ['@mui/icons-material'],
-          'mui-pickers': ['@mui/x-date-pickers'],
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'utils': ['date-fns', 'react-i18next', 'i18next'],
           // Heavy components in separate chunks

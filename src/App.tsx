@@ -7,8 +7,6 @@ import {
   CircularProgress,
   Box,
 } from '@mui/material';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import DevelopmentAnalytics from './components/DevelopmentAnalytics';
 import SEOAnalytics from './components/SEOAnalytics';
@@ -50,25 +48,23 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <Router>
-            <Layout>
-              <Suspense fallback={<LoadingSpinner />}>
-                <Routes>
-                  {routes.map((route) => (
-                    <Route
-                      key={route.path}
-                      path={route.path}
-                      element={<route.component />}
-                    />
-                  ))}
-                </Routes>
-              </Suspense>
-            </Layout>
-            <LanguageWelcomeModal />
-            <LanguageToast />
-          </Router>
-        </LocalizationProvider>
+        <Router>
+          <Layout>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
+                {routes.map((route) => (
+                  <Route
+                    key={route.path}
+                    path={route.path}
+                    element={<route.component />}
+                  />
+                ))}
+              </Routes>
+            </Suspense>
+          </Layout>
+          <LanguageWelcomeModal />
+          <LanguageToast />
+        </Router>
         <SpeedInsights />
         <DevelopmentAnalytics />
         <SEOAnalytics

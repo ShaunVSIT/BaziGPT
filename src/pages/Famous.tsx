@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { Search, Loader2 } from "lucide-react";
 import FamousPeopleGrid from "@/components/FamousPeopleGrid";
+import { PageHero } from "@/components/brand/PageHero";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FamousPerson } from "@/types/famous";
@@ -136,13 +137,15 @@ const Famous: React.FC = () => {
       </Helmet>
 
       <div className="mx-auto max-w-6xl">
-        <h1 className="mt-2 flex items-center justify-center gap-2 text-center font-display text-3xl font-bold text-foreground">
-          🌟 {t("famous.title")} 🌟
-        </h1>
-        <p className="mx-auto mt-2 mb-5 max-w-3xl text-center text-xs italic leading-relaxed text-muted-foreground/80 sm:text-sm">
-          {t("famous.disclaimer")}
-          <br />
-          {t("famous.disclaimerContact")}
+        <PageHero
+          size="compact"
+          showMark={false}
+          eyebrow="BaZi Charts · Icons & Legends"
+          title={t("famous.title")}
+          subtitle={t("famous.subtitle")}
+        />
+        <p className="mx-auto -mt-4 mb-8 max-w-3xl text-center text-xs italic leading-relaxed text-muted-foreground/70">
+          {t("famous.disclaimer")} {t("famous.disclaimerContact")}
         </p>
 
         {/* Search */}

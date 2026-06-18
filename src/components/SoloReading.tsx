@@ -1,793 +1,467 @@
-import React, { useState, useRef, Suspense } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { useTranslation } from 'react-i18next';
-// Navigation now handled by Layout component
+import React, { useState, useRef } from "react";
+import { Helmet } from "react-helmet-async";
+import { useTranslation } from "react-i18next";
+import { track } from "@vercel/analytics/react";
 import {
-    Box,
-    Typography,
-    Paper,
-    CircularProgress,
-    Alert,
-    Button,
-    TextField,
-    Collapse,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Fab,
-    Zoom,
-} from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { track } from '@vercel/analytics/react';
-import ShareIcon from '@mui/icons-material/Share';
-// Lazy load heavy components
-const ReactMarkdown = React.lazy(() => import('react-markdown'));
-const ShareCardBase = React.lazy(() => import('./ShareCardBase'));
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+  ChevronDown,
+  RefreshCw,
+  Share2,
+  CheckCircle2,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { BrandMark } from "./brand/Logo";
+import { ReadingShell } from "./reading/ReadingShell";
+import { ModeToggle } from "./reading/ModeToggle";
+import { BirthInputs } from "./reading/BirthInputs";
+import { ReadingMarkdown } from "./reading/ReadingMarkdown";
+import { ShareMarkdown } from "./reading/ShareMarkdown";
+import { ShareDialog } from "./reading/ShareDialog";
+import { ShareFab } from "./reading/ShareFab";
+import ShareCardBase from "./ShareCardBase";
+import { formatDateToYMD, parseDateString } from "@/lib/date";
+import { cn } from "@/lib/utils";
 
 interface BaziReading {
-    reading: string;
-    shareableSummary: string;
+  reading: string;
+  shareableSummary: string;
 }
 
 interface SoloReadingProps {
-    onModeSwitch: (mode: 'solo' | 'compatibility') => void;
+  onModeSwitch: (mode: "solo" | "compatibility") => void;
 }
 
 // Helper to extract Four Pillars and Core Self from the reading markdown
 function extractShareCardSections(readingMarkdown: string) {
-    if (!readingMarkdown) return { fourPillars: '', keyInsights: '', coreSelf: '' };
-    // Four Pillars: match any heading level, allow whitespace, tolerate extra newlines
-    const fourPillarsMatch = readingMarkdown.match(/#+\s*Four Pillars[\s\S]*?(?:\n- .+)+/i);
-    let fourPillars = fourPillarsMatch ? fourPillarsMatch[0] : '';
-
-    // Key Insights: match the whole section, including all sub-sections, until the next top-level heading
-    const keyInsightsMatch = readingMarkdown.match(/#+\s*Key Insights[\s\S]*?(?=\n#+\s|$)/i);
-    let keyInsights = keyInsightsMatch ? keyInsightsMatch[0] : '';
-
-    // Core Self: match any heading level, allow whitespace, tolerate extra newlines
-    const coreSelfMatch = readingMarkdown.match(/#+\s*Core Self[\s\S]*?(?=\n#+\s|$)/i);
-    let coreSelf = coreSelfMatch ? coreSelfMatch[0] : '';
-
-    // Fallback: if not found, use first 5 lines of reading
-    if (!fourPillars) fourPillars = readingMarkdown.split('\n').slice(0, 6).join('\n');
-    if (!keyInsights) keyInsights = coreSelf;
-    return { fourPillars, keyInsights, coreSelf };
+  if (!readingMarkdown) return { fourPillars: "", keyInsights: "", coreSelf: "" };
+  const fourPillarsMatch = readingMarkdown.match(/#+\s*Four Pillars[\s\S]*?(?:\n- .+)+/i);
+  let fourPillars = fourPillarsMatch ? fourPillarsMatch[0] : "";
+  const keyInsightsMatch = readingMarkdown.match(/#+\s*Key Insights[\s\S]*?(?=\n#+\s|$)/i);
+  const keyInsights = keyInsightsMatch ? keyInsightsMatch[0] : "";
+  const coreSelfMatch = readingMarkdown.match(/#+\s*Core Self[\s\S]*?(?=\n#+\s|$)/i);
+  const coreSelf = coreSelfMatch ? coreSelfMatch[0] : "";
+  if (!fourPillars) fourPillars = readingMarkdown.split("\n").slice(0, 6).join("\n");
+  return { fourPillars, keyInsights: keyInsights || coreSelf, coreSelf };
 }
 
-// Helper to get a unique key for follow-ups based on birth details
 function getFollowupsKey(birthDate: Date | null, birthTime: string) {
-    if (!birthDate) return 'bazi-solo-followups'; // Fallback key if no birth date
-    const dateStr = birthDate instanceof Date ? birthDate.toISOString().split('T')[0] : new Date(birthDate).toISOString().split('T')[0];
-    return `bazi-solo-followups-${dateStr}-${birthTime || 'no-time'}`;
+  if (!birthDate) return "bazi-solo-followups";
+  const dateStr = formatDateToYMD(
+    birthDate instanceof Date ? birthDate : new Date(birthDate)
+  );
+  return `bazi-solo-followups-${dateStr}-${birthTime || "no-time"}`;
 }
 
-// Session storage keys
-const SOLO_READING_KEY = 'bazi-solo-reading';
-const SOLO_FOLLOWUPS_KEY = 'bazi-solo-followups';
+const SOLO_READING_KEY = "bazi-solo-reading";
+const SOLO_FOLLOWUPS_KEY = "bazi-solo-followups";
 
 const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
-    const { t, i18n } = useTranslation();
-    const [birthDate, setBirthDate] = useState<Date | null>(null);
-    const [birthTime, setBirthTime] = useState<string>('');
-    const [reading, setReading] = useState<BaziReading | null>(null);
-    const [shareableSummary, setShareableSummary] = useState<string | null>(null);
-    const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
-    const [followUpAnswer, setFollowUpAnswer] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [followUpLoading, setFollowUpLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [isMainReadingExpanded, setIsMainReadingExpanded] = useState(true);
-    const [cachedAnswers, setCachedAnswers] = useState<Record<string, string>>({});
-    const [shareDialogOpen, setShareDialogOpen] = useState(false);
-    const shareCardRef = useRef<HTMLDivElement>(null);
+  const { t, i18n } = useTranslation();
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
+  const [birthTime, setBirthTime] = useState<string>("");
+  const [reading, setReading] = useState<BaziReading | null>(null);
+  const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
+  const [followUpAnswer, setFollowUpAnswer] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [followUpLoading, setFollowUpLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isMainReadingExpanded, setIsMainReadingExpanded] = useState(true);
+  const [cachedAnswers, setCachedAnswers] = useState<Record<string, string>>({});
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement>(null);
 
-    // Utility to safely parse a date string to Date object or return null
-    function parseDateString(dateStr: string | null | undefined): Date | null {
-        if (!dateStr) return null;
-        const d = new Date(dateStr);
-        return isNaN(d.getTime()) ? null : d;
+  // On mount, restore birthDate/time, then reading and follow-ups
+  React.useEffect(() => {
+    const storedBirth = sessionStorage.getItem("bazi-solo-birth");
+    let parsedDate: Date | null = null;
+    let restoredTime = "";
+    if (storedBirth) {
+      const parsed = JSON.parse(storedBirth);
+      parsedDate = parseDateString(parsed.birthDate);
+      restoredTime = parsed.birthTime || "";
+      setBirthDate(parsedDate);
+      setBirthTime(restoredTime);
+    }
+    const storedReading = sessionStorage.getItem(SOLO_READING_KEY);
+    if (storedReading) setReading(JSON.parse(storedReading));
+    if (parsedDate) {
+      const followupsKey = getFollowupsKey(parsedDate, restoredTime);
+      const storedFollowups = sessionStorage.getItem(followupsKey);
+      if (storedFollowups) setCachedAnswers(JSON.parse(storedFollowups));
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (reading) sessionStorage.setItem(SOLO_READING_KEY, JSON.stringify(reading));
+  }, [reading]);
+
+  React.useEffect(() => {
+    if (birthDate instanceof Date && !isNaN(birthDate.getTime())) {
+      const dateStr = formatDateToYMD(birthDate);
+      sessionStorage.setItem("bazi-solo-birth", JSON.stringify({ birthDate: dateStr, birthTime }));
+    }
+  }, [birthDate, birthTime]);
+
+  React.useEffect(() => {
+    if (birthDate instanceof Date && !isNaN(birthDate.getTime())) {
+      const followupsKey = getFollowupsKey(birthDate, birthTime);
+      if (Object.keys(cachedAnswers).length > 0) {
+        sessionStorage.setItem(followupsKey, JSON.stringify(cachedAnswers));
+      } else {
+        sessionStorage.removeItem(followupsKey);
+      }
+    }
+  }, [cachedAnswers, birthDate, birthTime]);
+
+  // Clear reading when language changes (if we have birth data)
+  React.useEffect(() => {
+    if (reading && birthDate && birthTime !== undefined) {
+      setReading(null);
+      setCachedAnswers({});
+      sessionStorage.removeItem(SOLO_READING_KEY);
+      const followupsKey = getFollowupsKey(birthDate, birthTime);
+      sessionStorage.removeItem(followupsKey);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.language]);
+
+  const handleSubmit = async () => {
+    if (!birthDate) {
+      setError("Please select a birth date first");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const dateStr = formatDateToYMD(birthDate);
+      const response = await fetch("/api/bazi-reading", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          birthDate: dateStr,
+          birthTime: birthTime || undefined,
+          language: i18n.language,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to generate your reading.");
+      const baziReading = await response.json();
+      setReading(baziReading);
+      setCachedAnswers({});
+      sessionStorage.setItem("bazi-solo-birth", JSON.stringify({ birthDate: dateStr, birthTime }));
+      sessionStorage.removeItem(getFollowupsKey(birthDate, birthTime));
+      track("reading_generated", { hasTime: !!birthTime });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred while generating your reading.");
+      setReading(null);
+      track("reading_error", { error: err instanceof Error ? err.message : "Unknown error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuestionClick = async (question: string) => {
+    if (!birthDate) return;
+    setSelectedQuestion(question);
+    setError(null);
+    setIsMainReadingExpanded(false);
+
+    if (cachedAnswers[question]) {
+      setFollowUpAnswer(cachedAnswers[question]);
+      track("followup_cached", { question });
+      return;
     }
 
-    // Utility to format a Date object as 'YYYY-MM-DD' in local time
-    function formatDateToYMD(date: Date): string {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+    setFollowUpLoading(true);
+    try {
+      const response = await fetch("/api/bazi-followup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ birthDate, question, language: i18n.language }),
+      });
+      if (!response.ok) throw new Error("Failed to generate the answer.");
+      const data = await response.json();
+      setFollowUpAnswer(data.content);
+      setCachedAnswers((prev) => ({ ...prev, [question]: data.content }));
+      track("followup_generated", { question });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred while generating the answer.");
+      setFollowUpAnswer(null);
+      track("followup_error", { question, error: err instanceof Error ? err.message : "Unknown error" });
+    } finally {
+      setFollowUpLoading(false);
     }
-    // On mount, restore birthDate and birthTime first, then reading and follow-ups
-    React.useEffect(() => {
-        const storedBirth = sessionStorage.getItem('bazi-solo-birth');
-        let parsedDate = null;
-        let birthTime = '';
-        if (storedBirth) {
-            const parsed = JSON.parse(storedBirth);
-            parsedDate = parseDateString(parsed.birthDate);
-            birthTime = parsed.birthTime || '';
-            setBirthDate(parsedDate);
-            setBirthTime(birthTime);
-        }
-        // Now restore reading and follow-ups for this birth details
-        const storedReading = sessionStorage.getItem(SOLO_READING_KEY);
-        if (storedReading) {
-            setReading(JSON.parse(storedReading));
-        }
-        if (parsedDate) {
-            const followupsKey = getFollowupsKey(parsedDate, birthTime);
-            const storedFollowups = sessionStorage.getItem(followupsKey);
-            if (storedFollowups) {
-                setCachedAnswers(JSON.parse(storedFollowups));
-            }
-        }
-    }, []);
+  };
 
-    // Store reading in sessionStorage when it changes
-    React.useEffect(() => {
-        if (reading) {
-            sessionStorage.setItem(SOLO_READING_KEY, JSON.stringify(reading));
-        }
-    }, [reading]);
-    // When storing birth details in sessionStorage, store as 'YYYY-MM-DD' string
-    React.useEffect(() => {
-        if (birthDate instanceof Date && !isNaN(birthDate.getTime())) {
-            const dateStr = formatDateToYMD(birthDate);
-            sessionStorage.setItem('bazi-solo-birth', JSON.stringify({ birthDate: dateStr, birthTime }));
-        }
-    }, [birthDate, birthTime]);
-    // Store follow-ups only if birthDate is valid
-    React.useEffect(() => {
-        if (birthDate instanceof Date && !isNaN(birthDate.getTime())) {
-            const followupsKey = getFollowupsKey(birthDate, birthTime);
-            if (Object.keys(cachedAnswers).length > 0) {
-                sessionStorage.setItem(followupsKey, JSON.stringify(cachedAnswers));
-            } else {
-                sessionStorage.removeItem(followupsKey);
-            }
-        }
-    }, [cachedAnswers, birthDate, birthTime]);
+  const handleRestart = () => {
+    track("reading_restart");
+    setBirthDate(null);
+    setBirthTime("");
+    setReading(null);
+    setSelectedQuestion(null);
+    setFollowUpAnswer(null);
+    setError(null);
+    setIsMainReadingExpanded(true);
+    setCachedAnswers({});
+    sessionStorage.removeItem(SOLO_READING_KEY);
+    sessionStorage.removeItem("bazi-solo-birth");
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.startsWith(SOLO_FOLLOWUPS_KEY)) sessionStorage.removeItem(key);
+    });
+  };
 
-    // Clear reading when language changes (if we have birth data)
-    React.useEffect(() => {
-        if (reading && birthDate && birthTime !== undefined) {
-            setReading(null);
-            setCachedAnswers({});
-            // Also clear from sessionStorage to prevent restoration on remount
-            sessionStorage.removeItem(SOLO_READING_KEY);
-            const followupsKey = getFollowupsKey(birthDate, birthTime);
-            sessionStorage.removeItem(followupsKey);
-        }
-    }, [i18n.language]); // Only trigger on language change
+  const handleShare = async () => {
+    if (!shareCardRef.current) return;
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(shareCardRef.current, {
+        backgroundColor: "#0b0b0f",
+        scale: 2,
+      });
+      const link = document.createElement("a");
+      link.download = "my-bazi-reading.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      track("reading_shared");
+    } catch (err) {
+      track("share_error", { error: err instanceof Error ? err.message : "Unknown error" });
+    }
+  };
 
-    const handleDateChange = (newValue: any) => {
-        if (newValue instanceof Date && !isNaN(newValue.getTime())) {
-            setBirthDate(newValue);
-        }
-        setError(null);
-        // Do NOT auto-clear reading or follow-ups
-    };
+  const shareableSummary =
+    reading?.shareableSummary ||
+    "A balanced individual with natural leadership qualities, combining wisdom with adaptability.";
 
-    const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newTime = event.target.value;
-        setBirthTime(newTime);
-        // Do NOT auto-clear reading or follow-ups
-    };
+  const followUpQuestions = [
+    t("soloReading.followUpCareer"),
+    t("soloReading.followUpHealth"),
+    t("soloReading.followUpRelationships"),
+    t("soloReading.followUpFinances"),
+    t("soloReading.followUpEducation"),
+    t("soloReading.followUpTravel"),
+  ];
 
-    const handleSubmit = async () => {
-        if (!birthDate) {
-            setError('Please select a birth date first');
-            return;
-        }
+  const sections = reading
+    ? extractShareCardSections(reading.reading)
+    : { fourPillars: "", keyInsights: "", coreSelf: "" };
 
-        setLoading(true);
-        setError(null);
+  return (
+    <>
+      <Helmet>
+        <title>BaziGPT - Your Personal Bazi Reading</title>
+        <meta name="description" content="Get your personalized Bazi reading based on your birth date and time. Discover insights about your personality, career, relationships, and life path." />
+        <meta property="og:title" content="BaziGPT - Your Personal Bazi Reading" />
+        <meta property="og:description" content="Get your personalized Bazi reading based on your birth date and time." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.bazigpt.io" />
+        <meta property="og:image" content="https://www.bazigpt.io/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="BaziGPT - Your Personal Bazi Reading" />
+        <meta name="twitter:description" content="Get your personalized Bazi reading based on your birth date and time." />
+        <meta name="twitter:image" content="https://www.bazigpt.io/og-image.png" />
+      </Helmet>
 
-        try {
-            const dateStr = birthDate instanceof Date ? formatDateToYMD(birthDate) : birthDate;
-            const response = await fetch('/api/bazi-reading', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    birthDate: dateStr,
-                    birthTime: birthTime || undefined,
-                    language: i18n.language
-                })
-            });
-            if (!response.ok) throw new Error('Failed to generate your reading.');
-            const baziReading = await response.json();
-            setReading(baziReading);
-            // Clear and reset follow-ups for this new reading
-            setCachedAnswers({});
-            // Store birth details
-            sessionStorage.setItem('bazi-solo-birth', JSON.stringify({ birthDate: dateStr, birthTime }));
-            // Remove old follow-ups for this birth details
-            const followupsKey = getFollowupsKey(birthDate, birthTime);
-            sessionStorage.removeItem(followupsKey);
-            track('reading_generated', {
-                hasTime: !!birthTime,
-            });
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred while generating your reading.');
-            setReading(null);
-            track('reading_error', {
-                error: err instanceof Error ? err.message : 'Unknown error',
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
+      {!reading ? (
+        <section className="relative mx-auto flex min-h-[calc(100vh-9rem)] max-w-xl flex-col items-center justify-center py-6 text-center">
+          {/* Glowing brand mark */}
+          <div className="animate-rise relative mb-6">
+            <div className="animate-glow absolute left-1/2 top-1/2 size-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/25 blur-2xl" />
+            <BrandMark size={72} className="relative" />
+          </div>
 
-    const handleQuestionClick = async (question: string) => {
-        if (!birthDate) return;
+          <p
+            className="animate-rise mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-primary"
+            style={{ animationDelay: "0.05s" }}
+          >
+            AI-Powered BaZi · Four Pillars
+          </p>
 
-        setSelectedQuestion(question);
-        setError(null);
-        setIsMainReadingExpanded(false);
+          <h1
+            className="animate-rise font-display text-5xl font-bold leading-[1.05] sm:text-6xl"
+            style={{ animationDelay: "0.1s" }}
+          >
+            <span className="text-gold-gradient">Unlock Your Destiny</span>
+            <span className="mt-1 block text-2xl font-normal text-foreground/70 sm:text-3xl">
+              written in the stars
+            </span>
+          </h1>
 
-        if (cachedAnswers[question]) {
-            setFollowUpAnswer(cachedAnswers[question]);
-            track('followup_cached', {
-                question,
-            });
-            return;
-        }
+          <p
+            className="animate-rise mt-5 max-w-md text-base text-muted-foreground sm:text-lg"
+            style={{ animationDelay: "0.15s" }}
+          >
+            {t("soloReading.subtitle")}
+          </p>
 
-        setFollowUpLoading(true);
-
-        try {
-            const response = await fetch('/api/bazi-followup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    birthDate,
-                    question,
-                    language: i18n.language
-                })
-            });
-            if (!response.ok) throw new Error('Failed to generate the answer.');
-            const data = await response.json();
-            setFollowUpAnswer(data.content);
-            setCachedAnswers(prev => ({
-                ...prev,
-                [question]: data.content
-            }));
-            track('followup_generated', {
-                question,
-            });
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred while generating the answer.');
-            setFollowUpAnswer(null);
-            track('followup_error', {
-                question,
-                error: err instanceof Error ? err.message : 'Unknown error',
-            });
-        } finally {
-            setFollowUpLoading(false);
-        }
-    };
-
-    const handleRestart = () => {
-        track('reading_restart');
-        setBirthDate(null);
-        setBirthTime('');
-        setReading(null);
-        setShareableSummary(null);
-        setSelectedQuestion(null);
-        setFollowUpAnswer(null);
-        setError(null);
-        setIsMainReadingExpanded(true);
-        setCachedAnswers({});
-        sessionStorage.removeItem(SOLO_READING_KEY);
-        sessionStorage.removeItem('bazi-solo-birth');
-        // Remove all follow-ups for all possible keys
-        Object.keys(sessionStorage).forEach(key => {
-            if (key.startsWith(SOLO_FOLLOWUPS_KEY)) sessionStorage.removeItem(key);
-        });
-    };
-
-    const handleShare = async () => {
-        if (!shareCardRef.current) return;
-
-        try {
-            // Dynamically import html2canvas to reduce initial bundle size
-            const html2canvas = (await import('html2canvas')).default;
-            const canvas = await html2canvas(shareCardRef.current, {
-                backgroundColor: '#121212',
-                scale: 2,
-            });
-
-            const image = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.download = 'my-bazi-reading.png';
-            link.href = image;
-            link.click();
-            track('reading_shared');
-        } catch (err) {
-            track('share_error', {
-                error: err instanceof Error ? err.message : 'Unknown error',
-            });
-        }
-    };
-
-    const renderShareButton = () => (
-        <Button
-            variant="contained"
-            startIcon={<ShareIcon />}
-            onClick={() => setShareDialogOpen(true)}
-            sx={{
-                mt: 3,
-                mb: 2,
-                py: 1.5,
-                px: 4,
-                fontSize: '1.1rem',
-                width: { xs: '100%', sm: 'auto' },
-                background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
-                boxShadow: '0 3px 5px 2px rgba(255, 152, 0, .3)',
-                '&:hover': {
-                    background: 'linear-gradient(45deg, #ff9800 60%, #ff5722 90%)',
-                    transform: 'translateY(-2px)',
-                    transition: 'transform 0.2s'
-                }
-            }}
-        >
-            {t('soloReading.shareReading')}
-        </Button>
-    );
-
-    const getShareableSummary = () => {
-        return shareableSummary || "A balanced individual with natural leadership qualities, combining wisdom with adaptability.";
-    };
-
-    const renderShareDialog = () => {
-        const sections = reading ? extractShareCardSections(reading.reading) : { fourPillars: '', keyInsights: '', coreSelf: '' };
-        // Custom markdown renderers for headings and bold
-        const markdownComponents = {
-            h1: (props: any) => <Typography variant="h6" sx={{ color: '#ff9800', fontWeight: 700, mt: 2, mb: 1, fontSize: '1.2rem' }} {...props} />, // h1
-            h2: (props: any) => <Typography variant="subtitle1" sx={{ color: '#ff9800', fontWeight: 700, mt: 2, mb: 1, fontSize: '1.1rem' }} {...props} />, // h2
-            h3: (props: any) => <Typography variant="subtitle2" sx={{ color: '#ff9800', fontWeight: 700, mt: 2, mb: 1, fontSize: '1rem' }} {...props} />, // h3
-            strong: (props: any) => <span style={{ color: '#ff9800', fontWeight: 700 }}>{props.children}</span>,
-            li: (props: any) => <li style={{ marginBottom: 4 }}>{props.children}</li>,
-            p: (props: any) => <Typography variant="body2" sx={{ color: 'white', mb: 1, lineHeight: 1.6 }} {...props} />
-        };
-        return (
-            <Dialog
-                open={shareDialogOpen}
-                onClose={() => setShareDialogOpen(false)}
-                maxWidth="sm"
-                fullWidth
-                PaperProps={{
-                    sx: {
-                        bgcolor: '#1e1e1e',
-                        color: 'white',
-                        borderRadius: 3,
-                    }
+          {/* The "portal" — input wrapped in atmosphere */}
+          <div
+            className="animate-rise relative mt-8 w-full max-w-md"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <div className="absolute -inset-1 rounded-3xl bg-primary/15 blur-2xl" />
+            <div className="relative rounded-2xl border border-primary/25 bg-card/70 p-5 shadow-2xl shadow-primary/10 backdrop-blur-xl">
+              <ModeToggle mode="solo" onModeSwitch={onModeSwitch} />
+              <BirthInputs
+                date={birthDate}
+                time={birthTime}
+                onDateChange={(d) => {
+                  setBirthDate(d);
+                  setError(null);
                 }}
-            >
-                <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
-                    {t('soloReading.shareReading')}
-                </DialogTitle>
-                <DialogContent>
-                    <Box sx={{ textAlign: 'center', mb: 3 }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            {t('soloReading.shareReading')}
-                        </Typography>
-                        <Suspense fallback={<CircularProgress />}>
-                            <ShareCardBase
-                                title={t('soloReading.title')}
-                                qrValue={window.location.href}
-                            >
-                                {/* Four Pillars */}
-                                {sections.fourPillars && (
-                                    <Box sx={{ color: 'white', mb: 2, textAlign: 'left', fontSize: '1rem' }}>
-                                        <Suspense fallback={<CircularProgress size={20} />}>
-                                            <ReactMarkdown components={markdownComponents}>{sections.fourPillars}</ReactMarkdown>
-                                        </Suspense>
-                                    </Box>
-                                )}
-                                {/* Key Insights (includes Core Self, etc.) */}
-                                {sections.keyInsights && (
-                                    <Box sx={{ color: 'white', mb: 2, textAlign: 'left', fontSize: '1rem' }}>
-                                        <Suspense fallback={<CircularProgress size={20} />}>
-                                            <ReactMarkdown components={markdownComponents}>{sections.keyInsights}</ReactMarkdown>
-                                        </Suspense>
-                                    </Box>
-                                )}
-                                {/* Shareable Summary */}
-                                <Typography variant="body1" sx={{ color: '#ff9800', mb: 2, lineHeight: 1.6, textAlign: 'left', fontWeight: 600 }}>
-                                    {getShareableSummary()}
-                                </Typography>
-                            </ShareCardBase>
-                        </Suspense>
-                    </Box>
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+                onTimeChange={setBirthTime}
+              />
+              <Button
+                onClick={handleSubmit}
+                disabled={!birthDate || loading}
+                className="mt-4 w-full gap-2 py-6 text-base font-semibold"
+              >
+                {loading && <Loader2 className="size-4 animate-spin" />}
+                {loading ? t("soloReading.loadingReading") : t("soloReading.getReading")}
+                {!loading && <Sparkles className="size-4" />}
+              </Button>
+              {error && (
+                <p className="mt-3 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {t("soloReading.errorReading")}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <p
+            className="animate-rise mt-6 text-sm text-muted-foreground"
+            style={{ animationDelay: "0.25s" }}
+          >
+            ✦ Free · No signup · Instant
+          </p>
+        </section>
+      ) : (
+        <ReadingShell subtitle={t("soloReading.subtitle")}>
+          <ModeToggle mode="solo" onModeSwitch={onModeSwitch} />
+          <div className="mt-2">
+            {/* Main reading */}
+            <Card className="mb-5 border-border/60 bg-card/70 py-0">
+              <CardContent className="p-4 sm:p-5">
+                <div className="mb-2 flex items-start justify-between">
+                  <h2 className="font-display text-2xl font-semibold text-primary">
+                    {t("soloReading.title")}
+                  </h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsMainReadingExpanded((v) => !v)}
+                    className="text-primary"
+                    aria-label="toggle reading"
+                  >
+                    <ChevronDown
+                      className={cn(
+                        "size-5 transition-transform",
+                        isMainReadingExpanded && "rotate-180"
+                      )}
+                    />
+                  </Button>
+                </div>
+                {isMainReadingExpanded && (
+                  <ReadingMarkdown>{reading.reading}</ReadingMarkdown>
+                )}
+              </CardContent>
+            </Card>
+
+            <p className="mb-4 text-center text-sm text-muted-foreground">
+              Birth: {birthDate ? new Date(birthDate).toLocaleDateString() : ""}
+              {birthTime && ` at ${birthTime}`}
+            </p>
+
+            {/* Follow-up questions */}
+            <Card className="mb-5 border-border/60 bg-card/70 py-0">
+              <CardContent className="p-4 sm:p-5">
+                <h3 className="font-display text-xl font-semibold text-primary">
+                  {t("soloReading.followUpTitle")}
+                </h3>
+                <p className="mt-1 mb-4 text-sm text-muted-foreground">
+                  {t("soloReading.followUpSubtitle")}
+                </p>
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {followUpQuestions.map((question) => (
                     <Button
-                        onClick={handleShare}
-                        variant="contained"
-                        sx={{
-                            background: 'linear-gradient(45deg, #ff9800 30%, #ff5722 90%)',
-                            color: 'white',
-                            px: 4,
-                            py: 1.5,
-                            '&:hover': {
-                                background: 'linear-gradient(45deg, #ff9800 60%, #ff5722 90%)',
-                            }
-                        }}
+                      key={question}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleQuestionClick(question)}
+                      disabled={followUpLoading}
+                      className={cn(
+                        "gap-1.5",
+                        selectedQuestion === question &&
+                          "border-primary text-primary"
+                      )}
                     >
-                        {t('soloReading.downloadImage')}
+                      {question}
+                      {cachedAnswers[question] && (
+                        <CheckCircle2 className="size-3.5 text-secondary" />
+                      )}
                     </Button>
-                    <Button
-                        onClick={() => setShareDialogOpen(false)}
-                        variant="outlined"
-                        sx={{
-                            borderColor: 'rgba(255, 152, 0, 0.3)',
-                            color: '#ff9800',
-                            '&:hover': {
-                                borderColor: '#ff9800',
-                            }
-                        }}
-                    >
-                        {t('common.close')}
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        );
-    };
+                  ))}
+                </div>
 
-    return (
-        <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, sm: 3 } }}>
-            <Helmet>
-                <title>BaziGPT - Your Personal Bazi Reading</title>
-                <meta name="description" content="Get your personalized Bazi reading based on your birth date and time. Discover insights about your personality, career, relationships, and life path." />
-                <meta property="og:title" content="BaziGPT - Your Personal Bazi Reading" />
-                <meta property="og:description" content="Get your personalized Bazi reading based on your birth date and time." />
-                <meta property="og:type" content="website" />
-                <meta property="og:url" content="https://bazigpt.com" />
-                <meta property="og:image" content="https://bazigpt.com/og-image.svg" />
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="BaziGPT - Your Personal Bazi Reading" />
-                <meta name="twitter:description" content="Get your personalized Bazi reading based on your birth date and time." />
-                <meta name="twitter:image" content="https://bazigpt.com/og-image.svg" />
-            </Helmet>
-
-            {/* Header */}
-            <Box sx={{ textAlign: 'center', mb: 2 }}>
-                <Typography variant="h3" component="h1" gutterBottom sx={{
-                    color: '#ff9800',
-                    fontWeight: 'bold',
-                    mb: 1.5,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 1
-                }}>
-                    <span style={{ fontSize: '0.9em' }}>🀄</span>
-                    BaziGPT
-                    <span style={{ fontSize: '0.9em' }}>🀄</span>
-                </Typography>
-                <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-                    {t('soloReading.subtitle')}
-                </Typography>
-                {/* Navigation removed - now handled by Layout component */}
-            </Box>
-
-            {/* Reading Section Card */}
-            <Paper elevation={3} sx={{
-                p: { xs: 2, sm: 3 },
-                mb: 2,
-                borderRadius: 3,
-                background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.05) 0%, rgba(255, 87, 34, 0.05) 100%)',
-                border: '1px solid rgba(255, 152, 0, 0.1)'
-            }}>
-                {/* Mode Toggle */}
-                <Box sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    mb: 2,
-                    bgcolor: 'rgba(255, 152, 0, 0.1)',
-                    borderRadius: { xs: 2, sm: 2.5, md: 3 },
-                    p: { xs: 0.25, sm: 0.5 },
-                    width: 'fit-content',
-                    mx: 'auto'
-                }}>
-                    <Button
-                        onClick={() => onModeSwitch('solo')}
-                        sx={{
-                            borderRadius: { xs: 1.5, sm: 2 },
-                            px: { xs: 2, sm: 3 },
-                            py: { xs: 0.75, sm: 1 },
-                            fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                            fontWeight: 500,
-                            textTransform: 'none',
-                            color: 'white',
-                            background: 'linear-gradient(135deg, #ff9800 0%, #ff5722 100%)',
-                            boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)',
-                            '&:hover': {
-                                background: 'linear-gradient(135deg, #ff9800 20%, #ff5722 100%)',
-                                boxShadow: '0 4px 12px rgba(255, 152, 0, 0.4)',
-                            },
-                            transition: 'all 0.2s ease-in-out'
-                        }}
-                    >
-                        {t('soloReading.title')}
-                    </Button>
-                    <Button
-                        onClick={() => onModeSwitch('compatibility')}
-                        sx={{
-                            borderRadius: { xs: 1.5, sm: 2 },
-                            px: { xs: 2, sm: 3 },
-                            py: { xs: 0.75, sm: 1 },
-                            fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                            fontWeight: 500,
-                            textTransform: 'none',
-                            color: 'text.secondary',
-                            background: 'transparent',
-                            '&:hover': {
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                color: '#ff9800',
-                            },
-                            transition: 'all 0.2s ease-in-out'
-                        }}
-                    >
-                        {t('compatibility.title')}
-                    </Button>
-                </Box>
-
-                {/* Main Form or Reading Display */}
-                {!reading ? (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, textAlign: 'center' }}>
-                        <Box sx={{ width: '100%', maxWidth: 400 }}>
-                            <DatePicker
-                                label={t('soloReading.birthDateLabel')}
-                                value={birthDate}
-                                onChange={handleDateChange}
-                                format="dd-MM-yyyy"
-                                slotProps={{
-                                    textField: {
-                                        fullWidth: true,
-                                        placeholder: "DD-MM-YYYY",
-                                    }
-                                }}
-                            />
-                            <TextField
-                                fullWidth
-                                label={t('soloReading.birthTimeLabel')}
-                                type="time"
-                                value={birthTime}
-                                onChange={handleTimeChange}
-                                margin="normal"
-                                InputLabelProps={{ shrink: true }}
-                            />
-                            <Typography
-                                variant="caption"
-                                color="text.secondary"
-                                sx={{
-                                    mt: -1,
-                                    mb: 1,
-                                    textAlign: 'center',
-                                    px: { xs: 2, sm: 0 }
-                                }}
-                            >
-                                {t('soloReading.birthTimeTip')}
-                            </Typography>
-                        </Box>
-                        <Button
-                            variant="contained"
-                            onClick={handleSubmit}
-                            disabled={!birthDate || loading}
-                            sx={{
-                                mt: 1,
-                                width: { xs: '100%', sm: 'auto' }
-                            }}
-                        >
-                            {loading ? (
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
-                                    {t('soloReading.loadingReading')}
-                                </Box>
-                            ) : (
-                                t('soloReading.getReading')
-                            )}
-                        </Button>
-                        {error && (
-                            <Alert severity="error" sx={{ mt: 1, width: '100%' }}>
-                                {t('soloReading.errorReading')}
-                            </Alert>
-                        )}
-                    </Box>
-                ) : (
-                    <Box sx={{ mt: 4 }}>
-                        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                                <Typography variant="h5" color="primary.main" gutterBottom>
-                                    {t('soloReading.title')}
-                                </Typography>
-                                <IconButton
-                                    onClick={() => setIsMainReadingExpanded(!isMainReadingExpanded)}
-                                    sx={{ color: 'primary.main' }}
-                                >
-                                    <ExpandMoreIcon />
-                                </IconButton>
-                            </Box>
-
-                            <Collapse in={isMainReadingExpanded}>
-                                <Box sx={{
-                                    '& h1, & h2, & h3, & h4, & h5, & h6': {
-                                        color: 'primary.main',
-                                        fontWeight: 700,
-                                        mt: 2,
-                                        mb: 1
-                                    },
-                                    '& strong': {
-                                        color: 'primary.main',
-                                        fontWeight: 600
-                                    },
-                                    '& ul, & ol': {
-                                        pl: 3,
-                                        mb: 2
-                                    },
-                                    '& li': {
-                                        mb: 0.5
-                                    },
-                                    color: 'text.primary',
-                                    lineHeight: 1.6
-                                }}>
-                                    <Suspense fallback={<CircularProgress size={20} />}>
-                                        <ReactMarkdown>{reading.reading}</ReactMarkdown>
-                                    </Suspense>
-                                </Box>
-                            </Collapse>
-                        </Paper>
-
-                        {reading && (
-                            <Box sx={{ mb: 2, textAlign: 'center' }}>
-                                <Typography variant="subtitle1" color="text.secondary">
-                                    Birth: {birthDate ? new Date(birthDate).toLocaleDateString() : ''}
-                                    {birthTime && ` at ${birthTime}`}
-                                </Typography>
-                            </Box>
-                        )}
-
-                        {/* Follow-up Questions */}
-                        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
-                            <Typography variant="h6" color="primary.main" gutterBottom>
-                                {t('soloReading.followUpTitle')}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                                {t('soloReading.followUpSubtitle')}
-                            </Typography>
-
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-                                {[
-                                    t('soloReading.followUpCareer'),
-                                    t('soloReading.followUpHealth'),
-                                    t('soloReading.followUpRelationships'),
-                                    t('soloReading.followUpFinances'),
-                                    t('soloReading.followUpEducation'),
-                                    t('soloReading.followUpTravel')
-                                ].map((question) => (
-                                    <Button
-                                        key={question}
-                                        variant="outlined"
-                                        size="small"
-                                        onClick={() => handleQuestionClick(question)}
-                                        disabled={followUpLoading}
-                                        sx={{
-                                            borderColor: selectedQuestion === question ? 'primary.main' : 'rgba(255, 152, 0, 0.3)',
-                                            color: selectedQuestion === question ? 'primary.main' : 'text.secondary',
-                                            '&:hover': {
-                                                borderColor: 'primary.main',
-                                                color: 'primary.main',
-                                            }
-                                        }}
-                                        endIcon={cachedAnswers[question] ? <CheckCircleIcon color="success" fontSize="small" /> : null}
-                                    >
-                                        {question}
-                                    </Button>
-                                ))}
-                            </Box>
-
-                            {/* Follow-up Answer Display */}
-                            {followUpLoading && (
-                                <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                                    <CircularProgress size={24} />
-                                </Box>
-                            )}
-
-                            <Collapse in={!!followUpAnswer} unmountOnExit={false}>
-                                {followUpAnswer && (
-                                    <Paper elevation={1} sx={{ p: 2, bgcolor: 'rgba(255, 152, 0, 0.05)' }}>
-                                        <Typography variant="h6" color="primary.main" gutterBottom>
-                                            {selectedQuestion}
-                                        </Typography>
-                                        <Box sx={{
-                                            '& h1, & h2, & h3, & h4, & h5, & h6': {
-                                                color: 'primary.main',
-                                                fontWeight: 700,
-                                                mt: 2,
-                                                mb: 1
-                                            },
-                                            '& strong': {
-                                                color: 'primary.main',
-                                                fontWeight: 600
-                                            },
-                                            '& ul, & ol': {
-                                                pl: 3,
-                                                mb: 2
-                                            },
-                                            '& li': {
-                                                mb: 0.5
-                                            },
-                                            color: 'text.primary',
-                                            lineHeight: 1.6
-                                        }}>
-                                            <Suspense fallback={<CircularProgress size={20} />}>
-                                                <ReactMarkdown>{followUpAnswer}</ReactMarkdown>
-                                            </Suspense>
-                                        </Box>
-                                    </Paper>
-                                )}
-                            </Collapse>
-                        </Paper>
-
-                        {/* Share Button */}
-                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-                            {renderShareButton()}
-                        </Box>
-
-                        {/* Restart Button */}
-                        {reading && (
-                            <Box sx={{ textAlign: 'center', mt: 3 }}>
-                                <Button
-                                    variant="outlined"
-                                    startIcon={<RefreshIcon />}
-                                    onClick={handleRestart}
-                                    sx={{
-                                        borderColor: 'rgba(255, 152, 0, 0.3)',
-                                        color: '#ff9800',
-                                        '&:hover': {
-                                            borderColor: '#ff9800',
-                                        }
-                                    }}
-                                >
-                                    Start Over
-                                </Button>
-                            </Box>
-                        )}
-                    </Box>
+                {followUpLoading && (
+                  <div className="flex justify-center py-3">
+                    <Loader2 className="size-6 animate-spin text-primary" />
+                  </div>
                 )}
 
-                {/* Share Dialog */}
-                {renderShareDialog()}
-
-                {/* Floating Action Button for Share */}
-                {reading && (
-                    <Zoom in={true}>
-                        <Fab
-                            color="primary"
-                            aria-label="share"
-                            onClick={() => setShareDialogOpen(true)}
-                            sx={{
-                                position: 'fixed',
-                                bottom: 16,
-                                right: 16,
-                                bgcolor: '#ff9800',
-                                '&:hover': {
-                                    bgcolor: '#f57c00',
-                                }
-                            }}
-                        >
-                            <ShareIcon />
-                        </Fab>
-                    </Zoom>
+                {followUpAnswer && (
+                  <div className="mt-3 rounded-xl border border-primary/15 bg-primary/[0.05] p-4">
+                    <h4 className="mb-2 font-display text-lg font-semibold text-primary">
+                      {selectedQuestion}
+                    </h4>
+                    <ReadingMarkdown>{followUpAnswer}</ReadingMarkdown>
+                  </div>
                 )}
-            </Paper>
-        </Box>
-    );
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-center">
+              <Button
+                onClick={() => setShareDialogOpen(true)}
+                className="gap-2 px-6 py-5 text-base font-semibold"
+              >
+                <Share2 className="size-5" />
+                {t("soloReading.shareReading")}
+              </Button>
+            </div>
+
+            <div className="mt-5 text-center">
+              <Button variant="outline" onClick={handleRestart} className="gap-2">
+                <RefreshCw className="size-4" />
+                Start Over
+              </Button>
+            </div>
+          </div>
+        </ReadingShell>
+      )}
+
+      {/* Share dialog */}
+      <ShareDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        title={t("soloReading.shareReading")}
+        downloadLabel={t("soloReading.downloadImage")}
+        onDownload={handleShare}
+      >
+        <div ref={shareCardRef}>
+          <ShareCardBase title={t("soloReading.title")} qrValue={window.location.href}>
+            {sections.fourPillars && <ShareMarkdown>{sections.fourPillars}</ShareMarkdown>}
+            {sections.keyInsights && <ShareMarkdown>{sections.keyInsights}</ShareMarkdown>}
+            <p style={{ color: "#c9a227", fontWeight: 600, lineHeight: 1.6, textAlign: "left", marginTop: 8 }}>
+              {shareableSummary}
+            </p>
+          </ShareCardBase>
+        </div>
+      </ShareDialog>
+
+      {reading && <ShareFab onClick={() => setShareDialogOpen(true)} />}
+    </>
+  );
 };
 
-export default SoloReading; 
+export default SoloReading;
