@@ -16,7 +16,7 @@ const FamousPersonCard: React.FC<{ person: FamousPerson }> = ({ person }) => {
   return (
     <Link
       to={`/famous/${person.slug}`}
-      className="group relative flex h-80 flex-col justify-end overflow-hidden rounded-2xl border border-border/60 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10"
+      className="hover-shine group relative flex h-80 flex-col justify-end overflow-hidden rounded-2xl border border-border/60 bg-card transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] hover:border-primary/60 hover:shadow-2xl hover:shadow-primary/20"
     >
       {/* Photo */}
       <img
@@ -24,7 +24,7 @@ const FamousPersonCard: React.FC<{ person: FamousPerson }> = ({ person }) => {
         alt={person.name}
         loading="lazy"
         decoding="async"
-        className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+        className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-[900ms] ease-out group-hover:scale-110"
         onError={(e) => {
           (e.target as HTMLImageElement).src = fallbackImg;
         }}
@@ -32,6 +32,11 @@ const FamousPersonCard: React.FC<{ person: FamousPerson }> = ({ person }) => {
 
       {/* Scrim */}
       <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/70 to-transparent" />
+
+      {/* Gold glow that blooms on hover */}
+      <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+        <div className="absolute -inset-x-10 -bottom-10 h-40 bg-primary/20 blur-3xl" />
+      </div>
 
       {/* Category + zodiac chips */}
       <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">

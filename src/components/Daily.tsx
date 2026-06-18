@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { PageHero } from "./brand/PageHero";
+import { CosmicLoader } from "./brand/CosmicLoader";
 import { ReadingMarkdown } from "./reading/ReadingMarkdown";
 import { ShareMarkdown } from "./reading/ShareMarkdown";
 import { ShareDialog } from "./reading/ShareDialog";
@@ -215,9 +216,7 @@ function Daily() {
 
         <div className="rounded-2xl border border-primary/20 bg-primary/[0.07] p-5 sm:p-7">
           {loading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="size-12 animate-spin text-primary" />
-            </div>
+            <CosmicLoader />
           ) : error ? (
             <div>
               <h2 className="font-display text-xl font-semibold text-destructive">

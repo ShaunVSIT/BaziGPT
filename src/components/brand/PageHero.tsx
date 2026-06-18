@@ -37,15 +37,17 @@ export const PageHero: React.FC<{
     )}
   >
     {showMark && (
-      <div className="animate-rise relative mb-6">
-        <div className="animate-glow absolute left-1/2 top-1/2 size-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/25 blur-2xl" />
-        <BrandMark size={64} className="relative" />
+      <div className="animate-rise-blur relative mb-6">
+        <div className="animate-glow-pulse absolute left-1/2 top-1/2 size-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/30" />
+        <div className="animate-float relative">
+          <BrandMark size={64} />
+        </div>
       </div>
     )}
 
     {eyebrow && (
       <p
-        className="animate-rise mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-primary"
+        className="animate-rise-blur mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-primary"
         style={{ animationDelay: "0.05s" }}
       >
         {eyebrow}
@@ -53,10 +55,10 @@ export const PageHero: React.FC<{
     )}
 
     <h1
-      className="animate-rise font-display text-5xl font-bold leading-[1.05] sm:text-6xl"
+      className="animate-rise-blur font-display text-5xl font-bold leading-[1.05] sm:text-6xl"
       style={{ animationDelay: "0.1s" }}
     >
-      <span className="text-gold-gradient">{title}</span>
+      <span className="text-gold-shimmer">{title}</span>
       {titleSub && (
         <span className="mt-1 block text-2xl font-normal text-foreground/70 sm:text-3xl">
           {titleSub}
@@ -66,7 +68,7 @@ export const PageHero: React.FC<{
 
     {subtitle && (
       <p
-        className="animate-rise mt-5 max-w-xl text-base text-muted-foreground sm:text-lg"
+        className="animate-rise-blur mt-5 max-w-xl text-base text-muted-foreground sm:text-lg"
         style={{ animationDelay: "0.15s" }}
       >
         {subtitle}
@@ -75,7 +77,7 @@ export const PageHero: React.FC<{
 
     {children && (
       <div
-        className="animate-rise w-full"
+        className="animate-rise-blur w-full"
         style={{ animationDelay: "0.2s" }}
       >
         {children}

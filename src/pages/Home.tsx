@@ -18,6 +18,11 @@ const Home: React.FC = () => {
 
     const handleModeSwitch = (newMode: 'solo' | 'compatibility') => {
         setReadingMode(newMode);
+        // Scroll to top so the hero's entrance animations play in view.
+        const prefersReducedMotion = window.matchMedia(
+            '(prefers-reduced-motion: reduce)'
+        ).matches;
+        window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
     };
 
 

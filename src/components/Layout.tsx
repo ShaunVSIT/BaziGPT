@@ -9,7 +9,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="relative flex min-h-screen flex-col bg-background text-foreground">
+    <div className="relative isolate flex min-h-screen flex-col bg-background text-foreground">
       <CelestialBackground />
 
       <CompactNavigation />

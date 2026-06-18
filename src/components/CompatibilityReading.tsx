@@ -1,10 +1,12 @@
 import React, { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { track } from "@vercel/analytics/react";
-import { RefreshCw, Share2, Loader2, Heart } from "lucide-react";
+import { RefreshCw, Share2, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHero } from "./brand/PageHero";
+import { CosmicLoader } from "./brand/CosmicLoader";
+import { Reveal } from "./brand/Reveal";
 import { ReadingShell } from "./reading/ReadingShell";
 import { ModeToggle } from "./reading/ModeToggle";
 import { BirthInputs } from "./reading/BirthInputs";
@@ -171,7 +173,11 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
 
   return (
     <>
-      {!compatibilityReading ? (
+      {compatibilityLoading ? (
+        <section className="relative mx-auto flex min-h-[calc(100vh-9rem)] max-w-xl flex-col items-center justify-center py-6 text-center">
+          <CosmicLoader label={t("compatibility.loadingCompatibility")} />
+        </section>
+      ) : !compatibilityReading ? (
         <PageHero
           size="full"
           eyebrow="Compatibility · Two Charts"
@@ -180,8 +186,8 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
           subtitle={t("compatibility.subtitle")}
         >
           <div className="relative mx-auto mt-8 w-full max-w-2xl">
-            <div className="absolute -inset-1 rounded-3xl bg-primary/15 blur-2xl" />
-            <div className="relative rounded-2xl border border-primary/25 bg-card/70 p-5 shadow-2xl shadow-primary/10 backdrop-blur-xl">
+            <div className="animate-glow-pulse absolute -inset-2 rounded-3xl bg-primary/20" />
+            <div className="pulse-border relative rounded-2xl border border-primary/25 bg-card/80 p-5 shadow-2xl shadow-primary/10 backdrop-blur-xl">
               <ModeToggle mode="compatibility" onModeSwitch={onModeSwitch} />
               <div className="grid w-full gap-5 text-left md:grid-cols-2">
                 <div>
@@ -218,13 +224,10 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
               <Button
                 onClick={handleSubmit}
                 disabled={!person1BirthDate || !person2BirthDate || compatibilityLoading}
-                className="mt-4 w-full gap-2 py-6 text-base font-semibold"
+                className="hover-shine relative mt-4 w-full gap-2 overflow-hidden py-6 text-base font-semibold"
               >
-                {compatibilityLoading && <Loader2 className="size-4 animate-spin" />}
-                {compatibilityLoading
-                  ? t("compatibility.loadingCompatibility")
-                  : t("compatibility.getCompatibility")}
-                {!compatibilityLoading && <Heart className="size-4" />}
+                {t("compatibility.getCompatibility")}
+                <Heart className="size-4 animate-pulse fill-current" />
               </Button>
               {compatibilityError && (
                 <p className="mt-3 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -238,19 +241,21 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
         <ReadingShell subtitle={t("compatibility.subtitle")}>
           <ModeToggle mode="compatibility" onModeSwitch={onModeSwitch} />
           <div className="mt-2">
-            <Card className="mb-5 border-border/60 bg-card/70 py-0">
-              <CardContent className="p-4 sm:p-5">
-                <h2 className="mb-2 font-display text-2xl font-semibold text-primary">
-                  {t("compatibility.title")}
-                </h2>
-                <ReadingMarkdown>{compatibilityReading.reading}</ReadingMarkdown>
-              </CardContent>
-            </Card>
+            <Reveal>
+              <Card className="mb-5 border-primary/15 bg-card/70 py-0 transition-shadow duration-500 hover:shadow-[0_0_40px_-12px_var(--gold)]">
+                <CardContent className="p-4 sm:p-5">
+                  <h2 className="mb-2 font-display text-2xl font-semibold text-gold-shimmer">
+                    {t("compatibility.title")}
+                  </h2>
+                  <ReadingMarkdown>{compatibilityReading.reading}</ReadingMarkdown>
+                </CardContent>
+              </Card>
+            </Reveal>
 
             <div className="flex justify-center">
               <Button
                 onClick={() => setShareDialogOpen(true)}
-                className="gap-2 px-6 py-5 text-base font-semibold"
+                className="hover-shine relative gap-2 overflow-hidden px-6 py-5 text-base font-semibold transition-transform hover:-translate-y-0.5"
               >
                 <Share2 className="size-5" />
                 Share Our Reading

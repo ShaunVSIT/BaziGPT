@@ -7,12 +7,13 @@ import {
   RefreshCw,
   Share2,
   CheckCircle2,
-  Loader2,
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BrandMark } from "./brand/Logo";
+import { CosmicLoader } from "./brand/CosmicLoader";
+import { Reveal } from "./brand/Reveal";
 import { ReadingShell } from "./reading/ReadingShell";
 import { ModeToggle } from "./reading/ModeToggle";
 import { BirthInputs } from "./reading/BirthInputs";
@@ -262,45 +263,51 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
         <meta name="twitter:image" content="https://www.bazigpt.io/og-image.png" />
       </Helmet>
 
-      {!reading ? (
+      {loading ? (
         <section className="relative mx-auto flex min-h-[calc(100vh-9rem)] max-w-xl flex-col items-center justify-center py-6 text-center">
-          {/* Glowing brand mark */}
-          <div className="animate-rise relative mb-6">
-            <div className="animate-glow absolute left-1/2 top-1/2 size-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/25 blur-2xl" />
-            <BrandMark size={72} className="relative" />
+          <CosmicLoader label={t("soloReading.loadingReading")} />
+        </section>
+      ) : !reading ? (
+        <section className="relative mx-auto flex min-h-[calc(100vh-9rem)] max-w-xl flex-col items-center justify-center py-6 text-center">
+          {/* Glowing, floating brand mark */}
+          <div className="animate-rise-blur relative mb-6">
+            <div className="animate-glow-pulse absolute left-1/2 top-1/2 size-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/30" />
+            <div className="animate-float relative">
+              <BrandMark size={72} />
+            </div>
           </div>
 
           <p
-            className="animate-rise mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-primary"
+            className="animate-rise-blur mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-primary"
             style={{ animationDelay: "0.05s" }}
           >
             AI-Powered BaZi · Four Pillars
           </p>
 
           <h1
-            className="animate-rise font-display text-5xl font-bold leading-[1.05] sm:text-6xl"
+            className="animate-rise-blur font-display text-5xl font-bold leading-[1.05] sm:text-6xl"
             style={{ animationDelay: "0.1s" }}
           >
-            <span className="text-gold-gradient">Unlock Your Destiny</span>
+            <span className="text-gold-shimmer">Unlock Your Destiny</span>
             <span className="mt-1 block text-2xl font-normal text-foreground/70 sm:text-3xl">
               written in the stars
             </span>
           </h1>
 
           <p
-            className="animate-rise mt-5 max-w-md text-base text-muted-foreground sm:text-lg"
+            className="animate-rise-blur mt-5 max-w-md text-base text-muted-foreground sm:text-lg"
             style={{ animationDelay: "0.15s" }}
           >
             {t("soloReading.subtitle")}
           </p>
 
-          {/* The "portal" — input wrapped in atmosphere */}
+          {/* The "portal" — input wrapped in atmosphere + rotating gold border */}
           <div
-            className="animate-rise relative mt-8 w-full max-w-md"
+            className="animate-rise-blur relative mt-8 w-full max-w-md"
             style={{ animationDelay: "0.2s" }}
           >
-            <div className="absolute -inset-1 rounded-3xl bg-primary/15 blur-2xl" />
-            <div className="relative rounded-2xl border border-primary/25 bg-card/70 p-5 shadow-2xl shadow-primary/10 backdrop-blur-xl">
+            <div className="animate-glow-pulse absolute -inset-2 rounded-3xl bg-primary/20" />
+            <div className="pulse-border relative rounded-2xl border border-primary/25 bg-card/80 p-5 shadow-2xl shadow-primary/10 backdrop-blur-xl">
               <ModeToggle mode="solo" onModeSwitch={onModeSwitch} />
               <BirthInputs
                 date={birthDate}
@@ -314,11 +321,10 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
               <Button
                 onClick={handleSubmit}
                 disabled={!birthDate || loading}
-                className="mt-4 w-full gap-2 py-6 text-base font-semibold"
+                className="hover-shine relative mt-4 w-full gap-2 overflow-hidden py-6 text-base font-semibold"
               >
-                {loading && <Loader2 className="size-4 animate-spin" />}
-                {loading ? t("soloReading.loadingReading") : t("soloReading.getReading")}
-                {!loading && <Sparkles className="size-4" />}
+                {t("soloReading.getReading")}
+                <Sparkles className="size-4 animate-pulse" />
               </Button>
               {error && (
                 <p className="mt-3 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -329,7 +335,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
           </div>
 
           <p
-            className="animate-rise mt-6 text-sm text-muted-foreground"
+            className="animate-rise-blur mt-6 text-sm text-muted-foreground"
             style={{ animationDelay: "0.25s" }}
           >
             ✦ Free · No signup · Instant
@@ -340,32 +346,36 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
           <ModeToggle mode="solo" onModeSwitch={onModeSwitch} />
           <div className="mt-2">
             {/* Main reading */}
-            <Card className="mb-5 border-border/60 bg-card/70 py-0">
-              <CardContent className="p-4 sm:p-5">
-                <div className="mb-2 flex items-start justify-between">
-                  <h2 className="font-display text-2xl font-semibold text-primary">
-                    {t("soloReading.title")}
-                  </h2>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsMainReadingExpanded((v) => !v)}
-                    className="text-primary"
-                    aria-label="toggle reading"
-                  >
-                    <ChevronDown
-                      className={cn(
-                        "size-5 transition-transform",
-                        isMainReadingExpanded && "rotate-180"
-                      )}
-                    />
-                  </Button>
-                </div>
-                {isMainReadingExpanded && (
-                  <ReadingMarkdown>{reading.reading}</ReadingMarkdown>
-                )}
-              </CardContent>
-            </Card>
+            <Reveal>
+              <Card className="mb-5 border-primary/15 bg-card/70 py-0 transition-shadow duration-500 hover:shadow-[0_0_40px_-12px_var(--gold)]">
+                <CardContent className="p-4 sm:p-5">
+                  <div className="mb-2 flex items-start justify-between">
+                    <h2 className="font-display text-2xl font-semibold text-gold-shimmer">
+                      {t("soloReading.title")}
+                    </h2>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsMainReadingExpanded((v) => !v)}
+                      className="text-primary"
+                      aria-label="toggle reading"
+                    >
+                      <ChevronDown
+                        className={cn(
+                          "size-5 transition-transform duration-300",
+                          isMainReadingExpanded && "rotate-180"
+                        )}
+                      />
+                    </Button>
+                  </div>
+                  {isMainReadingExpanded && (
+                    <div className="animate-expand">
+                      <ReadingMarkdown>{reading.reading}</ReadingMarkdown>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </Reveal>
 
             <p className="mb-4 text-center text-sm text-muted-foreground">
               Birth: {birthDate ? new Date(birthDate).toLocaleDateString() : ""}
@@ -373,66 +383,65 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
             </p>
 
             {/* Follow-up questions */}
-            <Card className="mb-5 border-border/60 bg-card/70 py-0">
-              <CardContent className="p-4 sm:p-5">
-                <h3 className="font-display text-xl font-semibold text-primary">
-                  {t("soloReading.followUpTitle")}
-                </h3>
-                <p className="mt-1 mb-4 text-sm text-muted-foreground">
-                  {t("soloReading.followUpSubtitle")}
-                </p>
-                <div className="mb-2 flex flex-wrap gap-2">
-                  {followUpQuestions.map((question) => (
-                    <Button
-                      key={question}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuestionClick(question)}
-                      disabled={followUpLoading}
-                      className={cn(
-                        "gap-1.5",
-                        selectedQuestion === question &&
-                          "border-primary text-primary"
-                      )}
-                    >
-                      {question}
-                      {cachedAnswers[question] && (
-                        <CheckCircle2 className="size-3.5 text-secondary" />
-                      )}
-                    </Button>
-                  ))}
-                </div>
-
-                {followUpLoading && (
-                  <div className="flex justify-center py-3">
-                    <Loader2 className="size-6 animate-spin text-primary" />
+            <Reveal delay={80}>
+              <Card className="mb-5 border-border/60 bg-card/70 py-0">
+                <CardContent className="p-4 sm:p-5">
+                  <h3 className="font-display text-xl font-semibold text-primary">
+                    {t("soloReading.followUpTitle")}
+                  </h3>
+                  <p className="mt-1 mb-4 text-sm text-muted-foreground">
+                    {t("soloReading.followUpSubtitle")}
+                  </p>
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {followUpQuestions.map((question, i) => (
+                      <Button
+                        key={question}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleQuestionClick(question)}
+                        disabled={followUpLoading}
+                        style={{ animationDelay: `${i * 60}ms` }}
+                        className={cn(
+                          "hover-shine relative gap-1.5 overflow-hidden transition-transform hover:-translate-y-0.5",
+                          selectedQuestion === question &&
+                            "border-primary text-primary"
+                        )}
+                      >
+                        {question}
+                        {cachedAnswers[question] && (
+                          <CheckCircle2 className="size-3.5 text-secondary" />
+                        )}
+                      </Button>
+                    ))}
                   </div>
-                )}
 
-                {followUpAnswer && (
-                  <div className="mt-3 rounded-xl border border-primary/15 bg-primary/[0.05] p-4">
-                    <h4 className="mb-2 font-display text-lg font-semibold text-primary">
-                      {selectedQuestion}
-                    </h4>
-                    <ReadingMarkdown>{followUpAnswer}</ReadingMarkdown>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  {followUpLoading && <CosmicLoader />}
 
-            <div className="flex justify-center">
+                  {followUpAnswer && !followUpLoading && (
+                    <div className="animate-rise-blur mt-3 rounded-xl border border-primary/15 bg-primary/[0.05] p-4">
+                      <h4 className="mb-2 font-display text-lg font-semibold text-gold-shimmer">
+                        {selectedQuestion}
+                      </h4>
+                      <ReadingMarkdown>{followUpAnswer}</ReadingMarkdown>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </Reveal>
+
+            <Reveal delay={120} className="flex justify-center">
               <Button
                 onClick={() => setShareDialogOpen(true)}
-                className="gap-2 px-6 py-5 text-base font-semibold"
+                className="hover-shine relative gap-2 overflow-hidden px-6 py-5 text-base font-semibold transition-transform hover:-translate-y-0.5"
               >
                 <Share2 className="size-5" />
                 {t("soloReading.shareReading")}
               </Button>
-            </div>
+            </Reveal>
 
             <div className="mt-5 text-center">
-              <Button variant="outline" onClick={handleRestart} className="gap-2">
-                <RefreshCw className="size-4" />
+              <Button variant="outline" onClick={handleRestart} className="group gap-2">
+                <RefreshCw className="size-4 transition-transform duration-500 group-hover:rotate-180" />
                 Start Over
               </Button>
             </div>
