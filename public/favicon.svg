@@ -1,0 +1,47 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0%" stop-color="#1b1b24"/>
+      <stop offset="100%" stop-color="#0b0b0f"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e6c75c"/>
+      <stop offset="100%" stop-color="#c9a227"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Full-bleed obsidian field (maskable-safe) -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- Thin gold framing ring -->
+  <rect x="26" y="26" width="460" height="460" rx="104" fill="none"
+        stroke="url(#gold)" stroke-width="6" opacity="0.55"/>
+
+  <!-- Jade celestial sparkle (top-right) -->
+  <g transform="translate(372 140)" fill="#2e8b7b">
+    <path d="M0 -34 C5 -10 10 -5 34 0 C10 5 5 10 0 34 C-5 10 -10 5 -34 0 C-10 -5 -5 -10 0 -34 Z"/>
+  </g>
+  <circle cx="150" cy="118" r="5" fill="#e6c75c" opacity="0.8"/>
+  <circle cx="408" cy="372" r="6" fill="#e6c75c" opacity="0.6"/>
+
+  <!-- 八 — the "Ba" of BaZi, drawn as calligraphic strokes -->
+  <g fill="url(#gold)">
+    <!-- left stroke (丿) -->
+    <path d="M250 168
+             C246 196 232 250 196 308
+             C182 330 166 350 146 366
+             C140 370 134 366 138 358
+             C170 300 198 244 220 184
+             C224 172 232 162 242 160
+             C249 159 252 162 250 168 Z"/>
+    <!-- right stroke (㇏) with flared foot -->
+    <path d="M262 166
+             C268 196 286 252 320 306
+             C334 328 352 348 372 362
+             C382 369 380 380 368 378
+             C338 372 312 352 292 322
+             C268 286 252 236 244 184
+             C242 170 248 158 258 159
+             C261 159 261 162 262 166 Z"/>
+  </g>
+</svg>

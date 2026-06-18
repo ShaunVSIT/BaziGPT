@@ -1,11 +1,103 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * ─────────────────────────────────────────────────────────────
+ *  CELESTIAL NOIR — BaziGPT design tokens
+ *  Premium / mystical: obsidian base, gold + jade, serif display.
+ *  Dark-first: :root carries the dark palette directly.
+ * ─────────────────────────────────────────────────────────────
+ */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --radius: 0.75rem;
+
+  /* Core surfaces */
+  --background: #0b0b0f; /* obsidian */
+  --foreground: #f4f1ea; /* warm off-white */
+  --card: #16161d; /* raised panel */
+  --card-foreground: #f4f1ea;
+  --popover: #16161d;
+  --popover-foreground: #f4f1ea;
+
+  /* Accents */
+  --primary: #c9a227; /* gold */
+  --primary-foreground: #0b0b0f;
+  --secondary: #2e8b7b; /* jade */
+  --secondary-foreground: #f4f1ea;
+  --accent: #2e8b7b;
+  --accent-foreground: #f4f1ea;
+
+  /* Neutrals */
+  --muted: #1e1e27;
+  --muted-foreground: #a39f95; /* warm grey */
+
+  /* Feedback */
+  --destructive: #e5484d;
+  --destructive-foreground: #f4f1ea;
+
+  /* Lines & focus */
+  --border: #26262f;
+  --input: #26262f;
+  --ring: #c9a227;
+
+  /* Brand raw values (for gradients, glows, custom UI) */
+  --gold: #c9a227;
+  --gold-soft: #e6c75c;
+  --jade: #2e8b7b;
+  --obsidian: #0b0b0f;
+
+  /* Type */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Cormorant Garamond", "Playfair Display", Georgia, serif;
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
+/* Map tokens to Tailwind utilities (bg-background, text-primary, font-display, …) */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-jade: var(--jade);
+  --color-obsidian: var(--obsidian);
+
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
 }
