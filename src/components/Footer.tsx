@@ -1,6 +1,8 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Separator } from "@/components/ui/separator";
+import { Reveal } from "./brand/Reveal";
+import { BrandMark } from "./brand/Logo";
 
 const XIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
@@ -32,7 +34,7 @@ const SocialLink: React.FC<SocialLinkProps> = ({ href, label, children }) => (
     target="_blank"
     rel="noopener noreferrer"
     aria-label={label}
-    className="flex size-10 items-center justify-center rounded-full bg-primary/[0.06] text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary sm:bg-transparent"
+    className="hover-shine relative flex size-11 items-center justify-center overflow-hidden rounded-full border border-primary/15 bg-primary/[0.06] text-muted-foreground transition-all duration-300 hover:-translate-y-1 hover:scale-110 hover:border-primary/50 hover:bg-primary/15 hover:text-primary hover:shadow-[0_0_22px_-4px_rgba(201,162,39,0.7)]"
   >
     {children}
   </a>
@@ -42,17 +44,22 @@ const Footer: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <footer className="relative z-10 mt-auto border-t border-border/60 bg-gradient-to-r from-card/90 to-primary/[0.06] px-4 py-5 sm:px-6">
-      <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-4 md:flex-row md:items-start">
+    <footer className="relative z-10 mt-auto overflow-hidden border-t border-primary/10 bg-gradient-to-br from-card/95 via-background/90 to-primary/[0.07] px-4 py-8 sm:px-6">
+      {/* Glowing gold hairline along the top edge */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+      {/* Soft breathing glow rising from the corner */}
+      <div className="animate-glow-pulse pointer-events-none absolute -bottom-24 left-1/2 size-72 -translate-x-1/2 rounded-full bg-primary/10" />
+
+      <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-5 md:flex-row md:items-start">
         {/* Social */}
-        <div className="flex-1 text-center">
-          <p className="text-sm font-semibold text-primary">
+        <Reveal className="flex-1 text-center">
+          <p className="text-gold-shimmer text-base font-bold">
             📅 {t("footer.dailyForecasts")}
           </p>
-          <p className="mt-0.5 mb-2 text-xs text-muted-foreground">
+          <p className="mt-1 mb-3 text-xs text-muted-foreground">
             {t("footer.followForInsights")}
           </p>
-          <div className="flex justify-center gap-2">
+          <div className="flex justify-center gap-3">
             <SocialLink href="https://www.facebook.com/profile.php?id=61579213033328" label="Facebook">
               <FacebookIcon className="size-5" />
             </SocialLink>
@@ -63,44 +70,44 @@ const Footer: React.FC = () => {
               <TelegramIcon className="size-5" />
             </SocialLink>
           </div>
-        </div>
+        </Reveal>
 
-        <Separator orientation="vertical" className="hidden h-16 md:block" />
-        <Separator className="w-full md:hidden" />
+        <Separator orientation="vertical" className="hidden h-20 bg-primary/15 md:block" />
+        <Separator className="w-full bg-primary/15 md:hidden" />
 
         {/* Legal */}
-        <div className="flex-1 text-center">
-          <p className="mb-2 text-sm font-semibold text-primary">
+        <Reveal delay={100} className="flex-1 text-center">
+          <p className="text-gold-shimmer mb-3 text-base font-bold">
             {t("footer.legal")}
           </p>
           <div className="flex justify-center gap-3">
             <a
               href="/privacy"
-              className="rounded-lg border-2 border-primary px-4 py-1 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+              className="hover-shine relative overflow-hidden rounded-lg border-2 border-primary/70 px-4 py-1.5 text-sm font-semibold text-primary transition-all duration-300 hover:-translate-y-0.5 hover:border-primary hover:bg-primary hover:text-primary-foreground hover:shadow-[0_0_22px_-4px_rgba(201,162,39,0.7)]"
             >
               {t("footer.privacy")}
             </a>
             <a
               href="/terms"
-              className="rounded-lg border-2 border-primary px-4 py-1 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+              className="hover-shine relative overflow-hidden rounded-lg border-2 border-primary/70 px-4 py-1.5 text-sm font-semibold text-primary transition-all duration-300 hover:-translate-y-0.5 hover:border-primary hover:bg-primary hover:text-primary-foreground hover:shadow-[0_0_22px_-4px_rgba(201,162,39,0.7)]"
             >
               {t("footer.terms")}
             </a>
           </div>
-        </div>
+        </Reveal>
 
-        <Separator orientation="vertical" className="hidden h-16 md:block" />
-        <Separator className="w-full md:hidden" />
+        <Separator orientation="vertical" className="hidden h-20 bg-primary/15 md:block" />
+        <Separator className="w-full bg-primary/15 md:hidden" />
 
         {/* Developer */}
-        <div className="flex-1 text-center">
-          <p className="text-sm font-semibold text-primary">
+        <Reveal delay={200} className="flex-1 text-center">
+          <p className="text-gold-shimmer text-base font-bold">
             {t("footer.developer")}
           </p>
-          <p className="mt-0.5 mb-2 text-xs text-muted-foreground">
+          <p className="mt-1 mb-3 text-xs text-muted-foreground">
             {t("footer.builtBy")}
           </p>
-          <div className="flex justify-center gap-2">
+          <div className="flex justify-center gap-3">
             <SocialLink href="https://twitter.com/0xBarnum" label="Developer on X">
               <XIcon className="size-5" />
             </SocialLink>
@@ -108,7 +115,20 @@ const Footer: React.FC = () => {
               <TelegramIcon className="size-5" />
             </SocialLink>
           </div>
+        </Reveal>
+      </div>
+
+      {/* Brand sign-off */}
+      <div className="relative mx-auto mt-7 flex w-full max-w-5xl flex-col items-center gap-2 border-t border-primary/10 pt-5">
+        <div className="animate-float">
+          <BrandMark size={30} />
         </div>
+        <p className="text-xs text-muted-foreground">
+          © {new Date().getFullYear()}{" "}
+          <span className="font-display font-semibold text-primary">BaziGPT</span>
+          {" · "}
+          {t("footer.tagline", "Ancient wisdom, modern clarity")}
+        </p>
       </div>
     </footer>
   );

@@ -51,14 +51,20 @@ export const BrandMark: React.FC<{ size?: number; className?: string }> = ({
   );
 };
 
-/** Full lockup: mark + serif wordmark. */
-export const Logo: React.FC<{ className?: string; markSize?: number }> = ({
-  className,
-  markSize = 30,
-}) => (
+/** Full lockup: mark + serif wordmark. Pass `shimmer` for the animated gold wordmark. */
+export const Logo: React.FC<{
+  className?: string;
+  markSize?: number;
+  shimmer?: boolean;
+}> = ({ className, markSize = 30, shimmer = false }) => (
   <span className={cn("flex items-center gap-2.5", className)}>
     <BrandMark size={markSize} />
-    <span className="font-display text-xl font-bold leading-none tracking-tight text-foreground">
+    <span
+      className={cn(
+        "font-display text-xl font-bold leading-none tracking-tight",
+        shimmer ? "text-gold-shimmer" : "text-foreground"
+      )}
+    >
       BaziGPT
     </span>
   </span>

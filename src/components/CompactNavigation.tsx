@@ -43,19 +43,24 @@ const CompactNavigation: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4 sm:px-6 md:justify-center">
-        {/* Mobile: logo */}
+    <header className="sticky top-0 z-50 bg-background/70 backdrop-blur-xl">
+      {/* Ambient gold halo bleeding down from the bar */}
+      <div className="pointer-events-none absolute inset-x-0 -bottom-12 h-12 bg-gradient-to-b from-primary/10 to-transparent" />
+      {/* Glowing gold hairline */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+
+      <div className="relative mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-4 sm:px-6">
+        {/* Logo (mobile + desktop) */}
         <button
           onClick={() => handleNavigation("/")}
-          className="flex items-center md:hidden"
+          className="group flex items-center transition-transform duration-300 hover:scale-[1.03]"
           aria-label="BaziGPT home"
         >
-          <Logo markSize={28} />
+          <Logo markSize={30} shimmer />
         </button>
 
         {/* Desktop: centered nav */}
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 md:flex">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -64,21 +69,35 @@ const CompactNavigation: React.FC = () => {
                 key={item.path}
                 onClick={() => handleNavigation(item.path)}
                 className={cn(
-                  "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                  "group relative flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium tracking-wide transition-colors duration-300",
                   active
-                    ? "bg-primary/15 text-primary"
-                    : "text-muted-foreground hover:bg-primary/10 hover:text-foreground"
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Icon className="size-4" />
-                {item.label}
+                <Icon
+                  className={cn(
+                    "size-4 transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6",
+                    active && "drop-shadow-[0_0_6px_rgba(201,162,39,0.7)]"
+                  )}
+                />
+                <span className={cn(active && "text-gold-shimmer")}>{item.label}</span>
+                {/* Animated underline that grows from center */}
+                <span
+                  className={cn(
+                    "pointer-events-none absolute inset-x-3 bottom-1 h-px origin-center bg-gradient-to-r from-transparent via-primary to-transparent transition-transform duration-300",
+                    active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                  )}
+                />
               </button>
             );
           })}
-          <div className="ml-2">
-            <LanguageSwitcher />
-          </div>
         </nav>
+
+        {/* Desktop: language */}
+        <div className="hidden md:block">
+          <LanguageSwitcher />
+        </div>
 
         {/* Mobile: hamburger */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
