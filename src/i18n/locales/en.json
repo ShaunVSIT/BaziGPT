@@ -130,6 +130,8 @@
         "requestReadingOnX": "on X",
         "loadMore": "Load More",
         "loading": "Loading...",
+        "result": "result",
+        "results": "results",
         "categories": {
             "actor": "Actor",
             "artist": "Artist",

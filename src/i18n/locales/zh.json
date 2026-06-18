@@ -130,6 +130,8 @@
         "requestReadingOnX": "在X上进行解读",
         "loadMore": "加载更多",
         "loading": "加载中...",
+        "result": "个结果",
+        "results": "个结果",
         "categories": {
             "actor": "演员",
             "artist": "艺术家",

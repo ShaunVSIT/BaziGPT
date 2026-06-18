@@ -131,37 +131,39 @@ const FamousPersonPage: React.FC = () => {
       </Helmet>
 
       <div className="mx-auto max-w-3xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/famous")}
-          className="mb-4 gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" />
-          {t("famousPerson.backToFamous")}
-        </Button>
-
-        {/* Photo-driven hero */}
-        <section className="relative -mx-4 overflow-hidden rounded-3xl border border-border/60 sm:mx-0">
-          {/* Blurred backdrop of their own photo */}
+        {/* Photo-driven hero — full-bleed to the top edge on mobile, a
+            contained rounded card from sm up. */}
+        <section className="relative -mx-4 -mt-6 overflow-hidden sm:mx-0 sm:mt-0 sm:rounded-3xl sm:border sm:border-border/60">
+          {/* Their photo IS the hero — bleeds edge to edge and up to the top.
+              A blurred copy sits behind to fill any letterboxing on wider
+              viewports where the portrait can't cover the full width. */}
           <div
             aria-hidden="true"
-            className="absolute inset-0 scale-125 bg-cover bg-center opacity-40 blur-2xl"
+            className="absolute inset-0 scale-125 bg-cover bg-center opacity-50 blur-2xl"
             style={{ backgroundImage: `url(${img})` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-obsidian/40 via-obsidian/70 to-obsidian" />
+          <img
+            src={img}
+            alt={person.name}
+            onError={() => setImgError(true)}
+            className="absolute inset-0 size-full object-cover object-top"
+          />
+          {/* Scrim: keep the face bright up top, darken toward the bottom so
+              the text is legible and the photo melts into the page. */}
+          <div className="absolute inset-0 bg-gradient-to-t from-obsidian from-30% via-obsidian/60 via-65% to-transparent" />
 
-          <div className="relative flex flex-col items-center px-6 py-10 text-center">
-            {/* Portrait */}
-            <div className="animate-rise relative mb-5">
-              <div className="absolute -inset-3 rounded-full bg-primary/25 blur-2xl" />
-              <img
-                src={img}
-                alt={person.name}
-                onError={() => setImgError(true)}
-                className="relative size-44 rounded-2xl border-2 border-primary/50 object-cover object-top shadow-2xl sm:size-52"
-              />
-            </div>
+          {/* Floating back button over the photo */}
+          <button
+            onClick={() => navigate("/famous")}
+            aria-label={t("famousPerson.backToFamous")}
+            className="absolute left-4 top-4 z-10 flex size-9 items-center justify-center rounded-full border border-border/60 bg-background/40 text-muted-foreground backdrop-blur-sm transition-colors hover:border-primary/50 hover:text-foreground sm:left-5 sm:top-5"
+          >
+            <ArrowLeft className="size-4" />
+          </button>
 
+          {/* Content pinned to the bottom of the photo. min-h sets the hero
+              height; pt clears the sticky header for tall portraits. */}
+          <div className="relative flex min-h-[68vh] flex-col items-center justify-end px-6 pb-8 pt-24 text-center sm:min-h-[30rem]">
             <h1
               className="animate-rise font-display text-4xl font-bold leading-tight sm:text-5xl"
               style={{ animationDelay: "0.05s" }}

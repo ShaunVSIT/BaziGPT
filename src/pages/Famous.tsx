@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { Search, Loader2 } from "lucide-react";
@@ -30,6 +30,30 @@ const ThemedLoader: React.FC<{ message?: string; subtitle?: string }> = ({
   </div>
 );
 
+// Compact filter pill. forwardRef is required: this project runs React 18,
+// where refs don't flow through function components automatically.
+const Chip = React.forwardRef<
+  HTMLButtonElement,
+  { active: boolean; onClick: () => void; children: React.ReactNode }
+>(({ active, onClick, children }, ref) => (
+  <button
+    ref={ref}
+    type="button"
+    onClick={onClick}
+    aria-pressed={active}
+    className={cn(
+      "snap-start shrink-0 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+      active
+        ? "border-primary bg-primary text-primary-foreground"
+        : "border-border bg-transparent text-muted-foreground hover:border-primary/40 hover:text-foreground"
+    )}
+  >
+    {children}
+  </button>
+));
+Chip.displayName = "Chip";
+
 const Famous: React.FC = () => {
   const { t } = useTranslation();
   const [people, setPeople] = useState<FamousPerson[]>([]);
@@ -42,7 +66,9 @@ const Famous: React.FC = () => {
   const [searchResults, setSearchResults] = useState<FamousPerson[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [allCategories, setAllCategories] = useState<string[]>([]);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const activeChipRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     fetch("/api/famous/categories")
@@ -72,6 +98,7 @@ const Famous: React.FC = () => {
       if (reset) setPeople(rows);
       else setPeople((prev) => [...prev, ...rows]);
       setOffset(pageOffset + PAGE_SIZE);
+      setTotal(data.total || 0);
       setHasMore(
         (reset ? rows.length : people.length + rows.length) < (data.total || 0)
       );
@@ -104,6 +131,7 @@ const Famous: React.FC = () => {
         if (!res.ok) throw new Error(`Request failed (${res.status})`);
         const data = await res.json();
         setSearchResults(data.data || []);
+        setTotal(data.total || 0);
         setError(null);
       } catch {
         setSearchResults([]);
@@ -118,6 +146,16 @@ const Famous: React.FC = () => {
 
   const categories = allCategories;
   const filtered = search ? searchResults : people;
+
+  // Keep the active category chip visible — on mobile it can sit offscreen
+  // in the horizontal scroll once selected.
+  useEffect(() => {
+    activeChipRef.current?.scrollIntoView({
+      inline: "center",
+      block: "nearest",
+      behavior: "smooth",
+    });
+  }, [category]);
 
   return (
     <>
@@ -162,26 +200,40 @@ const Famous: React.FC = () => {
           </div>
         </div>
 
-        {/* Category tag bar */}
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
-          <Button
-            variant={!category ? "default" : "outline"}
+        {/* Category chip row — horizontally scrollable on mobile with an
+            edge-fade mask hinting at off-screen filters. */}
+        <div
+          className={cn(
+            "mb-3 flex gap-2 overflow-x-auto pb-2 snap-x",
+            "[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
+            "[mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-1rem),transparent)]"
+          )}
+        >
+          <Chip
+            ref={!category ? activeChipRef : undefined}
+            active={!category}
             onClick={() => setCategory("")}
-            className="shrink-0 font-semibold"
           >
             {t("famous.all")}
-          </Button>
+          </Chip>
           {categories.map((cat) => (
-            <Button
+            <Chip
               key={cat}
-              variant={category === cat ? "default" : "outline"}
+              ref={category === cat ? activeChipRef : undefined}
+              active={category === cat}
               onClick={() => setCategory(cat!)}
-              className={cn("shrink-0 font-semibold")}
             >
               {t(`famous.categories.${cat}`) || cat}
-            </Button>
+            </Chip>
           ))}
         </div>
+
+        {/* Result count — quiet feedback, especially when a filter is active */}
+        {!loading && !searchLoading && !error && filtered.length > 0 && (
+          <p className="mb-6 px-1 text-xs text-muted-foreground">
+            {total} {total === 1 ? t("famous.result") : t("famous.results")}
+          </p>
+        )}
 
         {error ? (
           <div className="flex min-h-[200px] flex-col items-center justify-center gap-4 text-center">
@@ -229,7 +281,7 @@ const Famous: React.FC = () => {
         ) : (
           <>
             <FamousPeopleGrid people={filtered} />
-            {hasMore && !category && (
+            {hasMore && (
               <div className="mt-8 flex justify-center">
                 <Button
                   onClick={() => fetchPeople(false)}

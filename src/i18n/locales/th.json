@@ -130,6 +130,8 @@
         "requestReadingOnX": "บน X",
         "loadMore": "โหลดเพิ่ม",
         "loading": "กำลังโหลด...",
+        "result": "รายการ",
+        "results": "รายการ",
         "categories": {
             "actor": "นักแสดง",
             "artist": "ศิลปิน",
