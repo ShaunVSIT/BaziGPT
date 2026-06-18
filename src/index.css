@@ -278,20 +278,22 @@
 }
 
 /* Stronger breathing glow for hero halos. */
+/* Breathing glow. NOTE: never animate `filter: blur()` here — re-rasterizing
+   large blurred surfaces every frame tanks the compositor. Blur is set once
+   (static, GPU-cached); only opacity + transform animate. */
 @keyframes glow-pulse {
   0%,
   100% {
     opacity: 0.4;
     transform: scale(0.92);
-    filter: blur(28px);
   }
   50% {
     opacity: 0.95;
     transform: scale(1.12);
-    filter: blur(40px);
   }
 }
 .animate-glow-pulse {
+  filter: blur(34px);
   animation: glow-pulse 4.5s ease-in-out infinite;
 }
 

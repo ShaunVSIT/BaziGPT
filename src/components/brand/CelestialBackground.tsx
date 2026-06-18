@@ -127,9 +127,11 @@ export const CelestialBackground: React.FC = () => (
       style={{ animationDelay: "3.6s" }}
     />
 
-    {/* Film grain */}
+    {/* Film grain. No mix-blend-* here: a viewport-sized blend layer forces a
+        full-screen re-composite every frame. Plain alpha at this opacity is
+        visually indistinguishable and far cheaper. */}
     <div
-      className="absolute inset-0 opacity-[0.04] mix-blend-soft-light"
+      className="absolute inset-0 opacity-[0.04]"
       style={{ backgroundImage: GRAIN, backgroundSize: "160px 160px" }}
     />
 
