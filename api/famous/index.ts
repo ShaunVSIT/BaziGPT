@@ -69,6 +69,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             `;
         }
 
+        // Famous data changes rarely — let Vercel's edge cache absorb repeat
+        // loads instead of hitting Neon on every request. Varies by full URL
+        // (search/category/offset), so each distinct query caches separately.
+        res.setHeader(
+            'Cache-Control',
+            's-maxage=300, stale-while-revalidate=3600'
+        );
+
         return res.status(200).json({
             data: result,
             total,

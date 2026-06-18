@@ -1,132 +1,64 @@
-import React from 'react';
-import {
-    Container,
-    Typography,
-    Box,
-    Paper,
-    Button,
-    ThemeProvider,
-    createTheme,
-    CssBaseline,
-} from '@mui/material';
-import { Helmet } from 'react-helmet-async';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import SEOAnalytics from './SEOAnalytics';
+import React from "react";
+import LegalShell from "./legal/LegalShell";
 
+const Terms: React.FC = () => (
+  <LegalShell title="Terms of Service" lastUpdated="July 2025">
+    <h2>Acceptance of Terms</h2>
+    <p>By using BaziGPT, you agree to these terms of service.</p>
 
-const theme = createTheme({
-    palette: {
-        mode: 'dark',
-        primary: {
-            main: '#ff9800',
-        },
-        secondary: {
-            main: '#f44336',
-        },
-    },
-});
+    <h2>Service Description</h2>
+    <p>
+      BaziGPT provides AI-powered Chinese astrology readings based on your birth
+      date and time. This service is for entertainment purposes only.
+    </p>
 
-const Terms: React.FC = () => {
-    return (
-        <ThemeProvider theme={theme}>
-            <Helmet>
-                <title>Terms of Service - BaziGPT</title>
-                <meta name="description" content="Terms of Service for BaziGPT - Read our terms and conditions." />
-                <link rel="canonical" href="https://bazigpt.com/terms" />
-            </Helmet>
-            <SEOAnalytics
-                pageTitle="Terms of Service - BaziGPT"
-                pageDescription="Terms of Service for BaziGPT - Read our terms and conditions."
-                keywords={["terms of service", "terms and conditions", "BaziGPT terms", "service terms"]}
-            />
-            <CssBaseline />
-            <Container maxWidth="md" sx={{ py: 4 }}>
-                <Button
-                    startIcon={<ArrowBackIcon />}
-                    onClick={() => window.history.back()}
-                    sx={{ mb: 3 }}
-                >
-                    Back
-                </Button>
+    <h2>Disclaimer</h2>
+    <p>
+      <strong>Important:</strong> The readings provided by BaziGPT are for
+      entertainment purposes only. They should not be considered as professional
+      advice, medical guidance, or factual predictions. Do not make important
+      life decisions based solely on these readings.
+    </p>
 
-                <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-                    <Typography variant="h3" component="h1" gutterBottom color="primary.main">
-                        Terms of Service
-                    </Typography>
+    <h2>User Responsibilities</h2>
+    <ul>
+      <li>Provide accurate birth information</li>
+      <li>Use the service responsibly</li>
+      <li>Not rely on readings for critical decisions</li>
+      <li>Respect the entertainment nature of the service</li>
+    </ul>
 
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-                        <strong>Last updated:</strong> July 2025
-                    </Typography>
+    <h2>Limitation of Liability</h2>
+    <p>
+      BaziGPT is provided "as is" without any warranties. We are not liable for
+      any decisions made based on the readings provided.
+    </p>
 
-                    <Box sx={{ '& h2': { color: 'primary.main', mt: 4, mb: 2 }, '& p': { mb: 2 }, '& ul': { mb: 2 } }}>
-                        <Typography variant="h5" component="h2">
-                            Acceptance of Terms
-                        </Typography>
-                        <Typography variant="body1">
-                            By using BaziGPT, you agree to these terms of service.
-                        </Typography>
+    <h2>Intellectual Property</h2>
+    <p>
+      The BaziGPT service and its content are protected by copyright and other
+      intellectual property laws.
+    </p>
 
-                        <Typography variant="h5" component="h2">
-                            Service Description
-                        </Typography>
-                        <Typography variant="body1">
-                            BaziGPT provides AI-powered Chinese astrology readings based on your birth date and time. This service is for entertainment purposes only.
-                        </Typography>
+    <h2>Changes to Terms</h2>
+    <p>
+      We may update these terms from time to time. Continued use of the service
+      constitutes acceptance of any changes.
+    </p>
 
-                        <Typography variant="h5" component="h2">
-                            Disclaimer
-                        </Typography>
-                        <Typography variant="body1">
-                            <strong>Important:</strong> The readings provided by BaziGPT are for entertainment purposes only. They should not be considered as professional advice, medical guidance, or factual predictions. Do not make important life decisions based solely on these readings.
-                        </Typography>
+    <h2>Contact</h2>
+    <p>
+      For questions about these terms, contact me on Telegram at{" "}
+      <a
+        href="https://t.me/ZeroXBarnum"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        @ZeroXBarnum
+      </a>
+      .
+    </p>
+  </LegalShell>
+);
 
-                        <Typography variant="h5" component="h2">
-                            User Responsibilities
-                        </Typography>
-                        <Box component="ul" sx={{ pl: 3 }}>
-                            <Typography component="li">Provide accurate birth information</Typography>
-                            <Typography component="li">Use the service responsibly</Typography>
-                            <Typography component="li">Not rely on readings for critical decisions</Typography>
-                            <Typography component="li">Respect the entertainment nature of the service</Typography>
-                        </Box>
-
-                        <Typography variant="h5" component="h2">
-                            Limitation of Liability
-                        </Typography>
-                        <Typography variant="body1">
-                            BaziGPT is provided "as is" without any warranties. We are not liable for any decisions made based on the readings provided.
-                        </Typography>
-
-                        <Typography variant="h5" component="h2">
-                            Intellectual Property
-                        </Typography>
-                        <Typography variant="body1">
-                            The BaziGPT service and its content are protected by copyright and other intellectual property laws.
-                        </Typography>
-
-                        <Typography variant="h5" component="h2">
-                            Changes to Terms
-                        </Typography>
-                        <Typography variant="body1">
-                            We may update these terms from time to time. Continued use of the service constitutes acceptance of any changes.
-                        </Typography>
-
-                        <Typography variant="h5" component="h2">
-                            Contact
-                        </Typography>
-                        <Typography variant="body1">
-                            For questions about these terms, contact me on Telegram at{' '}
-                            <a href="https://t.me/ZeroXBarnum" target="_blank" rel="noopener noreferrer" style={{ color: '#ff9800' }}>
-                                @ZeroXBarnum
-                            </a>.
-                        </Typography>
-                    </Box>
-                </Paper>
-
-
-            </Container>
-        </ThemeProvider>
-    );
-};
-
-export default Terms; 
+export default Terms;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FamousPerson } from './Famous';
+import { FamousPerson } from '@/types/famous';
 import { Box, Typography, Paper, Button, CircularProgress, Fade } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Helmet } from 'react-helmet-async';

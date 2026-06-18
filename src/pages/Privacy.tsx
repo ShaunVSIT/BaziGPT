@@ -14,17 +14,17 @@ const PrivacyPage: React.FC = () => {
                 <meta property="og:title" content="Privacy Policy - BaziGPT" />
                 <meta property="og:description" content="Learn about how BaziGPT protects your privacy and handles your personal data. We are committed to keeping your information secure and private." />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content="https://bazigpt.com/privacy" />
-                <meta property="og:image" content="https://bazigpt.com/og-image.svg" />
+                <meta property="og:url" content="https://www.bazigpt.io/privacy" />
+                <meta property="og:image" content="https://www.bazigpt.io/og-image.png" />
 
                 {/* Twitter Card */}
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content="Privacy Policy - BaziGPT" />
                 <meta name="twitter:description" content="Learn about how BaziGPT protects your privacy and handles your personal data. We are committed to keeping your information secure and private." />
-                <meta name="twitter:image" content="https://bazigpt.com/og-image.svg" />
+                <meta name="twitter:image" content="https://www.bazigpt.io/og-image.png" />
 
                 {/* Canonical URL */}
-                <link rel="canonical" href="https://bazigpt.com/privacy" />
+                <link rel="canonical" href="https://www.bazigpt.io/privacy" />
             </Helmet>
             <Privacy />
         </>
