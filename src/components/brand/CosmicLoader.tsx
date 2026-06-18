@@ -90,18 +90,6 @@ export const CosmicLoader: React.FC<{ label?: string }> = ({ label }) => {
         {label && (
           <p className="mt-2 text-sm tracking-wide text-muted-foreground">{label}</p>
         )}
-        {/* progress shimmer bar */}
-        <div className="mx-auto mt-5 h-1 w-48 overflow-hidden rounded-full bg-primary/10">
-          <div
-            className="h-full w-1/2 rounded-full"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent, var(--gold), var(--gold-soft), transparent)",
-              animation: "gold-shimmer 1.6s linear infinite",
-              backgroundSize: "200% 100%",
-            }}
-          />
-        </div>
       </div>
     </div>
   );
