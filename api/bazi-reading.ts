@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { format } from 'date-fns';
 import { callOpenAI } from '../src/utils/openai-util.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -21,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 Include:\n    1. The four pillars (Year, Month, Day, Hour)\n    
                 2. Key insights about:\n       - Core self\n       - Favorable and Unfavorable Elements\n       - Luck Cycle & Destiny\n       - Current Luck Pillar (运势 Yun Shi)\n    
                 3. A conclusion summarizing the main themes and potential life path with what to focus on and what to improve;\n    
-                4. A short, shareable summary (2-3 lines) highlighting the person's key strengths and potential. Make it personal and positive, starting with \"A/An [adjective] individual...\"\n    \n    
+                4. A short, shareable summary (2-3 lines) highlighting the person's key strengths and potential. Make it personal and positive, starting with "A/An [adjective] individual..."\n    \n
                 
                 Note: If no specific time is provided, use noon (12:00) as a reference point for the Hour Pillar. Also, make the reading address the user directly, as if you are talking to them. but no need for 'dear user' etc, just go straight to the reading.`
             },

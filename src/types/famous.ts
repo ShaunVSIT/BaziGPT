@@ -13,5 +13,7 @@ export type FamousPerson = {
   threads_handle?: string;
   website?: string;
   gpt_summary?: string;
+  bazi_reading?: string;
+  reading?: string;
   marketing_blurb?: string;
 };

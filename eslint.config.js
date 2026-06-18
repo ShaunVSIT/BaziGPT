@@ -33,6 +33,13 @@ export default [
       ...js.configs.recommended.rules,
       ...tseslint.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
+      // TypeScript's compiler already reports undefined identifiers, and core
+      // `no-undef` doesn't understand global DOM lib types (e.g. IntersectionObserverInit).
+      // typescript-eslint recommends turning it off for .ts/.tsx files.
+      'no-undef': 'off',
+      // Reading possibly-corrupt cached JSON: an empty catch that falls through
+      // to the next source is intentional.
+      'no-empty': ['error', { allowEmptyCatch: true }],
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },

@@ -102,8 +102,7 @@ const FamousPersonPage: React.FC = () => {
   const img = imgError ? fallbackImg : person.image_url || fallbackImg;
   const year = person.birth_date ? new Date(person.birth_date).getFullYear() : NaN;
   const animal = !Number.isNaN(year) ? zodiacFromYear(year) : null;
-  const readingText =
-    (person as any).reading || (person as any).bazi_reading || person.gpt_summary;
+  const readingText = person.reading || person.bazi_reading || person.gpt_summary;
 
   const socials: SocialLink[] = [];
   if (person.twitter_handle)

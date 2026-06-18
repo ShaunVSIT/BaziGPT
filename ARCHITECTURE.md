@@ -1,315 +1,110 @@
-# BaziGPT Architecture & Scalability Guide
+# BaziGPT — Architecture
+
+This document explains how BaziGPT is put together and the reasoning behind the
+main decisions. For setup and feature overview, see [README.md](README.md).
 
 ## Overview
 
-This document outlines the improved architecture for BaziGPT that addresses scalability issues and implements a modular component structure.
-
-## Key Improvements
-
-### 1. **Modular Component Architecture**
-- **Problem**: Home.tsx was becoming too large and complex with both solo and compatibility reading logic
-- **Solution**: 
-  - Split into separate components: `SoloReading.tsx` and `CompatibilityReading.tsx`
-  - Each component manages its own state and functionality
-  - Home.tsx now acts as a simple router between the two modes
-  - Preserved seamless mode switching and state management
-
-### 2. **Scalable Navigation System**
-- **Problem**: Navigation was scattered across components with simple buttons
-- **Solution**:
-  - Created `Navigation.tsx` component with centralized navigation configuration
-  - Supports both horizontal and vertical layouts
-  - Easy to add new pages by updating the `navigationItems` array
-  - Active state management with React Router integration
-  - Consistent styling across all pages
-
-### 3. **Fixed Social Footer Issues**
-- **Problem**: Social footer had hydration mismatches and inconsistent rendering
-- **Solution**: 
-  - Moved social footer to a dedicated `Layout` component
-  - Removed debugging logs and error-prone try-catch blocks
-  - Ensured consistent rendering across all pages
-  - Added proper error boundaries
-
-### 4. **Implemented Code Splitting**
-- **Problem**: All components were bundled together, increasing initial load time
-- **Solution**:
-  - Used React's `lazy()` for all page components
-  - Added `Suspense` with loading spinner
-  - Each page is now loaded only when needed
-
-### 5. **Centralized Routing**
-- **Problem**: Routes were scattered and hard to manage
-- **Solution**:
-  - Created `src/routes/index.tsx` with centralized route configuration
-  - Each route includes metadata (title, description) for SEO
-  - Easy to add new pages without touching App.tsx
-
-### 6. **Page Structure**
-- **Problem**: No clear separation between pages and components
-- **Solution**:
-  - Created `src/pages/` directory for all page components
-  - Each page is self-contained with its own SEO metadata
-  - Components remain in `src/components/` for reusability
-
-## File Structure
+BaziGPT is a single-page React app served as static assets, backed by a set of
+Vercel serverless functions and a Neon Postgres database. There is no traditional
+long-running server — the frontend talks directly to `/api/*` functions, which in
+turn call OpenAI and Neon.
 
 ```
-src/
-├── components/
-│   ├── Layout.tsx              # Wraps all pages, handles unified footer
-│   ├── Footer.tsx              # Unified footer with all sections
-│   ├── Navigation.tsx          # Scalable navigation system for all pages
-│   ├── SoloReading.tsx         # Solo reading functionality (form, reading, follow-ups, share)
-│   ├── CompatibilityReading.tsx # Compatibility reading functionality (form, reading, share)
-│   ├── ErrorBoundary.tsx       # Error handling for the entire app
-│   ├── Daily.tsx              # Daily forecast component
-│   ├── Privacy.tsx            # Privacy policy component
-│   ├── Terms.tsx              # Terms of service component
-│   └── ...                    # Other reusable components
-├── pages/
-│   ├── Home.tsx               # Main app page (mode switcher/router)
-│   ├── Daily.tsx              # Daily page wrapper
-│   ├── Privacy.tsx            # Privacy page wrapper
-│   ├── Terms.tsx              # Terms page wrapper
-│   └── About.tsx              # Example new page
-└── routes/
-    └── index.tsx              # Centralized route configuration
+Browser (React SPA)
+   │
+   ├─ static assets (Vite build, served by Vercel CDN)
+   │
+   └─ /api/*  ──► Vercel serverless functions
+                    ├─ OpenAI Chat Completions  (readings, forecasts)
+                    └─ Neon serverless Postgres  (famous-people dataset)
 ```
 
-## Component Architecture
+## Frontend
 
-### Home.tsx (Router Component)
-```typescript
-// Simple mode switcher that renders the appropriate component
-const Home: React.FC = () => {
-  const [readingMode, setReadingMode] = useState<'solo' | 'compatibility'>('solo');
-  
-  return (
-    <>
-      {readingMode === 'solo' ? (
-        <SoloReading onModeSwitch={handleModeSwitch} />
-      ) : (
-        <CompatibilityReading onModeSwitch={handleModeSwitch} />
-      )}
-    </>
-  );
-};
-```
+- **Vite 6 + React 18 + TypeScript** with project references (`tsc -b`).
+- **Routing** is centralized in [`src/routes/index.tsx`](src/routes/index.tsx): a
+  single array of `{ path, component, title, description }`. Every page is
+  `React.lazy`-loaded, so each route is its own code-split chunk. `App.tsx` maps the
+  array to `<Route>`s — adding a page never touches `App.tsx`.
+- **Pages vs components.** `src/pages/*` are thin route wrappers that own per-route
+  SEO (`react-helmet-async`) and delegate to feature components in
+  `src/components/*`. `Home` is a mode switcher between `SoloReading` and
+  `CompatibilityReading`.
+- **UI layer.** Tailwind CSS v4 with shadcn/ui components built on Radix primitives
+  (`src/components/ui/*`). Shared reading building blocks (birth inputs, share
+  dialog, markdown renderers) live in `src/components/reading/*`.
+- **Design system** ("Celestial Noir") lives in `src/index.css` as design tokens
+  plus a motion utility layer, and in `src/components/brand/*` (animated celestial
+  background, page hero, cosmic loader, scroll-reveal wrapper). All motion is gated
+  behind `prefers-reduced-motion`.
 
-### SoloReading.tsx
-- **State Management**: Birth date/time, reading data, follow-up questions, share dialogs
-- **Functionality**: Form handling, API calls, reading display, follow-up questions, share features
-- **Props**: `onModeSwitch` callback for seamless mode switching
+> **Migration note:** the app was moved off Material-UI + Emotion onto Tailwind v4 +
+> shadcn. This removed the MUI core chunk (~289 KB) and the entire CSS-in-JS runtime,
+> the dominant cost in the old mobile LCP/TBT numbers.
 
-### CompatibilityReading.tsx
-- **State Management**: Two people's birth data, compatibility reading, share dialogs
-- **Functionality**: Dual form handling, compatibility API calls, reading display, share features
-- **Props**: `onModeSwitch` callback for seamless mode switching
+## Internationalization
 
-## Benefits of Modular Architecture
+i18next + react-i18next with browser language detection. Locale bundles for English,
+Thai, and Chinese live in `src/i18n/locales/*.json`. Language is a client-side
+concern at a single URL set (no per-language routes), so the picker swaps the active
+bundle in place.
 
-### 1. **Maintainability**
-- Each component has a single responsibility
-- Easier to debug and test individual features
-- Clear separation of concerns
+## Backend (`/api`)
 
-### 2. **Code Reusability**
-- Components can be easily reused or extended
-- State management is isolated per component
-- No prop drilling or complex state sharing
+Each file in `api/` is an independent Vercel function:
 
-### 3. **Performance**
-- Smaller bundle sizes for individual features
-- Better tree shaking
-- Easier to implement lazy loading per feature
+| Function | Responsibility |
+| --- | --- |
+| `bazi-reading.ts` | Solo Four Pillars reading |
+| `bazi-followup.ts` | Targeted follow-up questions |
+| `bazi-compatibility.ts` | Two-chart compatibility reading |
+| `daily-bazi.ts` / `daily-bazi-status.ts` | Shared daily forecast (+ status) |
+| `daily-personal-forecast.ts` | Personalized daily forecast |
+| `daily-share-card-png.ts` / `daily-share-card-portrait.ts` | Server-rendered share images |
+| `famous/index.ts` · `famous/[slug].ts` · `famous/categories.ts` | Famous-people dataset |
+| `sitemap.ts` | Dynamic sitemap (static routes + famous slugs from the DB) |
 
-### 4. **Developer Experience**
-- Easier to work on specific features
-- Clear file structure
-- Reduced merge conflicts
+Shared concerns are factored out: [`src/utils/openai-util.ts`](src/utils/openai-util.ts)
+wraps the OpenAI call (typed request/response), and
+[`src/services/neondb.ts`](src/services/neondb.ts) exports the Neon SQL client. The
+OpenAI key is **server-side only** (`OPENAI_API_KEY`) — it is never shipped to the
+browser.
 
-## How to Add New Pages
+### Caching
 
-### Step 1: Add to Navigation Configuration
-Update `src/components/Navigation.tsx`:
+Read-mostly endpoints (famous list, categories, sitemap) set
+`Cache-Control: s-maxage / stale-while-revalidate` so Vercel's edge absorbs repeat
+traffic instead of hitting Neon on every request. The daily forecast is cached by day
+so a single OpenAI generation is reused by all visitors.
 
-```typescript
-const navigationItems: NavigationItem[] = [
-    {
-        path: '/',
-        label: 'Personal Reading',
-        icon: '🀄',
-        description: 'Get your personalized Bazi reading'
-    },
-    {
-        path: '/daily',
-        label: 'Daily Forecast',
-        icon: '📅',
-        description: 'Today\'s Bazi forecast for everyone'
-    },
-    // Add your new page here:
-    {
-        path: '/new-feature',
-        label: 'New Feature',
-        icon: '✨',
-        description: 'Description of your new feature'
-    }
-];
-```
+## SEO
 
-### Step 2: Create the Page Component
-Create a new file in `src/pages/`:
+- Per-route meta via `react-helmet-async`; static defaults + JSON-LD in `index.html`.
+- A **dynamic sitemap** ([`api/sitemap.ts`](api/sitemap.ts)) reads famous-person slugs
+  from the database, so newly added charts are indexed without editing a static file.
+  `vercel.json` rewrites `/sitemap.xml` → `/api/sitemap`.
+- Canonical domain is `https://www.bazigpt.io`; the apex 307-redirects to www, and all
+  canonical/OG/sitemap/robots URLs point to www to avoid duplicate-content splitting.
 
-```typescript
-// src/pages/NewPage.tsx
-import React from 'react';
-import { Helmet } from 'react-helmet-async';
-import { Box, Typography } from '@mui/material';
+## Share cards
 
-const NewPage: React.FC = () => {
-  return (
-    <>
-      <Helmet>
-        <title>New Page - BaziGPT</title>
-        <meta name="description" content="Description for SEO" />
-        {/* Add other meta tags as needed */}
-      </Helmet>
-      
-      <Box>
-        {/* Your page content */}
-        <Typography variant="h1">New Page</Typography>
-      </Box>
-    </>
-  );
-};
+Reading cards are composed in the DOM and rasterized client-side with `html2canvas`.
+Because html2canvas can't parse modern CSS color functions, the card surfaces
+(`ShareCardBase`, `ShareMarkdown`) deliberately use **inline hex styles only** rather
+than Tailwind theme utilities. Daily cards are additionally available as
+server-rendered PNGs via the `daily-share-card-*` functions.
 
-export default NewPage;
-```
+## Error handling & PWA
 
-### Step 2: Add to Routes Configuration
-Update `src/routes/index.tsx`:
+- A top-level `ErrorBoundary` wraps the app; a dev-only `/test-error` route exercises it.
+- A service worker (`public/sw.js`) is registered in production only, providing offline
+  caching and an auto-update flow.
 
-```typescript
-// Add import
-const NewPage = lazy(() => import('../pages/NewPage'));
+## Adding a new page
 
-// Add to routes array
-{
-  path: '/new-page',
-  component: NewPage,
-  title: 'New Page - BaziGPT',
-  description: 'Description for SEO'
-}
-```
+1. Create `src/pages/NewPage.tsx` (a thin wrapper with its `<Helmet>` SEO).
+2. Add a `lazy(() => import('../pages/NewPage'))` entry to the `routes` array in
+   `src/routes/index.tsx` with its `title` and `description`.
 
-### Step 3: Update Vercel Configuration (if needed)
-If you need server-side routing, update `vercel.json`:
-
-```json
-{
-  "rewrites": [
-    {
-      "source": "/new-page",
-      "destination": "/"
-    }
-  ]
-}
-```
-
-## Benefits of New Architecture
-
-### 1. **Performance**
-- Code splitting reduces initial bundle size
-- Pages load only when needed
-- Better caching strategies
-
-### 2. **SEO**
-- Each page has its own meta tags
-- Proper canonical URLs
-- Open Graph and Twitter Card support
-
-### 3. **Maintainability**
-- Clear separation of concerns
-- Easy to add new pages
-- Centralized routing configuration
-- Unified footer component
-- Modular component structure
-
-### 4. **Error Handling**
-- Error boundaries catch rendering errors
-- Graceful fallbacks for failed page loads
-- Better user experience
-
-### 5. **Scalability**
-- Modular page structure
-- Reusable components
-- Easy to extend with new features
-- Isolated state management
-
-## Social Footer & Developer Info Fix Details
-
-### Before (Problematic)
-```typescript
-// In App.tsx - rendered inconsistently with duplication
-<Box sx={{ position: 'relative' }}>
-  {(() => {
-    console.log('App: Rendering SocialFooter');
-    return <SocialFooter />;
-  })()}
-</Box>
-// Developer info scattered across components
-```
-
-### After (Fixed)
-```typescript
-// In Layout.tsx - unified footer component
-<Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-  <Container maxWidth="md" sx={{ py: 4, flex: 1 }}>
-    {children}
-  </Container>
-  
-  {/* Unified Footer */}
-  <Footer />
-</Box>
-```
-
-The Footer component includes:
-- Social media section (daily forecasts)
-- Legal links section (privacy & terms)
-- Developer info section (attribution & contact)
-
-## Error Handling
-
-The new architecture includes comprehensive error handling:
-
-1. **ErrorBoundary**: Catches React rendering errors
-2. **Suspense**: Handles lazy loading failures
-3. **Graceful Fallbacks**: Users see helpful error messages instead of crashes
-
-## Testing the New Structure
-
-To verify the improvements work:
-
-1. **Modular Components**: Solo and compatibility readings work independently
-2. **Mode Switching**: Seamless switching between solo and compatibility modes
-3. **Social Footer**: Should render consistently on all pages
-4. **Code Splitting**: Check Network tab - only load pages when visited
-5. **SEO**: Each page should have proper meta tags
-6. **Error Handling**: Try visiting non-existent routes
-
-## Future Enhancements
-
-1. **Server-Side Rendering**: Consider Next.js for better SEO
-2. **State Management**: Add Redux/Zustand for complex state
-3. **Analytics**: Enhanced tracking per page
-4. **Caching**: Implement service workers for offline support
-5. **Component Library**: Extract common UI patterns into shared components
-
-## Migration Notes
-
-- All existing functionality preserved
-- No breaking changes to user experience
-- Improved performance and reliability
-- Better foundation for future growth
-- Modular structure makes it easier to add new features 
+That's it — routing, code-splitting, and the layout/footer are handled centrally.

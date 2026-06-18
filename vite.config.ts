@@ -30,7 +30,7 @@ export default defineConfig({
           // Heavy components in separate chunks
           'html2canvas': ['html2canvas'],
           'markdown': ['react-markdown'],
-          'analytics': ['@vercel/analytics', '@vercel/speed-insights', 'web-vitals']
+          'analytics': ['@vercel/analytics/react', '@vercel/speed-insights/react']
         }
       }
     },

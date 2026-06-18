@@ -1,25 +1,20 @@
 {
     "headers": [
         {
-            "source": "/sitemap.xml",
-            "headers": [
-                {
-                    "key": "Content-Type",
-                    "value": "application/xml"
-                }
-            ]
-        },
-        {
             "source": "/(.*)",
             "headers": [
                 {
                     "key": "X-Canonical-Domain",
-                    "value": "bazigpt.io"
+                    "value": "www.bazigpt.io"
                 }
             ]
         }
     ],
     "rewrites": [
+        {
+            "source": "/sitemap.xml",
+            "destination": "/api/sitemap"
+        },
         {
             "source": "/api/(.*)",
             "destination": "/api/$1"

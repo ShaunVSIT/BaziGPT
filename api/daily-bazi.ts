@@ -71,7 +71,7 @@ function getTodayDate(): string {
 const DEV_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 const CACHE_FILE = path.join(process.cwd(), '.vercel', 'cache', 'daily-bazi-cache.json');
 
-function getDevCache(key: string): any | null {
+function getDevCache(key: string): unknown | null {
     try {
         if (!fs.existsSync(CACHE_FILE)) {
             return null;
@@ -90,7 +90,7 @@ function getDevCache(key: string): any | null {
     }
 }
 
-function setDevCache(key: string, data: any): void {
+function setDevCache(key: string, data: unknown): void {
     try {
         // Ensure cache directory exists
         const cacheDir = path.dirname(CACHE_FILE);

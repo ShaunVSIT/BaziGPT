@@ -38,17 +38,13 @@ const Home: React.FC = () => {
                 <meta property="og:title" content={t('seo.home.title')} />
                 <meta property="og:description" content={t('seo.home.description')} />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content="https://bazigpt.io" />
-                <meta property="og:image" content="https://bazigpt.io/og-image.svg" />
+                <meta property="og:url" content="https://www.bazigpt.io/" />
+                <meta property="og:image" content="https://www.bazigpt.io/og-image.png" />
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content={t('seo.home.title')} />
                 <meta name="twitter:description" content={t('seo.home.description')} />
-                <meta name="twitter:image" content="https://bazigpt.io/og-image.svg" />
-
-                {/* Additional SEO for Google Ads */}
-                <meta name="google-site-verification" content="your-verification-code" />
-                <meta name="msvalidate.01" content="your-bing-verification-code" />
-                <link rel="canonical" href="https://bazigpt.io" />
+                <meta name="twitter:image" content="https://www.bazigpt.io/og-image.png" />
+                <link rel="canonical" href="https://www.bazigpt.io/" />
 
                 {/* Structured Data for Better Search Visibility */}
                 <script type="application/ld+json">
@@ -57,18 +53,13 @@ const Home: React.FC = () => {
                         "@type": "WebApplication",
                         "name": "BaziGPT",
                         "description": "AI-powered Chinese astrology readings and BaZi analysis",
-                        "url": "https://bazigpt.io",
+                        "url": "https://www.bazigpt.io/",
                         "applicationCategory": "LifestyleApplication",
                         "operatingSystem": "Web Browser",
                         "offers": {
                             "@type": "Offer",
                             "price": "0",
                             "priceCurrency": "USD"
-                        },
-                        "aggregateRating": {
-                            "@type": "AggregateRating",
-                            "ratingValue": "4.8",
-                            "reviewCount": "1250"
                         }
                     })}
                 </script>
