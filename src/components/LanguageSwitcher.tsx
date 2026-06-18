@@ -27,11 +27,18 @@ const languages: Language[] = [
 interface LanguageSwitcherProps {
   onLanguageChange?: () => void;
   fullWidth?: boolean;
+  /**
+   * "dropdown" (default) is the header popover. "inline" renders the languages
+   * as a flat list of buttons — use this inside a modal Sheet/Dialog, where a
+   * portaled Radix dropdown can't receive pointer events.
+   */
+  variant?: "dropdown" | "inline";
 }
 
 const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   onLanguageChange,
   fullWidth,
+  variant = "dropdown",
 }) => {
   const { i18n } = useTranslation();
 
@@ -48,8 +55,38 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     onLanguageChange?.();
   };
 
+  // i18n.language can be a regional code (e.g. "en-US"); match on the base tag.
+  const activeCode = i18n.language?.split("-")[0];
   const currentLanguage =
-    languages.find((lang) => lang.code === i18n.language) || languages[0];
+    languages.find((lang) => lang.code === activeCode) || languages[0];
+
+  if (variant === "inline") {
+    return (
+      <div className="flex flex-col gap-1">
+        {languages.map((language) => {
+          const active = language.code === activeCode;
+          return (
+            <button
+              key={language.code}
+              onClick={() => handleLanguageChange(language.code)}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors",
+                active
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <span className="text-base leading-none">{language.flag}</span>
+              <span className="flex flex-col">
+                <span className="text-sm font-semibold">{language.nativeName}</span>
+                <span className="text-xs text-muted-foreground">{language.name}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <DropdownMenu>
@@ -73,7 +110,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
             onClick={() => handleLanguageChange(language.code)}
             className={cn(
               "gap-3",
-              language.code === i18n.language && "text-primary"
+              language.code === activeCode && "text-primary"
             )}
           >
             <span className="text-base leading-none">{language.flag}</span>

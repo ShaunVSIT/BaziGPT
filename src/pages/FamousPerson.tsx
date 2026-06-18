@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import { ArrowLeft, Loader2, Globe, Sparkles } from "lucide-react";
 import { FamousPerson } from "@/types/famous";
@@ -10,7 +11,7 @@ import { zodiacFromYear } from "@/lib/zodiac";
 
 const fallbackImg = "/default-portrait.png";
 
-function formatBirthday(dateStr?: string, timeStr?: string) {
+function formatBirthday(dateStr?: string, timeStr?: string, atLabel = "at") {
   if (!dateStr) return "";
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return dateStr;
@@ -19,7 +20,7 @@ function formatBirthday(dateStr?: string, timeStr?: string) {
     month: "long",
     day: "numeric",
   });
-  if (timeStr) formatted += ` at ${timeStr}`;
+  if (timeStr) formatted += ` ${atLabel} ${timeStr}`;
   return formatted;
 }
 
@@ -48,6 +49,7 @@ interface SocialLink {
 const FamousPersonPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [person, setPerson] = useState<FamousPerson | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -75,10 +77,10 @@ const FamousPersonPage: React.FC = () => {
         <div className="flex flex-col items-center rounded-2xl border border-primary/10 bg-gradient-to-br from-primary/5 to-secondary/5 p-10 text-center">
           <Loader2 className="mb-4 size-12 animate-spin text-primary" />
           <p className="font-display text-lg font-semibold text-primary">
-            Reading the Stars
+            {t("famousPerson.loadingTitle")}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Analyzing the elements…
+            {t("famousPerson.loadingSubtitle")}
           </p>
         </div>
       </div>
@@ -88,10 +90,10 @@ const FamousPersonPage: React.FC = () => {
   if (notFound || !person) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center">
-        <p className="font-display text-2xl text-foreground">Chart not found.</p>
+        <p className="font-display text-2xl text-foreground">{t("famousPerson.notFound")}</p>
         <Button variant="outline" onClick={() => navigate("/famous")} className="gap-2">
           <ArrowLeft className="size-4" />
-          Back to Famous People
+          {t("famousPerson.backToFamous")}
         </Button>
       </div>
     );
@@ -136,7 +138,7 @@ const FamousPersonPage: React.FC = () => {
           className="mb-4 gap-2 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="size-4" />
-          Back to Famous People
+          {t("famousPerson.backToFamous")}
         </Button>
 
         {/* Photo-driven hero */}
@@ -179,7 +181,7 @@ const FamousPersonPage: React.FC = () => {
               )}
               {animal && (
                 <Badge variant="outline" className="border-primary/40 text-primary">
-                  {animal.emoji} Year of the {animal.en}
+                  {animal.emoji} {t("zodiac.yearOfThe", { animal: t(`zodiac.animals.${animal.key}`) })}
                 </Badge>
               )}
             </div>
@@ -189,8 +191,8 @@ const FamousPersonPage: React.FC = () => {
                 className="animate-rise mt-3 text-sm text-muted-foreground"
                 style={{ animationDelay: "0.15s" }}
               >
-                <span className="font-semibold text-foreground/80">Born:</span>{" "}
-                {formatBirthday(person.birth_date, person.birth_time)}
+                <span className="font-semibold text-foreground/80">{t("famousPerson.born")}</span>{" "}
+                {formatBirthday(person.birth_date, person.birth_time, t("famousPerson.at"))}
               </p>
             )}
 
@@ -228,7 +230,7 @@ const FamousPersonPage: React.FC = () => {
             <CardContent className="p-6 sm:p-8">
               <h2 className="mb-3 flex items-center gap-2 font-display text-2xl font-semibold text-primary">
                 <Sparkles className="size-5" />
-                BaZi Reading
+                {t("famousPerson.baziReading")}
               </h2>
               <div className="space-y-3 leading-relaxed text-foreground/90">
                 {String(readingText)
@@ -252,14 +254,14 @@ const FamousPersonPage: React.FC = () => {
                 rel="noopener noreferrer"
               >
                 <XIcon className="size-4" />
-                Tweet this reading
+                {t("famousPerson.tweetReading")}
               </a>
             </Button>
           )}
           <Button asChild className="w-full max-w-sm gap-2 font-semibold">
             <a href="/">
               <Sparkles className="size-4" />
-              Get your own reading
+              {t("famousPerson.getYourReading")}
             </a>
           </Button>
         </div>

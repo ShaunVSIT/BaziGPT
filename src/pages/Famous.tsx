@@ -140,7 +140,7 @@ const Famous: React.FC = () => {
         <PageHero
           size="compact"
           showMark={false}
-          eyebrow="BaZi Charts · Icons & Legends"
+          eyebrow={t("hero.famousEyebrow")}
           title={t("famous.title")}
           subtitle={t("famous.subtitle")}
         />

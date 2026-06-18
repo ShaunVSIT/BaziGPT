@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { BrandMark } from "./Logo";
 
 /**
@@ -6,15 +7,6 @@ import { BrandMark } from "./Logo";
  * generates. A pulsing brand core inside concentric counter-rotating orbit
  * rings, with planets orbiting and a sonar pulse — plus cycling oracle phrases.
  */
-
-const PHRASES = [
-  "Aligning the Four Pillars…",
-  "Consulting the celestial stems…",
-  "Reading the heavenly branches…",
-  "Mapping your elemental balance…",
-  "Tracing destiny through the stars…",
-  "Decoding the hour of your birth…",
-];
 
 // Orbiting bodies: radius (px), duration (s), size, color, start offset.
 const BODIES = [
@@ -27,12 +19,14 @@ const BODIES = [
 ];
 
 export const CosmicLoader: React.FC<{ label?: string }> = ({ label }) => {
+  const { t } = useTranslation();
+  const phrases = t("cosmicLoader.phrases", { returnObjects: true }) as string[];
   const [phrase, setPhrase] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(() => setPhrase((p) => (p + 1) % PHRASES.length), 2200);
+    const id = setInterval(() => setPhrase((p) => (p + 1) % phrases.length), 2200);
     return () => clearInterval(id);
-  }, []);
+  }, [phrases.length]);
 
   return (
     <div className="flex flex-col items-center justify-center gap-8 py-12">
@@ -91,7 +85,7 @@ export const CosmicLoader: React.FC<{ label?: string }> = ({ label }) => {
           key={phrase}
           className="animate-rise-blur font-display text-xl font-semibold text-gold-shimmer sm:text-2xl"
         >
-          {PHRASES[phrase]}
+          {phrases[phrase]}
         </p>
         {label && (
           <p className="mt-2 text-sm tracking-wide text-muted-foreground">{label}</p>

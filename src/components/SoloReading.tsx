@@ -281,16 +281,16 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
             className="animate-rise-blur mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-primary"
             style={{ animationDelay: "0.05s" }}
           >
-            AI-Powered BaZi · Four Pillars
+            {t("hero.soloEyebrow")}
           </p>
 
           <h1
             className="animate-rise-blur font-display text-5xl font-bold leading-[1.05] sm:text-6xl"
             style={{ animationDelay: "0.1s" }}
           >
-            <span className="text-gold-shimmer">Unlock Your Destiny</span>
+            <span className="text-gold-shimmer">{t("hero.soloTitle")}</span>
             <span className="mt-1 block text-2xl font-normal text-foreground/70 sm:text-3xl">
-              written in the stars
+              {t("hero.soloTitleSub")}
             </span>
           </h1>
 
@@ -338,7 +338,7 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
             className="animate-rise-blur mt-6 text-sm text-muted-foreground"
             style={{ animationDelay: "0.25s" }}
           >
-            ✦ Free · No signup · Instant
+            {t("hero.soloFootnote")}
           </p>
         </section>
       ) : (

@@ -50,7 +50,7 @@ const FamousPersonCard: React.FC<{ person: FamousPerson }> = ({ person }) => {
             variant="outline"
             className="border-primary/40 bg-background/40 text-foreground backdrop-blur-sm"
           >
-            {animal.emoji} {animal.en}
+            {animal.emoji} {t(`zodiac.animals.${animal.key}`)}
           </Badge>
         )}
       </div>

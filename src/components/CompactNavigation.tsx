@@ -138,8 +138,11 @@ const CompactNavigation: React.FC = () => {
               })}
             </nav>
 
-            <div className="mt-auto border-t border-border/60 p-4">
-              <LanguageSwitcher fullWidth onLanguageChange={() => setMobileOpen(false)} />
+            <div className="mt-auto border-t border-border/60 p-3">
+              <LanguageSwitcher
+                variant="inline"
+                onLanguageChange={() => setMobileOpen(false)}
+              />
             </div>
           </SheetContent>
         </Sheet>

@@ -220,5 +220,55 @@
             "description": "Learn about BaziGPT, the AI-powered Chinese astrology platform that provides personalized readings and relationship compatibility analysis.",
             "keywords": "about BaziGPT, Chinese astrology platform, AI astrology, Bazi readings"
         }
+    },
+    "hero": {
+        "soloEyebrow": "AI-Powered BaZi · Four Pillars",
+        "soloTitle": "Unlock Your Destiny",
+        "soloTitleSub": "written in the stars",
+        "soloFootnote": "✦ Free · No signup · Instant",
+        "compatEyebrow": "Compatibility · Two Charts",
+        "compatTitle": "Are You Written",
+        "compatTitleSub": "in the same stars?",
+        "dailyEyebrow": "Today's Cosmic Energy",
+        "famousEyebrow": "BaZi Charts · Icons & Legends"
+    },
+    "zodiac": {
+        "yearOfThe": "Year of the {{animal}}",
+        "hour": "{{animal}} hour (時辰)",
+        "animals": {
+            "rat": "Rat",
+            "ox": "Ox",
+            "tiger": "Tiger",
+            "rabbit": "Rabbit",
+            "dragon": "Dragon",
+            "snake": "Snake",
+            "horse": "Horse",
+            "goat": "Goat",
+            "monkey": "Monkey",
+            "rooster": "Rooster",
+            "dog": "Dog",
+            "pig": "Pig"
+        }
+    },
+    "cosmicLoader": {
+        "phrases": [
+            "Aligning the Four Pillars…",
+            "Consulting the celestial stems…",
+            "Reading the heavenly branches…",
+            "Mapping your elemental balance…",
+            "Tracing destiny through the stars…",
+            "Decoding the hour of your birth…"
+        ]
+    },
+    "famousPerson": {
+        "loadingTitle": "Reading the Stars",
+        "loadingSubtitle": "Analyzing the elements…",
+        "notFound": "Chart not found.",
+        "backToFamous": "Back to Famous People",
+        "born": "Born:",
+        "at": "at",
+        "baziReading": "BaZi Reading",
+        "tweetReading": "Tweet this reading",
+        "getYourReading": "Get your own reading"
     }
 }

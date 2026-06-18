@@ -209,7 +209,7 @@ function Daily() {
       <div className="mx-auto max-w-2xl">
         <PageHero
           size="compact"
-          eyebrow="Today's Cosmic Energy"
+          eyebrow={t("hero.dailyEyebrow")}
           title={t("daily.title")}
           subtitle={formattedDate}
         />

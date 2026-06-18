@@ -180,9 +180,9 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
       ) : !compatibilityReading ? (
         <PageHero
           size="full"
-          eyebrow="Compatibility · Two Charts"
-          title="Are You Written"
-          titleSub="in the same stars?"
+          eyebrow={t("hero.compatEyebrow")}
+          title={t("hero.compatTitle")}
+          titleSub={t("hero.compatTitleSub")}
           subtitle={t("compatibility.subtitle")}
         >
           <div className="relative mx-auto mt-8 w-full max-w-2xl">

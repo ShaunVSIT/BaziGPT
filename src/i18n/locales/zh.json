@@ -220,5 +220,55 @@
             "description": "了解BaziGPT，提供个性化解读和关系兼容性分析的AI驱动中国占星术平台。",
             "keywords": "关于BaziGPT, 中国占星术平台, AI占星术, 八字解读"
         }
+    },
+    "hero": {
+        "soloEyebrow": "AI 八字 · 四柱命理",
+        "soloTitle": "解锁你的命运",
+        "soloTitleSub": "命定于星辰之间",
+        "soloFootnote": "✦ 免费 · 无需注册 · 即时生成",
+        "compatEyebrow": "缘分配对 · 双人命盘",
+        "compatTitle": "你们是否同书写",
+        "compatTitleSub": "于同一片星空？",
+        "dailyEyebrow": "今日宇宙能量",
+        "famousEyebrow": "八字命盘 · 名人与传奇"
+    },
+    "zodiac": {
+        "yearOfThe": "{{animal}}年",
+        "hour": "{{animal}}时辰",
+        "animals": {
+            "rat": "鼠",
+            "ox": "牛",
+            "tiger": "虎",
+            "rabbit": "兔",
+            "dragon": "龙",
+            "snake": "蛇",
+            "horse": "马",
+            "goat": "羊",
+            "monkey": "猴",
+            "rooster": "鸡",
+            "dog": "狗",
+            "pig": "猪"
+        }
+    },
+    "cosmicLoader": {
+        "phrases": [
+            "正在对齐四柱…",
+            "正在请教天干…",
+            "正在解读地支…",
+            "正在测算你的五行平衡…",
+            "正在循星追溯命运…",
+            "正在破解你的出生时辰…"
+        ]
+    },
+    "famousPerson": {
+        "loadingTitle": "正在解读星象",
+        "loadingSubtitle": "正在分析五行…",
+        "notFound": "未找到命盘",
+        "backToFamous": "返回名人列表",
+        "born": "出生：",
+        "at": "于",
+        "baziReading": "八字解读",
+        "tweetReading": "分享此解读到 X",
+        "getYourReading": "获取你自己的解读"
     }
 }

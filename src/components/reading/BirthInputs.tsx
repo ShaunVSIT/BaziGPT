@@ -63,7 +63,7 @@ export const BirthInputs: React.FC<{
         {yearAnimal && (
           <div>
             <Reveal key={yearAnimal.key} emoji={yearAnimal.emoji}>
-              Year of the {yearAnimal.en}
+              {t("zodiac.yearOfThe", { animal: t(`zodiac.animals.${yearAnimal.key}`) })}
             </Reveal>
           </div>
         )}
@@ -84,7 +84,7 @@ export const BirthInputs: React.FC<{
         {hourAnimal && (
           <div>
             <Reveal key={hourAnimal.key} emoji={hourAnimal.emoji}>
-              {hourAnimal.en} hour (時辰)
+              {t("zodiac.hour", { animal: t(`zodiac.animals.${hourAnimal.key}`) })}
             </Reveal>
           </div>
         )}
