@@ -1,44 +1,41 @@
 <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#2d2d2d;stop-opacity:1" />
-    </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ff9800;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#f57c00;stop-opacity:1" />
+    <radialGradient id="bg" cx="28%" cy="32%" r="90%">
+      <stop offset="0%" stop-color="#16161d"/>
+      <stop offset="100%" stop-color="#0b0b0f"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e6c75c"/>
+      <stop offset="100%" stop-color="#c9a227"/>
     </linearGradient>
   </defs>
-  
-  <!-- Background -->
+
   <rect width="1200" height="630" fill="url(#bg)"/>
-  
-  <!-- Decorative elements -->
-  <circle cx="200" cy="150" r="80" fill="url(#accent)" opacity="0.1"/>
-  <circle cx="1000" cy="480" r="120" fill="url(#accent)" opacity="0.1"/>
-  <circle cx="300" cy="500" r="60" fill="url(#accent)" opacity="0.1"/>
-  
-  <!-- Main content -->
-  <g transform="translate(100, 150)">
-    <!-- Logo/Icon -->
-    <circle cx="80" cy="80" r="60" fill="url(#accent)" stroke="#fff" stroke-width="3"/>
-    <text x="80" y="95" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="#fff">八字</text>
-    
-    <!-- Title -->
-    <text x="200" y="80" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#fff">BaziGPT</text>
-    <text x="200" y="120" font-family="Arial, sans-serif" font-size="24" fill="#ff9800">AI-Powered Chinese Astrology</text>
-    
-    <!-- Subtitle -->
-    <text x="200" y="160" font-family="Arial, sans-serif" font-size="18" fill="#ccc">Personalized BaZi readings and insights</text>
-    <text x="200" y="185" font-family="Arial, sans-serif" font-size="18" fill="#ccc">based on your birth date and time</text>
+
+  <!-- Faint celestial accents -->
+  <circle cx="1040" cy="120" r="160" fill="#c9a227" opacity="0.05"/>
+  <circle cx="160" cy="520" r="120" fill="#2e8b7b" opacity="0.06"/>
+  <circle cx="980" cy="500" r="4" fill="#e6c75c" opacity="0.8"/>
+  <circle cx="220" cy="120" r="3" fill="#e6c75c" opacity="0.7"/>
+  <g transform="translate(900 470)" fill="#2e8b7b" opacity="0.9">
+    <path d="M0 -20 C3 -6 6 -3 20 0 C6 3 3 6 0 20 C-3 6 -6 3 -20 0 C-6 -3 -3 -6 0 -20 Z"/>
   </g>
-  
-  <!-- Bottom section -->
-  <g transform="translate(100, 450)">
-    <text x="0" y="0" font-family="Arial, sans-serif" font-size="20" fill="#ff9800">✨ Free • Instant • Accurate ✨</text>
-    <text x="0" y="30" font-family="Arial, sans-serif" font-size="16" fill="#999">Discover your destiny with AI-powered Chinese astrology</text>
+
+  <!-- Logo tile -->
+  <g transform="translate(96 215)">
+    <rect width="200" height="200" rx="44" fill="#0b0b0f" stroke="url(#gold)" stroke-width="3"/>
+    <g fill="url(#gold)" transform="translate(100 100) scale(0.34) translate(-256 -256)">
+      <path d="M250 168 C246 196 232 250 196 308 C182 330 166 350 146 366 C140 370 134 366 138 358 C170 300 198 244 220 184 C224 172 232 162 242 160 C249 159 252 162 250 168 Z"/>
+      <path d="M262 166 C268 196 286 252 320 306 C334 328 352 348 372 362 C382 369 380 380 368 378 C338 372 312 352 292 322 C268 286 252 236 244 184 C242 170 248 158 258 159 C261 159 261 162 262 166 Z"/>
+    </g>
   </g>
-  
-  <!-- URL -->
-  <text x="100" y="580" font-family="Arial, sans-serif" font-size="16" fill="#666">bazigpt.com</text>
-</svg> 
+
+  <!-- Wordmark -->
+  <text x="340" y="285" font-family="'Cormorant Garamond','Playfair Display',Georgia,serif" font-size="92" font-weight="700" fill="#f4f1ea">BaziGPT</text>
+  <text x="344" y="335" font-family="Inter,Arial,sans-serif" font-size="30" font-weight="500" fill="#c9a227" letter-spacing="2">AI-POWERED CHINESE ASTROLOGY</text>
+  <text x="344" y="378" font-family="Inter,Arial,sans-serif" font-size="22" fill="#a39f95">Personalized BaZi readings from your birth date &amp; time</text>
+
+  <!-- Footer line -->
+  <text x="96" y="556" font-family="Inter,Arial,sans-serif" font-size="22" fill="#c9a227">✦ Free · Instant · Accurate</text>
+  <text x="1104" y="556" text-anchor="end" font-family="Inter,Arial,sans-serif" font-size="20" fill="#7c776c">bazigpt.io</text>
+</svg>

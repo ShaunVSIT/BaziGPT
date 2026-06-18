@@ -1,133 +1,95 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { Box, Button, Menu, MenuItem, Typography } from '@mui/material';
-import LanguageIcon from '@mui/icons-material/Language';
-import { track } from '@vercel/analytics/react';
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { Globe } from "lucide-react";
+import { track } from "@vercel/analytics/react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface Language {
-    code: string;
-    name: string;
-    nativeName: string;
-    flag: string;
+  code: string;
+  name: string;
+  nativeName: string;
+  flag: string;
 }
 
 const languages: Language[] = [
-    {
-        code: 'en',
-        name: 'English',
-        nativeName: 'English',
-        flag: '🇺🇸'
-    },
-    {
-        code: 'th',
-        name: 'Thai',
-        nativeName: 'ไทย',
-        flag: '🇹🇭'
-    },
-    {
-        code: 'zh',
-        name: 'Chinese',
-        nativeName: '中文',
-        flag: '🇨🇳'
-    }
+  { code: "en", name: "English", nativeName: "English", flag: "🇺🇸" },
+  { code: "th", name: "Thai", nativeName: "ไทย", flag: "🇹🇭" },
+  { code: "zh", name: "Chinese", nativeName: "中文", flag: "🇨🇳" },
 ];
 
 interface LanguageSwitcherProps {
-    onLanguageChange?: () => void;
+  onLanguageChange?: () => void;
+  fullWidth?: boolean;
 }
 
-const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ onLanguageChange }) => {
-    const { i18n } = useTranslation();
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
+  onLanguageChange,
+  fullWidth,
+}) => {
+  const { i18n } = useTranslation();
 
-    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEl(event.currentTarget);
-    };
+  const handleLanguageChange = (languageCode: string) => {
+    i18n.changeLanguage(languageCode);
+    track("language_changed", { language: languageCode });
 
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
-
-    const handleLanguageChange = (languageCode: string) => {
-        i18n.changeLanguage(languageCode);
-        track('language_changed', { language: languageCode });
-
-        // Show a brief confirmation that preference was saved
-        const event = new CustomEvent('language-preference-saved', {
-            detail: { language: languageCode }
-        });
-        window.dispatchEvent(event);
-
-        handleClose();
-        onLanguageChange?.(); // Call the callback if provided
-    };
-
-    const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
-
-    return (
-        <Box>
-            <Button
-                onClick={handleClick}
-                startIcon={<LanguageIcon />}
-                sx={{
-                    color: 'text.primary',
-                    '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    }
-                }}
-            >
-                <Typography variant="body2" sx={{ mr: 1 }}>
-                    {currentLanguage.flag}
-                </Typography>
-                <Typography variant="body2">
-                    {currentLanguage.nativeName}
-                </Typography>
-            </Button>
-            <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-                PaperProps={{
-                    sx: {
-                        bgcolor: '#1e1e1e',
-                        color: 'white',
-                        mt: 1,
-                        '& .MuiMenuItem-root': {
-                            '&:hover': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                            }
-                        }
-                    }
-                }}
-            >
-                {languages.map((language) => (
-                    <MenuItem
-                        key={language.code}
-                        onClick={() => handleLanguageChange(language.code)}
-                        selected={language.code === i18n.language}
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            minWidth: 120
-                        }}
-                    >
-                        <Typography variant="body1">
-                            {language.flag}
-                        </Typography>
-                        <Box>
-                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                                {language.nativeName}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                                {language.name}
-                            </Typography>
-                        </Box>
-                    </MenuItem>
-                ))}
-            </Menu>
-        </Box>
+    window.dispatchEvent(
+      new CustomEvent("language-preference-saved", {
+        detail: { language: languageCode },
+      })
     );
+
+    onLanguageChange?.();
+  };
+
+  const currentLanguage =
+    languages.find((lang) => lang.code === i18n.language) || languages[0];
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className={cn(
+            "gap-2 text-muted-foreground hover:text-foreground",
+            fullWidth && "w-full justify-start"
+          )}
+        >
+          <Globe className="size-4" />
+          <span className="text-base leading-none">{currentLanguage.flag}</span>
+          <span className="text-sm">{currentLanguage.nativeName}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-44">
+        {languages.map((language) => (
+          <DropdownMenuItem
+            key={language.code}
+            onClick={() => handleLanguageChange(language.code)}
+            className={cn(
+              "gap-3",
+              language.code === i18n.language && "text-primary"
+            )}
+          >
+            <span className="text-base leading-none">{language.flag}</span>
+            <span className="flex flex-col">
+              <span className="text-sm font-semibold">
+                {language.nativeName}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {language.name}
+              </span>
+            </span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 };
 
-export default LanguageSwitcher; 
+export default LanguageSwitcher;

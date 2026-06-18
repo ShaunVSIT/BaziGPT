@@ -1,71 +1,32 @@
-import React from 'react';
-import { Box, Container } from '@mui/material';
-import Footer from './Footer';
-import CompactNavigation from './CompactNavigation';
-
-// Toggle this flag to enable/disable ad spaces
-const showAds = false;
+import React from "react";
+import Footer from "./Footer";
+import CompactNavigation from "./CompactNavigation";
 
 interface LayoutProps {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-    return (
-        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            {/* Compact Navigation Bar */}
-            <CompactNavigation />
+  return (
+    <div className="relative flex min-h-screen flex-col bg-background text-foreground">
+      {/* Ambient celestial glow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      >
+        <div className="absolute -top-40 left-1/2 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
+        <div className="absolute bottom-0 right-[-10%] h-[360px] w-[360px] rounded-full bg-secondary/10 blur-[120px]" />
+      </div>
 
-            {/* Top Ad Zone - Above Content */}
-            {showAds && (
-                <Box sx={{
-                    width: '100%',
-                    minHeight: '90px',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    bgcolor: 'rgba(255, 152, 0, 0.05)',
-                    borderBottom: '1px solid rgba(255, 152, 0, 0.1)'
-                }}>
-                    <ins className="adsbygoogle"
-                        style={{ display: 'block' }}
-                        data-ad-client="ca-pub-1907087767584566"
-                        data-ad-slot="your-top-ad-slot"
-                        data-ad-format="auto"
-                        data-full-width-responsive="true">
-                    </ins>
-                </Box>
-            )}
+      <CompactNavigation />
 
-            <Container maxWidth="md" sx={{ py: 2, flex: 1 }}>
-                {children}
-            </Container>
+      <main className="relative z-10 mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
+        {children}
+      </main>
 
-            {/* Bottom Ad Zone - Below Content */}
-            {showAds && (
-                <Box sx={{
-                    width: '100%',
-                    minHeight: '90px',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    bgcolor: 'rgba(255, 152, 0, 0.05)',
-                    borderTop: '1px solid rgba(255, 152, 0, 0.1)'
-                }}>
-                    <ins className="adsbygoogle"
-                        style={{ display: 'block' }}
-                        data-ad-client="ca-pub-1907087767584566"
-                        data-ad-slot="your-bottom-ad-slot"
-                        data-ad-format="auto"
-                        data-full-width-responsive="true">
-                    </ins>
-                </Box>
-            )}
-
-            {/* Unified Footer */}
-            <Footer />
-        </Box>
-    );
+      <Footer />
+    </div>
+  );
 };
 
-export default Layout; 
+export default Layout;
