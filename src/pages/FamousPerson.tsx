@@ -146,7 +146,7 @@ const FamousPersonPage: React.FC = () => {
             src={img}
             alt={person.name}
             onError={() => setImgError(true)}
-            className="absolute inset-0 size-full object-cover object-top"
+            className="absolute inset-0 size-full object-cover object-top sm:object-contain"
           />
           {/* Scrim: keep the face bright up top, darken toward the bottom so
               the text is legible and the photo melts into the page. */}
