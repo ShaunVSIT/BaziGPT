@@ -58,18 +58,51 @@ function getFollowupsKey(birthDate: Date | null, birthTime: string) {
 const SOLO_READING_KEY = "bazi-solo-reading";
 const SOLO_FOLLOWUPS_KEY = "bazi-solo-followups";
 
+// Read any in-session reading synchronously so the first paint already shows the
+// correct view (input hero vs. full reading). Doing this in a mount effect
+// instead caused a visible layout shift / CLS for returning visitors.
+function readInitialSoloState(): {
+  birthDate: Date | null;
+  birthTime: string;
+  reading: BaziReading | null;
+  cachedAnswers: Record<string, string>;
+} {
+  const empty = { birthDate: null, birthTime: "", reading: null, cachedAnswers: {} };
+  try {
+    const storedBirth = sessionStorage.getItem("bazi-solo-birth");
+    let birthDate: Date | null = null;
+    let birthTime = "";
+    if (storedBirth) {
+      const parsed = JSON.parse(storedBirth);
+      birthDate = parseDateString(parsed.birthDate);
+      birthTime = parsed.birthTime || "";
+    }
+    const storedReading = sessionStorage.getItem(SOLO_READING_KEY);
+    const reading = storedReading ? JSON.parse(storedReading) : null;
+    let cachedAnswers: Record<string, string> = {};
+    if (birthDate) {
+      const storedFollowups = sessionStorage.getItem(getFollowupsKey(birthDate, birthTime));
+      if (storedFollowups) cachedAnswers = JSON.parse(storedFollowups);
+    }
+    return { birthDate, birthTime, reading, cachedAnswers };
+  } catch {
+    return empty;
+  }
+}
+
 const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
   const { t, i18n } = useTranslation();
-  const [birthDate, setBirthDate] = useState<Date | null>(null);
-  const [birthTime, setBirthTime] = useState<string>("");
-  const [reading, setReading] = useState<BaziReading | null>(null);
+  const [initialState] = useState(readInitialSoloState);
+  const [birthDate, setBirthDate] = useState<Date | null>(initialState.birthDate);
+  const [birthTime, setBirthTime] = useState<string>(initialState.birthTime);
+  const [reading, setReading] = useState<BaziReading | null>(initialState.reading);
   const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
   const [followUpAnswer, setFollowUpAnswer] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [followUpLoading, setFollowUpLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMainReadingExpanded, setIsMainReadingExpanded] = useState(true);
-  const [cachedAnswers, setCachedAnswers] = useState<Record<string, string>>({});
+  const [cachedAnswers, setCachedAnswers] = useState<Record<string, string>>(initialState.cachedAnswers);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
   const followUpRef = useRef<HTMLDivElement>(null);
@@ -89,26 +122,8 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
     }
   }, [selectedQuestion, followUpLoading]);
 
-  // On mount, restore birthDate/time, then reading and follow-ups
-  React.useEffect(() => {
-    const storedBirth = sessionStorage.getItem("bazi-solo-birth");
-    let parsedDate: Date | null = null;
-    let restoredTime = "";
-    if (storedBirth) {
-      const parsed = JSON.parse(storedBirth);
-      parsedDate = parseDateString(parsed.birthDate);
-      restoredTime = parsed.birthTime || "";
-      setBirthDate(parsedDate);
-      setBirthTime(restoredTime);
-    }
-    const storedReading = sessionStorage.getItem(SOLO_READING_KEY);
-    if (storedReading) setReading(JSON.parse(storedReading));
-    if (parsedDate) {
-      const followupsKey = getFollowupsKey(parsedDate, restoredTime);
-      const storedFollowups = sessionStorage.getItem(followupsKey);
-      if (storedFollowups) setCachedAnswers(JSON.parse(storedFollowups));
-    }
-  }, []);
+  // Birth date/time, reading and follow-ups are restored synchronously in the
+  // initial state above (see readInitialSoloState) to avoid a mount-time swap.
 
   React.useEffect(() => {
     if (reading) sessionStorage.setItem(SOLO_READING_KEY, JSON.stringify(reading));
@@ -384,11 +399,19 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                       />
                     </Button>
                   </div>
-                  {isMainReadingExpanded && (
-                    <div className="animate-expand">
+                  {/* Keep the markdown mounted and toggle height via CSS so
+                      expand/collapse is a cheap paint — re-mounting re-parsed
+                      the whole reading synchronously on each click (bad INP). */}
+                  <div
+                    className={cn(
+                      "grid transition-[grid-template-rows] duration-500 ease-out",
+                      isMainReadingExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                    )}
+                  >
+                    <div className="overflow-hidden">
                       <ReadingMarkdown>{reading.reading}</ReadingMarkdown>
                     </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
             </Reveal>

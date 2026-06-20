@@ -4,11 +4,14 @@ import { cn } from "@/lib/utils";
 
 const ReactMarkdown = React.lazy(() => import("react-markdown"));
 
-/** Gold-themed prose renderer for AI readings (not rasterized — uses theme tokens). */
+/** Gold-themed prose renderer for AI readings (not rasterized — uses theme tokens).
+ *  Memoized: react-markdown parsing is a synchronous main-thread cost, so we
+ *  only re-run it when the markdown string actually changes — not on every
+ *  parent re-render (follow-up clicks, share dialog, etc.). This is a key INP win. */
 export const ReadingMarkdown: React.FC<{
   children: string;
   className?: string;
-}> = ({ children, className }) => (
+}> = React.memo(({ children, className }) => (
   <div
     className={cn(
       "leading-relaxed text-foreground/90",
@@ -28,6 +31,7 @@ export const ReadingMarkdown: React.FC<{
       <ReactMarkdown>{children}</ReactMarkdown>
     </Suspense>
   </div>
-);
+));
+ReadingMarkdown.displayName = "ReadingMarkdown";
 
 export default ReadingMarkdown;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, startTransition } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import SoloReading from '../components/SoloReading';
@@ -6,18 +6,19 @@ import CompatibilityReading from '../components/CompatibilityReading';
 
 const Home: React.FC = () => {
     const { t } = useTranslation();
-    const [readingMode, setReadingMode] = useState<'solo' | 'compatibility'>('solo');
-
-    // Switch to compatibility mode if ?mode=compatibility is present
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('mode') === 'compatibility') {
-            setReadingMode('compatibility');
-        }
-    }, []);
+    // Resolve ?mode=compatibility synchronously so the correct mode is rendered
+    // on first paint (avoids a solo→compatibility swap / layout shift).
+    const [readingMode, setReadingMode] = useState<'solo' | 'compatibility'>(() =>
+        new URLSearchParams(window.location.search).get('mode') === 'compatibility'
+            ? 'compatibility'
+            : 'solo'
+    );
 
     const handleModeSwitch = (newMode: 'solo' | 'compatibility') => {
-        setReadingMode(newMode);
+        // Mounting the other reading subtree is heavy; mark it as a transition
+        // so the click stays responsive (keeps INP down) instead of blocking
+        // the main thread on the swap.
+        startTransition(() => setReadingMode(newMode));
         // Scroll to top so the hero's entrance animations play in view.
         const prefersReducedMotion = window.matchMedia(
             '(prefers-reduced-motion: reduce)'

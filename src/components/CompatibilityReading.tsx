@@ -47,13 +47,58 @@ function cleanBullets(markdown: string) {
 const COMPAT_READING_KEY = "bazi-compat-reading";
 const COMPAT_BIRTH_KEY = "bazi-compat-birth";
 
+// Restore from sessionStorage synchronously (or auto-fill person1 from Solo) so
+// the first paint already shows the correct view and we avoid a mount-time
+// layout shift / CLS for returning visitors.
+interface InitialCompatState {
+  person1BirthDate: Date | null;
+  person1BirthTime: string;
+  person2BirthDate: Date | null;
+  person2BirthTime: string;
+  reading: CompatibilityReadingData | null;
+}
+
+function readInitialCompatState(): InitialCompatState {
+  const empty: InitialCompatState = {
+    person1BirthDate: null,
+    person1BirthTime: "",
+    person2BirthDate: null,
+    person2BirthTime: "",
+    reading: null,
+  };
+  try {
+    const state = { ...empty };
+    const storedBirth = sessionStorage.getItem(COMPAT_BIRTH_KEY);
+    if (storedBirth) {
+      const { person1BirthDate: p1d, person1BirthTime: p1t, person2BirthDate: p2d, person2BirthTime: p2t } = JSON.parse(storedBirth);
+      if (p1d) state.person1BirthDate = parseDateString(p1d);
+      if (p1t) state.person1BirthTime = p1t;
+      if (p2d) state.person2BirthDate = parseDateString(p2d);
+      if (p2t) state.person2BirthTime = p2t;
+    } else {
+      const soloBirth = sessionStorage.getItem("bazi-solo-birth");
+      if (soloBirth) {
+        const { birthDate, birthTime } = JSON.parse(soloBirth);
+        if (birthDate) state.person1BirthDate = parseDateString(birthDate);
+        if (birthTime) state.person1BirthTime = birthTime;
+      }
+    }
+    const storedReading = sessionStorage.getItem(COMPAT_READING_KEY);
+    if (storedReading) state.reading = JSON.parse(storedReading);
+    return state;
+  } catch {
+    return empty;
+  }
+}
+
 const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitch }) => {
   const { t, i18n } = useTranslation();
-  const [person1BirthDate, setPerson1BirthDate] = useState<Date | null>(null);
-  const [person1BirthTime, setPerson1BirthTime] = useState<string>("");
-  const [person2BirthDate, setPerson2BirthDate] = useState<Date | null>(null);
-  const [person2BirthTime, setPerson2BirthTime] = useState<string>("");
-  const [compatibilityReading, setCompatibilityReading] = useState<CompatibilityReadingData | null>(null);
+  const [initialState] = useState(readInitialCompatState);
+  const [person1BirthDate, setPerson1BirthDate] = useState<Date | null>(initialState.person1BirthDate);
+  const [person1BirthTime, setPerson1BirthTime] = useState<string>(initialState.person1BirthTime);
+  const [person2BirthDate, setPerson2BirthDate] = useState<Date | null>(initialState.person2BirthDate);
+  const [person2BirthTime, setPerson2BirthTime] = useState<string>(initialState.person2BirthTime);
+  const [compatibilityReading, setCompatibilityReading] = useState<CompatibilityReadingData | null>(initialState.reading);
   const [compatibilityLoading, setCompatibilityLoading] = useState(false);
   const [compatibilityError, setCompatibilityError] = useState<string | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -64,27 +109,6 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
   React.useEffect(() => {
     if (compatibilityLoading) window.scrollTo({ top: 0, behavior: "smooth" });
   }, [compatibilityLoading]);
-
-  // On mount, restore from sessionStorage (or auto-fill person1 from Solo)
-  React.useEffect(() => {
-    const storedBirth = sessionStorage.getItem(COMPAT_BIRTH_KEY);
-    const storedReading = sessionStorage.getItem(COMPAT_READING_KEY);
-    if (storedBirth) {
-      const { person1BirthDate: p1d, person1BirthTime: p1t, person2BirthDate: p2d, person2BirthTime: p2t } = JSON.parse(storedBirth);
-      if (p1d) setPerson1BirthDate(parseDateString(p1d));
-      if (p1t) setPerson1BirthTime(p1t);
-      if (p2d) setPerson2BirthDate(parseDateString(p2d));
-      if (p2t) setPerson2BirthTime(p2t);
-    } else {
-      const soloBirth = sessionStorage.getItem("bazi-solo-birth");
-      if (soloBirth) {
-        const { birthDate, birthTime } = JSON.parse(soloBirth);
-        if (birthDate) setPerson1BirthDate(parseDateString(birthDate));
-        if (birthTime) setPerson1BirthTime(birthTime);
-      }
-    }
-    if (storedReading) setCompatibilityReading(JSON.parse(storedReading));
-  }, []);
 
   React.useEffect(() => {
     if (compatibilityReading) {

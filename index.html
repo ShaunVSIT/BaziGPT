@@ -65,10 +65,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <!-- Fonts: Cormorant Garamond (display) + Inter (body) — Celestial Noir -->
+  <!-- Fonts: Cormorant Garamond (display) + Inter (body) — Celestial Noir.
+       display=optional avoids the late font swap (FOUT) that reflows the large
+       display headings and tanks CLS; the real fonts apply once cached. -->
   <link
     rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=optional">
 
   <!-- Structured Data -->
   <script type="application/ld+json">
