@@ -72,6 +72,22 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
   const [cachedAnswers, setCachedAnswers] = useState<Record<string, string>>({});
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
+  const followUpRef = useRef<HTMLDivElement>(null);
+
+  // When the main reading is being generated, the loader takes over the whole
+  // viewport — snap to the top so the user sees the celestial loader instead of
+  // whatever they were scrolled to before submitting.
+  React.useEffect(() => {
+    if (loading) window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [loading]);
+
+  // When a follow-up question is picked, scroll its loader / answer into view so
+  // the focus follows the action rather than staying up by the question chips.
+  React.useEffect(() => {
+    if (selectedQuestion && followUpRef.current) {
+      followUpRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [selectedQuestion, followUpLoading]);
 
   // On mount, restore birthDate/time, then reading and follow-ups
   React.useEffect(() => {
@@ -415,16 +431,18 @@ const SoloReading: React.FC<SoloReadingProps> = ({ onModeSwitch }) => {
                     ))}
                   </div>
 
-                  {followUpLoading && <CosmicLoader />}
+                  <div ref={followUpRef} className="scroll-mt-24">
+                    {followUpLoading && <CosmicLoader />}
 
-                  {followUpAnswer && !followUpLoading && (
-                    <div className="animate-rise-blur mt-3 rounded-xl border border-primary/15 bg-primary/[0.05] p-4">
-                      <h4 className="mb-2 font-display text-lg font-semibold text-gold-shimmer">
-                        {selectedQuestion}
-                      </h4>
-                      <ReadingMarkdown>{followUpAnswer}</ReadingMarkdown>
-                    </div>
-                  )}
+                    {followUpAnswer && !followUpLoading && (
+                      <div className="animate-rise-blur mt-3 rounded-xl border border-primary/15 bg-primary/[0.05] p-4">
+                        <h4 className="mb-2 font-display text-lg font-semibold text-gold-shimmer">
+                          {selectedQuestion}
+                        </h4>
+                        <ReadingMarkdown>{followUpAnswer}</ReadingMarkdown>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </Reveal>

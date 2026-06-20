@@ -59,6 +59,12 @@ const CompatibilityReading: React.FC<CompatibilityReadingProps> = ({ onModeSwitc
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
+  // While the compatibility reading generates, the loader takes over the whole
+  // viewport — snap to the top so the celestial loader is what the user sees.
+  React.useEffect(() => {
+    if (compatibilityLoading) window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [compatibilityLoading]);
+
   // On mount, restore from sessionStorage (or auto-fill person1 from Solo)
   React.useEffect(() => {
     const storedBirth = sessionStorage.getItem(COMPAT_BIRTH_KEY);

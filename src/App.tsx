@@ -1,5 +1,5 @@
-import { Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Suspense, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import DevelopmentAnalytics from './components/DevelopmentAnalytics';
@@ -18,10 +18,22 @@ const LoadingSpinner = () => (
   </div>
 );
 
+// Reset scroll to the top on every route change so users land on the hero /
+// loading state instead of inheriting the previous page's scroll position
+// (e.g. landing on the footer when opening a famous person from a scrolled grid).
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname]);
+  return null;
+};
+
 function App() {
   return (
     <ErrorBoundary>
       <Router>
+        <ScrollToTop />
         <Layout>
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
